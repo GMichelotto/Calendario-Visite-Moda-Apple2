@@ -18,10 +18,19 @@ jobs:
       with:
         node-version: '20'
         
-    - name: Install dependencies
+    - name: Clean install and generate package-lock.json
       run: |
-        npm ci
+        rm -f package-lock.json
+        npm install --package-lock-only
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add package-lock.json
+        git commit -m "Regenerate package-lock.json" || echo "No changes to commit"
+        git push
         
+    - name: Install dependencies
+      run: npm ci
+      
     - name: Build React app
       run: npm run build
       
