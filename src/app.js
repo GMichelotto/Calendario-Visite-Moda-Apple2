@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 function App() {
+  useEffect(() => {
+    console.log('App component mounted');
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
