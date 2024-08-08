@@ -25,7 +25,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron-dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js",
+    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js --publish never",
     "electron:start": "wait-on tcp:3000 && electron ."
   },
   "eslintConfig": {
