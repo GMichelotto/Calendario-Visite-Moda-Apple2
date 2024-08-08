@@ -65,8 +65,6 @@ function App() {
     clienti.forEach(cliente => {
       const clientCollections = cliente.collezioni.split(';').map(c => c.trim());
       
-      // Raggruppare le visite per lo stesso cliente
-      const clientEvents = [];
       clientCollections.forEach(collection => {
         const { start, end } = collectionDates[collection];
         let currentDate = moment(start);
@@ -76,35 +74,28 @@ function App() {
             const morningStart = moment(currentDate).hour(9);
             const afternoonStart = moment(currentDate).hour(14);
 
-            const morningEvent = {
-              id: `${cliente.Nome}-${collection}-${morningStart.format()}`,
-              title: `${cliente.Nome} - ${collection}`,
-              start: morningStart.toDate(),
-              end: moment(morningStart).add(2, 'hours').toDate(),
-              cliente: cliente.Nome,
-              collezione: collection
-            };
+            for (let i = 0; i < 4; i++) { // 4 slot al giorno (2 mattina, 2 pomeriggio)
+              const eventStart = i < 2 ? moment(morningStart).add(i * 2, 'hours') : moment(afternoonStart).add((i - 2) * 2, 'hours');
+              const eventEnd = moment(eventStart).add(2, 'hours');
 
-            const afternoonEvent = {
-              id: `${cliente.Nome}-${collection}-${afternoonStart.format()}`,
-              title: `${cliente.Nome} - ${collection}`,
-              start: afternoonStart.toDate(),
-              end: moment(afternoonStart).add(2, 'hours').toDate(),
-              cliente: cliente.Nome,
-              collezione: collection
-            };
+              const newEvent = {
+                id: `${cliente.Nome}-${collection}-${eventStart.format()}`,
+                title: `${cliente.Nome} - ${collection}`,
+                start: eventStart.toDate(),
+                end: eventEnd.toDate(),
+                cliente: cliente.Nome,
+                collezione: collection
+              };
 
-            if (!hasOverlap(morningEvent, clientEvents)) {
-              clientEvents.push(morningEvent);
-            } else if (!hasOverlap(afternoonEvent, clientEvents)) {
-              clientEvents.push(afternoonEvent);
+              if (!hasOverlap(newEvent, newEvents)) {
+                newEvents.push(newEvent);
+                break; // Passa al prossimo giorno dopo aver aggiunto un evento
+              }
             }
           }
           currentDate.add(1, 'days');
         }
       });
-
-      newEvents.push(...clientEvents);
     });
 
     // Ordinare gli eventi per data
