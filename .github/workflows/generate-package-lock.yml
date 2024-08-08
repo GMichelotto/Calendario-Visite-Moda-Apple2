@@ -16,7 +16,7 @@ jobs:
         
     - name: Generate package-lock.json
       run: |
-        npm install
+        npm install --legacy-peer-deps
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add package-lock.json
