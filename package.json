@@ -1,22 +1,7 @@
 {
   "name": "calendario-visite-moda",
   "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "react-big-calendar": "^0.33.2",
-    "moment": "^2.29.1",
-    "electron-is-dev": "^2.0.0"
-  },
-  "devDependencies": {
-    "electron": "^13.1.7",
-    "electron-builder": "^22.11.7",
-    "concurrently": "^6.2.0",
-    "wait-on": "^6.0.0",
-    "cross-env": "^7.0.3"
-  },
+  "description": "Applicazione per la gestione del calendario visite moda",
   "main": "public/electron.js",
   "homepage": "./",
   "scripts": {
@@ -28,11 +13,36 @@
     "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js --publish never",
     "electron:start": "wait-on tcp:3000 && electron ."
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "author": "Gianluigi Michelotto <gianluigi.michelotto@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-big-calendar": "^1.8.4",
+    "moment": "^2.29.4",
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "concurrently": "^8.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^26.1.0",
+    "electron-builder": "^24.6.3",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.9.5",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.gianluigimichelotto.calendariovisitemoda",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "public/electron.js"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   },
   "browserslist": {
     "production": [
@@ -45,15 +55,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "build": {
-    "appId": "com.tuaazienda.calendariovisitemoda",
-    "files": [
-      "build/**/*",
-      "node_modules/**/*"
-    ],
-    "directories": {
-      "buildResources": "assets"
-    }
   }
 }
