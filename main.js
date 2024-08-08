@@ -22,7 +22,15 @@ const createWindow = () => {
   mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
+  
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Window loaded successfully');
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorCode, errorDescription);
+  });
 };
 
 // This method will be called when Electron has finished
@@ -46,6 +54,3 @@ app.on('activate', () => {
     createWindow();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
