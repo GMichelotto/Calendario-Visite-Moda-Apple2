@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [csvFile, setCsvFile] = useState(null);
+  const [csvFiles, setCsvFiles] = useState([]);
 
   const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    setCsvFile(file);
-    // Qui puoi aggiungere la logica per leggere e processare il file CSV
+    const files = Array.from(event.target.files);
+    setCsvFiles(prevFiles => [...prevFiles, ...files]);
+    // Qui puoi aggiungere la logica per leggere e processare i file CSV
   };
 
   const openCalendar = () => {
-    // Implementa la logica per aprire il calendario
-    console.log('Apri calendario');
+    // Implementa la logica per generare il calendario
+    console.log('Genera calendario con', csvFiles.length, 'file');
   };
 
   return (
@@ -21,18 +22,32 @@ function App() {
         <p>Benvenuto nell'applicazione per la gestione del calendario visite moda.</p>
       </header>
       <main>
-        <div>
+        <div className="file-upload">
           <input
             type="file"
             accept=".csv"
+            multiple
             onChange={handleFileUpload}
+            id="csv-upload"
+            style={{display: 'none'}}
           />
-          <button onClick={() => document.querySelector('input[type="file"]').click()}>
+          <button onClick={() => document.getElementById('csv-upload').click()}>
             Carica File CSV
           </button>
         </div>
-        {csvFile && <p>File caricato: {csvFile.name}</p>}
-        <button onClick={openCalendar}>Apri Calendario</button>
+        {csvFiles.length > 0 && (
+          <div className="file-list">
+            <h3>File caricati:</h3>
+            <ul>
+              {csvFiles.map((file, index) => (
+                <li key={index}>{file.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <button onClick={openCalendar} disabled={csvFiles.length === 0}>
+          Genera Calendario
+        </button>
       </main>
     </div>
   );
