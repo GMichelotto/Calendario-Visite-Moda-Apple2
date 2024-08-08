@@ -117,10 +117,20 @@ function App() {
       </header>
       <main>
         <div className="file-upload">
-          <input type="file" accept=".csv" onChange={(e) => handleFileUpload(e, 'clients')} />
-          <label>Upload Clients CSV</label>
-          <input type="file" accept=".csv" onChange={(e) => handleFileUpload(e, 'collections')} />
-          <label>Upload Collections CSV</label>
+          <input 
+            type="file" 
+            accept=".csv" 
+            onChange={(e) => handleFileUpload(e, 'clients')} 
+            id="clients-upload"
+          />
+          <label htmlFor="clients-upload">Upload Clients CSV</label>
+          <input 
+            type="file" 
+            accept=".csv" 
+            onChange={(e) => handleFileUpload(e, 'collections')} 
+            id="collections-upload"
+          />
+          <label htmlFor="collections-upload">Upload Collections CSV</label>
         </div>
         <button onClick={generateCalendar}>Generate Calendar</button>
         <div className="calendar-container">
@@ -133,6 +143,8 @@ function App() {
             onEventDrop={onEventDrop}
             onEventResize={onEventResize}
             resizable
+            defaultView="week"
+            views={['day', 'week', 'month']}
           />
         </div>
       </main>
