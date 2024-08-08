@@ -1,6 +1,6 @@
 {
   "name": "calendario-visite-moda",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Applicazione per la gestione del calendario visite moda",
   "main": "public/electron.js",
   "homepage": "./",
@@ -31,8 +31,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron-dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js --publish never -c.extraMetadata.version=${npm_package_version}",
-    "electron:start": "wait-on tcp:3000 && electron ."
+    "electron:build": "npm run build && npm run set-version && electron-builder -c.extraMetadata.main=build/electron.js --publish never",
+    "electron:start": "wait-on tcp:3000 && electron .",
+    "set-version": "node -e \"const fs=require('fs'); const package=JSON.parse(fs.readFileSync('package.json')); fs.writeFileSync('build/version.txt', package.version);\""
   },
   "build": {
     "appId": "com.gianluigimichelotto.calendariovisitemoda",
@@ -45,12 +46,18 @@
     "directories": {
       "buildResources": "assets"
     },
+    "extraMetadata": {
+      "version": "1.0.2"
+    },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "public/icon.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   },
   "eslintConfig": {
