@@ -18,15 +18,11 @@ jobs:
       with:
         node-version: '20'
         
-    - name: Clean install and generate package-lock.json
+    - name: Increment version
       run: |
-        if (Test-Path package-lock.json) { Remove-Item package-lock.json }
-        npm install --package-lock-only
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add package-lock.json
-        git diff --staged --quiet || git commit -m "Regenerate package-lock.json"
-        git push origin HEAD:${{ github.ref }}
+        npm version patch
+        $version = (Get-Content package.json | ConvertFrom-Json).version
+        echo "New version: $version"
       shell: pwsh
         
     - name: Install dependencies
@@ -43,3 +39,12 @@ jobs:
       with:
         name: windows-app
         path: dist/*.exe
+        
+    - name: Commit version bump
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add package.json
+        git commit -m "Bump version [skip ci]"
+        git push
+      shell: pwsh
