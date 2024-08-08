@@ -19,16 +19,13 @@ jobs:
         node-version: '20'
         
     - name: Install dependencies
-      run: npm install
+      run: npm ci
       
-    - name: Build React app
-      run: npm run build
-      
-    - name: Build Electron app
-      run: npm run make
+    - name: Build React and Electron app
+      run: npm run electron:build
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-app
-        path: out/make/squirrel.windows/x64/*.exe
+        path: dist/*.exe
