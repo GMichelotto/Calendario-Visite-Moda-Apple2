@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import moment from 'moment';
-import './EventModal.css';
 
 function EventModal({ event, onClose, onUpdate }) {
+  useEffect(() => {
+    import('./EventModal.css');
+  }, []);
+
   const [editedEvent, setEditedEvent] = useState({
     ...event,
     start: moment(event.start).format('YYYY-MM-DDTHH:mm'),
