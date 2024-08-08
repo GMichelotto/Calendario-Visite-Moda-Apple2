@@ -2,7 +2,8 @@
   "name": "calendario-visite-moda",
   "version": "1.0.0",
   "description": "Applicazione per la gestione del calendario visite moda",
-  "main": "main.js",
+  "main": "public/electron.js",
+  "homepage": "./",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -13,7 +14,7 @@
     "prebuild": "rimraf build",
     "postbuild": "electron-builder",
     "electron:serve": "concurrently -k \"cross-env BROWSER=none npm run react-start\" \"npm run electron:start\"",
-    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/main.js",
+    "electron:build": "npm run build && electron-builder",
     "electron:start": "wait-on tcp:3000 && electron ."
   },
   "author": "Gianluigi Michelotto <gianluigi.michelotto@gmail.com>",
@@ -35,7 +36,19 @@
     "wait-on": "^7.0.1",
     "cross-env": "^7.0.3",
     "rimraf": "^3.0.2",
-    "electron-builder": "^23.0.3"
+    "electron-builder": "^23.0.3",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  },
+  "build": {
+    "appId": "com.gianluigimichelotto.calendariovisitemoda",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "public/electron.js"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   },
   "config": {
     "forge": {
