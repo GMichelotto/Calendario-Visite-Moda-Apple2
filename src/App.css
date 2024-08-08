@@ -28,12 +28,28 @@ h1 {
 }
 
 main {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   background-color: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.file-upload {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.file-upload input {
+  margin-right: 10px;
+}
+
+.file-upload label {
+  margin-right: 20px;
 }
 
 button {
@@ -53,24 +69,25 @@ button:hover {
   background-color: #106ebe;
 }
 
-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.file-list {
-  text-align: left;
+.calendar-container {
+  height: 600px;
   margin-top: 20px;
 }
 
-.file-list ul {
-  list-style-type: none;
-  padding: 0;
+/* React Big Calendar custom styles */
+.rbc-event {
+  background-color: #0078d4;
+  border-radius: 4px;
 }
 
-.file-list li {
-  background-color: #f8f8f8;
-  padding: 8px;
-  margin-bottom: 5px;
-  border-radius: 4px;
+.rbc-event-label {
+  font-size: 0.8em;
+}
+
+.rbc-event-content {
+  font-size: 0.9em;
+}
+
+.rbc-today {
+  background-color: #e6f2ff;
 }
