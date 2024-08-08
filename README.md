@@ -1,1 +1,1 @@
-Software di esercizio. Non utilizzare, potrebbe contenere errori
+Software di esercizio. Non utilizzare, potrebbe contenere errori!
