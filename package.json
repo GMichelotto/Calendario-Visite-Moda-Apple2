@@ -9,7 +9,12 @@
     "make": "electron-forge make",
     "build": "react-scripts build",
     "react-start": "react-scripts start",
-    "electron-dev": "concurrently \"npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
+    "electron-dev": "concurrently \"npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
+    "prebuild": "rimraf build",
+    "postbuild": "electron-builder",
+    "electron:serve": "concurrently -k \"cross-env BROWSER=none npm run react-start\" \"npm run electron:start\"",
+    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/main.js",
+    "electron:start": "wait-on tcp:3000 && electron ."
   },
   "author": "Gianluigi Michelotto <gianluigi.michelotto@gmail.com>",
   "license": "ISC",
@@ -27,7 +32,10 @@
     "electron": "^23.0.0",
     "react-scripts": "5.0.1",
     "concurrently": "^7.6.0",
-    "wait-on": "^7.0.1"
+    "wait-on": "^7.0.1",
+    "cross-env": "^7.0.3",
+    "rimraf": "^3.0.2",
+    "electron-builder": "^23.0.3"
   },
   "config": {
     "forge": {
