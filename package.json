@@ -5,16 +5,12 @@
   "main": "public/electron.js",
   "homepage": "./",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
+    "start": "react-scripts start",
     "build": "react-scripts build",
-    "react-start": "react-scripts start",
-    "electron-dev": "concurrently \"npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
-    "prebuild": "rimraf build",
-    "postbuild": "electron-builder",
-    "electron:serve": "concurrently -k \"cross-env BROWSER=none npm run react-start\" \"npm run electron:start\"",
-    "electron:build": "npm run build && electron-builder",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js",
     "electron:start": "wait-on tcp:3000 && electron ."
   },
   "author": "Gianluigi Michelotto <gianluigi.michelotto@gmail.com>",
@@ -22,60 +18,26 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-is-dev": "^2.0.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0",
-    "@electron-forge/maker-deb": "^6.0.0",
-    "@electron-forge/maker-rpm": "^6.0.0",
-    "@electron-forge/maker-squirrel": "^6.0.0",
-    "@electron-forge/maker-zip": "^6.0.0",
-    "electron": "^23.0.0",
-    "react-scripts": "5.0.1",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
     "concurrently": "^7.6.0",
-    "wait-on": "^7.0.1",
-    "cross-env": "^7.0.3",
-    "rimraf": "^3.0.2",
-    "electron-builder": "^23.0.3",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "electron": "^23.0.0",
+    "electron-builder": "^23.6.0",
+    "react-scripts": "5.0.1",
+    "typescript": "^5.2.2",
+    "wait-on": "^7.0.1"
   },
   "build": {
     "appId": "com.gianluigimichelotto.calendariovisitemoda",
     "files": [
       "build/**/*",
-      "node_modules/**/*",
-      "public/electron.js"
+      "node_modules/**/*"
     ],
     "directories": {
       "buildResources": "assets"
-    }
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {},
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "calendario_visite_moda",
-            "authors": "Gianluigi Michelotto"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ]
     }
   },
   "browserslist": {
