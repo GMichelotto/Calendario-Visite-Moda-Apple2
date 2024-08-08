@@ -11,7 +11,7 @@
     "react-start": "react-scripts start",
     "electron-dev": "concurrently \"npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
   },
-  "author": "",
+  "author": "Gianluigi Michelotto <gianluigi.michelotto@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "react": "^18.2.0",
@@ -36,7 +36,8 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "calendario_visite_moda"
+            "name": "calendario_visite_moda",
+            "authors": "Gianluigi Michelotto"
           }
         },
         {
