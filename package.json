@@ -1,6 +1,6 @@
 {
   "name": "calendario-visite-moda",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Applicazione per la gestione del calendario visite moda",
   "main": "public/electron.js",
   "homepage": "./",
@@ -23,7 +23,8 @@
     "electron-builder": "^24.6.3",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
-    "wait-on": "^7.0.1"
+    "wait-on": "^7.0.1",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -31,9 +32,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron-dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && npm run set-version && electron-builder -c.extraMetadata.main=build/electron.js --publish never",
-    "electron:start": "wait-on tcp:3000 && electron .",
-    "set-version": "node -e \"const fs=require('fs'); const package=JSON.parse(fs.readFileSync('package.json')); fs.writeFileSync('build/version.txt', package.version);\""
+    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js --publish never",
+    "electron:start": "wait-on tcp:3000 && electron ."
   },
   "build": {
     "appId": "com.gianluigimichelotto.calendariovisitemoda",
@@ -47,7 +47,7 @@
       "buildResources": "assets"
     },
     "extraMetadata": {
-      "version": "1.0.2"
+      "version": "1.0.7"
     },
     "win": {
       "target": "nsis",
