@@ -23,7 +23,6 @@ function App() {
 
   useEffect(() => {
     if (events.length > 0) {
-      // Imposta la vista del calendario sulla settimana del primo evento
       const firstEventStart = moment(events[0].start);
       setCalendarDate(firstEventStart.toDate());
     }
@@ -72,8 +71,7 @@ function App() {
     const collectionDates = {};
 
     // Preparare le date delle collezioni
-    collezioni.forEach((collezione, index) => {
-      console.log(`Processando collezione ${index + 1}:`, collezione);
+    collezioni.forEach((collezione) => {
       const startDate = moment(collezione['Data Inizio'], 'DD/MM/YYYY');
       const endDate = moment(collezione['Data Fine'], 'DD/MM/YYYY');
       if (!startDate.isValid() || !endDate.isValid()) {
@@ -86,19 +84,18 @@ function App() {
     console.log('Date delle collezioni:', collectionDates);
 
     // Generare eventi per ogni cliente
-    clienti.forEach((cliente, clientIndex) => {
-      console.log(`Generazione eventi per cliente ${clientIndex + 1}:`, cliente.Nome);
+    clienti.forEach((cliente) => {
+      console.log(`Generazione eventi per cliente:`, cliente.Nome);
       const clientCollections = cliente.collezioni.split(';').map(c => c.trim());
       
-      clientCollections.forEach((collection, collectionIndex) => {
-        console.log(`Generazione evento per collezione ${collectionIndex + 1}:`, collection);
+      clientCollections.forEach((collection) => {
+        console.log(`Generazione evento per collezione:`, collection);
         const dateRange = collectionDates[collection];
         if (!dateRange) {
           console.error(`Date non trovate per la collezione: ${collection}`);
           return;
         }
         
-        // Genera un solo evento per ogni combinazione cliente-collezione
         const eventStart = moment(dateRange.start).hour(9).minute(0);
         const eventEnd = moment(eventStart).add(2, 'hours');
 
@@ -235,6 +232,7 @@ function App() {
             onEventDrop={onEventDrop}
             onEventResize={onEventResize}
             resizable
+            draggableAccessor={() => true}
             onSelectEvent={handleSelectEvent}
           />
         </div>
