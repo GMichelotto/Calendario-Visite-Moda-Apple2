@@ -6,6 +6,7 @@ import './App.css';
 import EventModal from './EventModal';
 
 const localizer = momentLocalizer(moment);
+const MAX_ITERATIONS = 1000; // Numero massimo di iterazioni consentite
 
 function App() {
   const [events, setEvents] = useState([]);
@@ -63,9 +64,14 @@ function App() {
     const collectionDates = {};
 
     // Preparare le date delle collezioni
-    collezioni.forEach(collezione => {
+    collezioni.forEach((collezione, index) => {
+      console.log(`Processando collezione ${index + 1}:`, collezione);
       const startDate = moment(collezione['Data Inizio'], 'DD/MM/YYYY');
       const endDate = moment(collezione['Data Fine'], 'DD/MM/YYYY');
+      if (!startDate.isValid() || !endDate.isValid()) {
+        console.error(`Date non valide per la collezione: ${collezione.Collezioni}`);
+        return;
+      }
       collectionDates[collezione.Collezioni] = { start: startDate, end: endDate };
     });
 
@@ -81,20 +87,21 @@ function App() {
     };
 
     // Generare eventi per ogni cliente
-    clienti.forEach(cliente => {
-      console.log('Generazione eventi per cliente:', cliente.Nome);
+    clienti.forEach((cliente, clientIndex) => {
+      console.log(`Generazione eventi per cliente ${clientIndex + 1}:`, cliente.Nome);
       const clientCollections = cliente.collezioni.split(';').map(c => c.trim());
       
-      clientCollections.forEach(collection => {
-        console.log('Generazione eventi per collezione:', collection);
-        const { start, end } = collectionDates[collection];
-        if (!start || !end) {
-          console.error('Date non trovate per la collezione:', collection);
+      clientCollections.forEach((collection, collectionIndex) => {
+        console.log(`Generazione eventi per collezione ${collectionIndex + 1}:`, collection);
+        const dateRange = collectionDates[collection];
+        if (!dateRange) {
+          console.error(`Date non trovate per la collezione: ${collection}`);
           return;
         }
-        let currentDate = moment(start);
+        let currentDate = moment(dateRange.start);
 
-        while (currentDate.isSameOrBefore(end)) {
+        let iterations = 0;
+        while (currentDate.isSameOrBefore(dateRange.end) && iterations < MAX_ITERATIONS) {
           if (currentDate.day() >= 1 && currentDate.day() <= 5) { // Lunedì a Venerdì
             const morningStart = moment(currentDate).hour(9);
             const afternoonStart = moment(currentDate).hour(14);
@@ -120,6 +127,13 @@ function App() {
             }
           }
           currentDate.add(1, 'days');
+          iterations++;
+        }
+
+        if (iterations >= MAX_ITERATIONS) {
+          console.error(`Raggiunto il numero massimo di iterazioni per il cliente ${cliente.Nome} e la collezione ${collection}`);
+          setMessage(`Errore: troppi eventi generati per ${cliente.Nome} - ${collection}`);
+          return; // Interrompi la generazione degli eventi
         }
       });
     });
