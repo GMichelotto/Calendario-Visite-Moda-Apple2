@@ -129,7 +129,72 @@ function App() {
     setMessage(`Eventi generati: ${newEvents.length}`);
   };
 
-  // ... (resto del codice invariato) ...
+  const handleSaveCalendar = () => {
+    const dataStr = JSON.stringify(events);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = 'calendar_events.json';
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    setMessage('Calendario salvato con successo');
+  };
+
+  const handleLoadCalendar = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const loadedEvents = JSON.parse(e.target.result);
+        setEvents(loadedEvents.map(ev => ({
+          ...ev,
+          start: new Date(ev.start),
+          end: new Date(ev.end)
+        })));
+        setMessage('Calendario caricato con successo');
+      } catch (error) {
+        setMessage(`Errore nel caricamento del calendario: ${error.message}`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const onEventDrop = useCallback(({ event, start, end }) => {
+    setEvents(prevEvents => {
+      const updatedEvents = prevEvents.map(ev => 
+        ev.id === event.id ? { ...ev, start, end } : ev
+      );
+      return updatedEvents;
+    });
+    setMessage('Evento spostato con successo');
+  }, []);
+
+  const onEventResize = useCallback(({ event, start, end }) => {
+    setEvents(prevEvents => {
+      const updatedEvents = prevEvents.map(ev => 
+        ev.id === event.id ? { ...ev, start, end } : ev
+      );
+      return updatedEvents;
+    });
+    setMessage('Evento ridimensionato con successo');
+  }, []);
+
+  const handleSelectEvent = useCallback((event) => {
+    setSelectedEvent(event);
+  }, []);
+
+  const handleCloseModal = () => {
+    setSelectedEvent(null);
+  };
+
+  const handleUpdateEvent = (updatedEvent) => {
+    setEvents(prevEvents => 
+      prevEvents.map(ev => ev.id === updatedEvent.id ? updatedEvent : ev)
+    );
+    setSelectedEvent(null);
+    setMessage('Evento aggiornato con successo');
+  };
 
   return (
     <div className="App">
