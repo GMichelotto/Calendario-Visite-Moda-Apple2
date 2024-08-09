@@ -6,7 +6,6 @@ import './App.css';
 import EventModal from './EventModal';
 
 const localizer = momentLocalizer(moment);
-const MAX_ITERATIONS = 1000; // Numero massimo di iterazioni consentite
 
 function App() {
   const [events, setEvents] = useState([]);
@@ -14,12 +13,21 @@ function App() {
   const [collezioni, setCollezioni] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [message, setMessage] = useState('');
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   useEffect(() => {
     console.log('Clienti:', clienti);
     console.log('Collezioni:', collezioni);
     console.log('Eventi:', events);
   }, [clienti, collezioni, events]);
+
+  useEffect(() => {
+    if (events.length > 0) {
+      // Imposta la vista del calendario sulla settimana del primo evento
+      const firstEventStart = moment(events[0].start);
+      setCalendarDate(firstEventStart.toDate());
+    }
+  }, [events]);
 
   const processCSV = (text) => {
     const [headers, ...rows] = text.split('\n').map(row => row.split(';').map(cell => cell.trim()));
@@ -77,64 +85,34 @@ function App() {
 
     console.log('Date delle collezioni:', collectionDates);
 
-    // Funzione per verificare sovrapposizioni
-    const hasOverlap = (newEvent, existingEvents) => {
-      return existingEvents.some(event => 
-        (moment(newEvent.start).isBetween(event.start, event.end, null, '[]')) ||
-        (moment(newEvent.end).isBetween(event.start, event.end, null, '[]')) ||
-        (moment(event.start).isBetween(newEvent.start, newEvent.end, null, '[]'))
-      );
-    };
-
     // Generare eventi per ogni cliente
     clienti.forEach((cliente, clientIndex) => {
       console.log(`Generazione eventi per cliente ${clientIndex + 1}:`, cliente.Nome);
       const clientCollections = cliente.collezioni.split(';').map(c => c.trim());
       
       clientCollections.forEach((collection, collectionIndex) => {
-        console.log(`Generazione eventi per collezione ${collectionIndex + 1}:`, collection);
+        console.log(`Generazione evento per collezione ${collectionIndex + 1}:`, collection);
         const dateRange = collectionDates[collection];
         if (!dateRange) {
           console.error(`Date non trovate per la collezione: ${collection}`);
           return;
         }
-        let currentDate = moment(dateRange.start);
+        
+        // Genera un solo evento per ogni combinazione cliente-collezione
+        const eventStart = moment(dateRange.start).hour(9).minute(0);
+        const eventEnd = moment(eventStart).add(2, 'hours');
 
-        let iterations = 0;
-        while (currentDate.isSameOrBefore(dateRange.end) && iterations < MAX_ITERATIONS) {
-          if (currentDate.day() >= 1 && currentDate.day() <= 5) { // Lunedì a Venerdì
-            const morningStart = moment(currentDate).hour(9);
-            const afternoonStart = moment(currentDate).hour(14);
+        const newEvent = {
+          id: `${cliente.Nome}-${collection}`,
+          title: `${cliente.Nome} - ${collection}`,
+          start: eventStart.toDate(),
+          end: eventEnd.toDate(),
+          cliente: cliente.Nome,
+          collezione: collection
+        };
 
-            for (let i = 0; i < 4; i++) { // 4 slot al giorno (2 mattina, 2 pomeriggio)
-              const eventStart = i < 2 ? moment(morningStart).add(i * 2, 'hours') : moment(afternoonStart).add((i - 2) * 2, 'hours');
-              const eventEnd = moment(eventStart).add(2, 'hours');
-
-              const newEvent = {
-                id: `${cliente.Nome}-${collection}-${eventStart.format()}`,
-                title: `${cliente.Nome} - ${collection}`,
-                start: eventStart.toDate(),
-                end: eventEnd.toDate(),
-                cliente: cliente.Nome,
-                collezione: collection
-              };
-
-              if (!hasOverlap(newEvent, newEvents)) {
-                newEvents.push(newEvent);
-                console.log('Nuovo evento aggiunto:', newEvent);
-                break; // Passa al prossimo giorno dopo aver aggiunto un evento
-              }
-            }
-          }
-          currentDate.add(1, 'days');
-          iterations++;
-        }
-
-        if (iterations >= MAX_ITERATIONS) {
-          console.error(`Raggiunto il numero massimo di iterazioni per il cliente ${cliente.Nome} e la collezione ${collection}`);
-          setMessage(`Errore: troppi eventi generati per ${cliente.Nome} - ${collection}`);
-          return; // Interrompi la generazione degli eventi
-        }
+        newEvents.push(newEvent);
+        console.log('Nuovo evento aggiunto:', newEvent);
       });
     });
 
@@ -251,6 +229,8 @@ function App() {
             endAccessor="end"
             style={{ height: 500 }}
             defaultView="week"
+            date={calendarDate}
+            onNavigate={date => setCalendarDate(date)}
             views={['month', 'week', 'day']}
             onEventDrop={onEventDrop}
             onEventResize={onEventResize}
