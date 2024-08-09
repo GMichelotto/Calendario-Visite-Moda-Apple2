@@ -32,6 +32,12 @@ jobs:
         echo "New version: $version"
       shell: pwsh
         
+    - name: Update package-lock.json
+      run: |
+        npm install --package-lock-only
+        git add package-lock.json
+        git commit -m "Update package-lock.json [skip ci]"
+      
     - name: Install dependencies
       run: npm ci
       
@@ -47,7 +53,7 @@ jobs:
         name: windows-app
         path: dist/*.exe
         
-    - name: Commit and push version bump
+    - name: Commit and push changes
       run: |
         git add package.json
         git commit -m "Bump version to ${{ steps.package-version.outputs.version }} [skip ci]"
