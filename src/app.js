@@ -4,8 +4,11 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './App.css';
 import EventModal from './EventModal';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 
 const localizer = momentLocalizer(moment);
+const DnDCalendar = withDragAndDrop(Calendar);
 
 function App() {
   const [events, setEvents] = useState([]);
@@ -100,7 +103,7 @@ function App() {
         const eventEnd = moment(eventStart).add(2, 'hours');
 
         const newEvent = {
-          id: `${cliente.Nome}-${collection}`,
+          id: `${cliente.Nome}-${collection}-${eventStart.format()}`,
           title: `${cliente.Nome} - ${collection}`,
           start: eventStart.toDate(),
           end: eventEnd.toDate(),
@@ -219,7 +222,7 @@ function App() {
         <label htmlFor="load-calendar">Carica Calendario</label>
         {message && <div className="message">{message}</div>}
         <div className="calendar-container">
-          <Calendar
+          <DnDCalendar
             localizer={localizer}
             events={events}
             startAccessor="start"
@@ -232,7 +235,7 @@ function App() {
             onEventDrop={onEventDrop}
             onEventResize={onEventResize}
             resizable
-            draggableAccessor={() => true}
+            selectable
             onSelectEvent={handleSelectEvent}
           />
         </div>
