@@ -1,6 +1,6 @@
 {
   "name": "calendario-visite-moda",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Applicazione per la gestione del calendario visite moda",
   "main": "public/electron.js",
   "homepage": "./",
