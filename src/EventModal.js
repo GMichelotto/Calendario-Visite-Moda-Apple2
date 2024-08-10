@@ -58,4 +58,98 @@ const styles = `
 }
 `;
 
-function EventModal({ event
+function EventModal({ event, onClose, onUpdate, collezioni }) {
+  const [editedEvent, setEditedEvent] = useState({
+    ...event,
+    start: moment(event.start).format('YYYY-MM-DDTHH:mm'),
+    end: moment(event.end).format('YYYY-MM-DDTHH:mm')
+  });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    validateEvent(editedEvent);
+  }, [editedEvent]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedEvent(prev => ({ ...prev, [name]: value }));
+  };
+
+  const validateEvent = (event) => {
+    const start = moment(event.start);
+    const end = moment(event.end);
+    
+    if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
+      setError('Gli eventi devono essere programmati dal lunedì al venerdì.');
+      return false;
+    }
+
+    const startHour = start.hour();
+    const endHour = end.hour();
+    if ((startHour < 9 || startHour >= 18 || (startHour >= 13 && startHour < 14)) ||
+        (endHour < 9 || endHour > 18 || (endHour > 13 && endHour <= 14))) {
+      setError('Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00.');
+      return false;
+    }
+
+    const collezione = collezioni.find(c => c.Collezioni === event.collezione);
+    if (collezione) {
+      const collectionStart = moment(collezione['Data Inizio'], 'DD/MM/YYYY');
+      const collectionEnd = moment(collezione['Data Fine'], 'DD/MM/YYYY');
+      if (start.isBefore(collectionStart) || end.isAfter(collectionEnd)) {
+        setError('L\'evento deve essere all\'interno del periodo della collezione.');
+        return false;
+      }
+    }
+
+    setError('');
+    return true;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateEvent(editedEvent)) {
+      onUpdate({
+        ...editedEvent,
+        start: new Date(editedEvent.start),
+        end: new Date(editedEvent.end)
+      });
+    }
+  };
+
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="modal-backdrop">
+        <div className="modal">
+          <h2>Dettagli Evento</h2>
+          <form onSubmit={handleSubmit}>
+            <label>
+              Cliente:
+              <input type="text" name="cliente" value={editedEvent.cliente} onChange={handleChange} readOnly />
+            </label>
+            <label>
+              Collezione:
+              <input type="text" name="collezione" value={editedEvent.collezione} onChange={handleChange} readOnly />
+            </label>
+            <label>
+              Inizio:
+              <input type="datetime-local" name="start" value={editedEvent.start} onChange={handleChange} />
+            </label>
+            <label>
+              Fine:
+              <input type="datetime-local" name="end" value={editedEvent.end} onChange={handleChange} />
+            </label>
+            {error && <div className="error-message">{error}</div>}
+            <div className="button-group">
+              <button type="submit">Aggiorna</button>
+              <button type="button" onClick={onClose}>Chiudi</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default EventModal;
