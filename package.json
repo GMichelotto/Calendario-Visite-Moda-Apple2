@@ -1,6 +1,8 @@
 {
   "name": "calendario-visite-moda",
   "version": "1.0.0",
+  "description": "Applicazione per la gestione del calendario visite moda",
+  "author": "",
   "private": true,
   "main": "public/electron.js",
   "homepage": "./",
@@ -26,7 +28,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron:dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron.js",
+    "electron:build": "npm run build && electron-builder --publish never",
     "electron:start": "wait-on tcp:3000 && electron ."
   },
   "eslintConfig": {
@@ -64,6 +66,7 @@
     },
     "linux": {
       "target": "AppImage"
-    }
+    },
+    "publish": null
   }
 }
