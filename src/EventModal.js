@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import moment from 'moment';
 
 const styles = `
@@ -66,30 +66,19 @@ function EventModal({ event, onClose, onUpdate, collezioni }) {
   });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    validateEvent(editedEvent);
-  }, [editedEvent]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditedEvent(prev => ({ ...prev, [name]: value }));
-  };
-
-  const validateEvent = (event) => {
+  const validateEvent = useCallback((event) => {
     const start = moment(event.start);
     const end = moment(event.end);
     
     if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
-      setError('Gli eventi devono essere programmati dal lunedì al venerdì.');
-      return false;
+      return 'Gli eventi devono essere programmati dal lunedì al venerdì.';
     }
 
     const startHour = start.hour();
     const endHour = end.hour();
     if ((startHour < 9 || startHour >= 18 || (startHour >= 13 && startHour < 14)) ||
         (endHour < 9 || endHour > 18 || (endHour > 13 && endHour <= 14))) {
-      setError('Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00.');
-      return false;
+      return 'Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00.';
     }
 
     const collezione = collezioni.find(c => c.Collezioni === event.collezione);
@@ -97,23 +86,34 @@ function EventModal({ event, onClose, onUpdate, collezioni }) {
       const collectionStart = moment(collezione['Data Inizio'], 'DD/MM/YYYY');
       const collectionEnd = moment(collezione['Data Fine'], 'DD/MM/YYYY');
       if (start.isBefore(collectionStart) || end.isAfter(collectionEnd)) {
-        setError('L\'evento deve essere all\'interno del periodo della collezione.');
-        return false;
+        return 'L\'evento deve essere all\'interno del periodo della collezione.';
       }
     }
 
-    setError('');
-    return true;
+    return null;
+  }, [collezioni]);
+
+  useEffect(() => {
+    const errorMessage = validateEvent(editedEvent);
+    setError(errorMessage || '');
+  }, [editedEvent, validateEvent]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedEvent(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateEvent(editedEvent)) {
+    const errorMessage = validateEvent(editedEvent);
+    if (!errorMessage) {
       onUpdate({
         ...editedEvent,
         start: new Date(editedEvent.start),
         end: new Date(editedEvent.end)
       });
+    } else {
+      setError(errorMessage);
     }
   };
 
