@@ -86,33 +86,88 @@ function App() {
 
     console.log('Date delle collezioni:', collectionDates);
 
+    // Funzione per trovare il prossimo slot disponibile
+    const findNextAvailableSlot = (date, events) => {
+      const workingHours = [
+        { start: 9, end: 13 },
+        { start: 14, end: 18 }
+      ];
+      
+      while (true) {
+        if (date.day() === 0 || date.day() === 6) {
+          date.add(1, 'days').hour(9).minute(0);
+          continue;
+        }
+
+        for (const hours of workingHours) {
+          date.hour(hours.start).minute(0);
+          const endTime = moment(date).add(2, 'hours');
+
+          if (endTime.hour() > hours.end) {
+            continue;
+          }
+
+          const overlap = events.some(event => 
+            (moment(event.start).isBefore(endTime) && moment(event.end).isAfter(date))
+          );
+
+          if (!overlap) {
+            return date;
+          }
+        }
+
+        date.add(1, 'days').hour(9).minute(0);
+      }
+    };
+
     // Generare eventi per ogni cliente
     clienti.forEach((cliente) => {
       console.log(`Generazione eventi per cliente:`, cliente.Nome);
       const clientCollections = cliente.collezioni.split(';').map(c => c.trim());
       
-      clientCollections.forEach((collection) => {
-        console.log(`Generazione evento per collezione:`, collection);
+      // Raggruppa le collezioni per date
+      const groupedCollections = clientCollections.reduce((acc, collection) => {
         const dateRange = collectionDates[collection];
         if (!dateRange) {
           console.error(`Date non trovate per la collezione: ${collection}`);
-          return;
+          return acc;
         }
-        
-        const eventStart = moment(dateRange.start).hour(9).minute(0);
-        const eventEnd = moment(eventStart).add(2, 'hours');
+        const key = `${dateRange.start.format('YYYY-MM-DD')}-${dateRange.end.format('YYYY-MM-DD')}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(collection);
+        return acc;
+      }, {});
 
-        const newEvent = {
-          id: `${cliente.Nome}-${collection}-${eventStart.format()}`,
-          title: `${cliente.Nome} - ${collection}`,
-          start: eventStart.toDate(),
-          end: eventEnd.toDate(),
-          cliente: cliente.Nome,
-          collezione: collection
-        };
+      // Genera eventi per ogni gruppo di collezioni
+      Object.entries(groupedCollections).forEach(([dateKey, collections]) => {
+        const [startDate, endDate] = dateKey.split('-').map(d => moment(d));
+        let eventDate = moment(startDate);
 
-        newEvents.push(newEvent);
-        console.log('Nuovo evento aggiunto:', newEvent);
+        collections.forEach((collection) => {
+          eventDate = findNextAvailableSlot(eventDate, newEvents);
+          
+          if (eventDate.isAfter(endDate)) {
+            console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
+            return;
+          }
+
+          const eventEnd = moment(eventDate).add(2, 'hours');
+
+          const newEvent = {
+            id: `${cliente.Nome}-${collection}-${eventDate.format()}`,
+            title: `${cliente.Nome} - ${collection}`,
+            start: eventDate.toDate(),
+            end: eventEnd.toDate(),
+            cliente: cliente.Nome,
+            collezione: collection
+          };
+
+          newEvents.push(newEvent);
+          console.log('Nuovo evento aggiunto:', newEvent);
+
+          // Prepara la data per il prossimo evento dello stesso cliente
+          eventDate = moment(eventEnd);
+        });
       });
     });
 
@@ -152,25 +207,61 @@ function App() {
     reader.readAsText(file);
   };
 
+  const validateEventMove = (start, end, collezione) => {
+    if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
+      return 'Gli eventi devono essere programmati dal lunedì al venerdì.';
+    }
+
+    const startHour = start.hour();
+    const endHour = end.hour();
+    if ((startHour < 9 || startHour >= 18 || (startHour >= 13 && startHour < 14)) ||
+        (endHour < 9 || endHour > 18 || (endHour > 13 && endHour <= 14))) {
+      return 'Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00.';
+    }
+
+    const collezioneInfo = collezioni.find(c => c.Collezioni === collezione);
+    if (collezioneInfo) {
+      const collectionStart = moment(collezioneInfo['Data Inizio'], 'DD/MM/YYYY');
+      const collectionEnd = moment(collezioneInfo['Data Fine'], 'DD/MM/YYYY');
+      if (start.isBefore(collectionStart) || end.isAfter(collectionEnd)) {
+        return 'L\'evento deve essere all\'interno del periodo della collezione.';
+      }
+    }
+
+    return null;
+  };
+
   const onEventDrop = useCallback(({ event, start, end }) => {
+    const errorMessage = validateEventMove(moment(start), moment(end), event.collezione);
+    if (errorMessage) {
+      setMessage(errorMessage);
+      return;
+    }
+
     setEvents(prevEvents => {
       const updatedEvents = prevEvents.map(ev => 
         ev.id === event.id ? { ...ev, start, end } : ev
       );
       return updatedEvents;
     });
-    setMessage('Evento spostato con successo');
-  }, []);
+    setMessage(`Evento "${event.title}" spostato con successo`);
+  }, [collezioni]);
 
   const onEventResize = useCallback(({ event, start, end }) => {
+    const errorMessage = validateEventMove(moment(start), moment(end), event.collezione);
+    if (errorMessage) {
+      setMessage(errorMessage);
+      return;
+    }
+
     setEvents(prevEvents => {
       const updatedEvents = prevEvents.map(ev => 
         ev.id === event.id ? { ...ev, start, end } : ev
       );
       return updatedEvents;
     });
-    setMessage('Evento ridimensionato con successo');
-  }, []);
+    setMessage(`Evento "${event.title}" ridimensionato con successo`);
+  }, [collezioni]);
 
   const handleSelectEvent = useCallback((event) => {
     setSelectedEvent(event);
@@ -245,6 +336,7 @@ function App() {
           event={selectedEvent} 
           onClose={handleCloseModal} 
           onUpdate={handleUpdateEvent}
+          collezioni={collezioni}
         />
       )}
     </div>
