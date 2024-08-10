@@ -20,13 +20,12 @@ jobs:
         
     - name: Clean install and update package-lock.json
       run: |
-        if (Test-Path package-lock.json) { Remove-Item package-lock.json }
+        Remove-Item -Path package-lock.json -ErrorAction Ignore
         npm install
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add package-lock.json
-        git diff --staged --quiet || git commit -m "Update package-lock.json"
-        git push origin HEAD:${{ github.ref }}
+        git diff --staged --quiet || (git commit -m "Update package-lock.json" && git push)
       shell: pwsh
       
     - name: Build React app
