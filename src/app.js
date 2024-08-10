@@ -207,7 +207,7 @@ function App() {
     reader.readAsText(file);
   };
 
-  const validateEventMove = (start, end, collezione) => {
+  const validateEventMove = useCallback((start, end, collezione) => {
     if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
       return 'Gli eventi devono essere programmati dal lunedì al venerdì.';
     }
@@ -229,7 +229,7 @@ function App() {
     }
 
     return null;
-  };
+  }, [collezioni]);
 
   const onEventDrop = useCallback(({ event, start, end }) => {
     const errorMessage = validateEventMove(moment(start), moment(end), event.collezione);
@@ -245,7 +245,7 @@ function App() {
       return updatedEvents;
     });
     setMessage(`Evento "${event.title}" spostato con successo`);
-  }, [collezioni]);
+  }, [validateEventMove]);
 
   const onEventResize = useCallback(({ event, start, end }) => {
     const errorMessage = validateEventMove(moment(start), moment(end), event.collezione);
@@ -261,7 +261,7 @@ function App() {
       return updatedEvents;
     });
     setMessage(`Evento "${event.title}" ridimensionato con successo`);
-  }, [collezioni]);
+  }, [validateEventMove]);
 
   const handleSelectEvent = useCallback((event) => {
     setSelectedEvent(event);
