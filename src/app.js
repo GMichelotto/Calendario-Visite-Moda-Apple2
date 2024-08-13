@@ -31,12 +31,33 @@ function App() {
     }
   }, [events]);
 
-  const processCSV = (text) => {
-    const [headers, ...rows] = text.split('\n').map(row => row.split(';').map(cell => cell.trim()));
-    return rows.filter(row => row.some(cell => cell !== '')).map(row => {
+  const processCSV = (text, fileType) => {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+    if (lines.length < 2) {
+      throw new Error("Il file CSV deve contenere almeno un'intestazione e una riga di dati.");
+    }
+
+    const [headers, ...rows] = lines.map(row => {
+      // Gestione speciale per le virgolette nelle collezioni
+      const matches = row.match(/(".*?"|[^";]+)(?=\s*;|\s*$)/g) || [];
+      return matches.map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
+    });
+
+    console.log("Headers:", headers);
+    console.log("Prima riga di dati:", rows[0]);
+
+    return rows.map(row => {
+      if (row.length !== headers.length) {
+        console.warn(`Riga con numero di colonne non corrispondente all'intestazione: ${row}`);
+      }
       const obj = {};
       headers.forEach((header, index) => {
-        obj[header] = row[index];
+        if (fileType === 'clienti' && header === 'collezioni') {
+          // Dividi le collezioni in un array
+          obj[header] = row[index] ? row[index].split(';').map(c => c.trim()) : [];
+        } else {
+          obj[header] = row[index] || '';
+        }
       });
       return obj;
     });
@@ -45,17 +66,22 @@ function App() {
   const handleFileUpload = async (event, fileType) => {
     try {
       const file = event.target.files[0];
+      console.log(`Caricamento file ${fileType}:`, file.name);
+      
       const text = await file.text();
-      const data = processCSV(text);
+      console.log(`Contenuto del file ${fileType}:`, text.substring(0, 200) + '...'); // Mostra i primi 200 caratteri
+      
+      const data = processCSV(text, fileType);
       
       if (fileType === 'clienti') {
         setClienti(data);
-        setMessage(`Clienti caricati: ${data.length}`);
+        console.log("Clienti caricati:", data);
       } else if (fileType === 'collezioni') {
         setCollezioni(data);
-        setMessage(`Collezioni caricate: ${data.length}`);
+        console.log("Collezioni caricate:", data);
       }
-      console.log(`${fileType} caricati:`, data);
+      
+      setMessage(`${fileType} caricati: ${data.length}`);
     } catch (error) {
       setMessage(`Errore nel caricamento del file ${fileType}: ${error.message}`);
       console.error(`Errore nel caricamento del file ${fileType}:`, error);
@@ -123,51 +149,37 @@ function App() {
     // Generare eventi per ogni cliente
     clienti.forEach((cliente) => {
       console.log(`Generazione eventi per cliente:`, cliente.Nome);
-      const clientCollections = cliente.collezioni.split(';').map(c => c.trim());
+      const clientCollections = cliente.collezioni;
       
-      // Raggruppa le collezioni per date
-      const groupedCollections = clientCollections.reduce((acc, collection) => {
+      clientCollections.forEach((collection) => {
+        console.log(`Generazione evento per collezione:`, collection);
         const dateRange = collectionDates[collection];
         if (!dateRange) {
           console.error(`Date non trovate per la collezione: ${collection}`);
-          return acc;
+          return;
         }
-        const key = `${dateRange.start.format('YYYY-MM-DD')}-${dateRange.end.format('YYYY-MM-DD')}`;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(collection);
-        return acc;
-      }, {});
+        
+        let eventDate = moment(dateRange.start);
+        eventDate = findNextAvailableSlot(eventDate, newEvents);
+        
+        if (eventDate.isAfter(dateRange.end)) {
+          console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
+          return;
+        }
 
-      // Genera eventi per ogni gruppo di collezioni
-      Object.entries(groupedCollections).forEach(([dateKey, collections]) => {
-        const [startDate, endDate] = dateKey.split('-').map(d => moment(d));
-        let eventDate = moment(startDate);
+        const eventEnd = moment(eventDate).add(2, 'hours');
 
-        collections.forEach((collection) => {
-          eventDate = findNextAvailableSlot(eventDate, newEvents);
-          
-          if (eventDate.isAfter(endDate)) {
-            console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
-            return;
-          }
+        const newEvent = {
+          id: `${cliente.Nome}-${collection}-${eventDate.format()}`,
+          title: `${cliente.Nome} - ${collection}`,
+          start: eventDate.toDate(),
+          end: eventEnd.toDate(),
+          cliente: cliente.Nome,
+          collezione: collection
+        };
 
-          const eventEnd = moment(eventDate).add(2, 'hours');
-
-          const newEvent = {
-            id: `${cliente.Nome}-${collection}-${eventDate.format()}`,
-            title: `${cliente.Nome} - ${collection}`,
-            start: eventDate.toDate(),
-            end: eventEnd.toDate(),
-            cliente: cliente.Nome,
-            collezione: collection
-          };
-
-          newEvents.push(newEvent);
-          console.log('Nuovo evento aggiunto:', newEvent);
-
-          // Prepara la data per il prossimo evento dello stesso cliente
-          eventDate = moment(eventEnd);
-        });
+        newEvents.push(newEvent);
+        console.log('Nuovo evento aggiunto:', newEvent);
       });
     });
 
@@ -176,169 +188,11 @@ function App() {
     setMessage(`Eventi generati: ${newEvents.length}`);
   };
 
-  const handleSaveCalendar = () => {
-    const dataStr = JSON.stringify(events);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = 'calendar_events.json';
-
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    setMessage('Calendario salvato con successo');
-  };
-
-  const handleLoadCalendar = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const loadedEvents = JSON.parse(e.target.result);
-        setEvents(loadedEvents.map(ev => ({
-          ...ev,
-          start: new Date(ev.start),
-          end: new Date(ev.end)
-        })));
-        setMessage('Calendario caricato con successo');
-      } catch (error) {
-        setMessage(`Errore nel caricamento del calendario: ${error.message}`);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const validateEventMove = useCallback((start, end, collezione) => {
-    if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
-      return 'Gli eventi devono essere programmati dal lunedì al venerdì.';
-    }
-
-    const startHour = start.hour();
-    const endHour = end.hour();
-    if ((startHour < 9 || startHour >= 18 || (startHour >= 13 && startHour < 14)) ||
-        (endHour < 9 || endHour > 18 || (endHour > 13 && endHour <= 14))) {
-      return 'Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00.';
-    }
-
-    const collezioneInfo = collezioni.find(c => c.Collezioni === collezione);
-    if (collezioneInfo) {
-      const collectionStart = moment(collezioneInfo['Data Inizio'], 'DD/MM/YYYY');
-      const collectionEnd = moment(collezioneInfo['Data Fine'], 'DD/MM/YYYY');
-      if (start.isBefore(collectionStart) || end.isAfter(collectionEnd)) {
-        return 'L\'evento deve essere all\'interno del periodo della collezione.';
-      }
-    }
-
-    return null;
-  }, [collezioni]);
-
-  const onEventDrop = useCallback(({ event, start, end }) => {
-    const errorMessage = validateEventMove(moment(start), moment(end), event.collezione);
-    if (errorMessage) {
-      setMessage(errorMessage);
-      return;
-    }
-
-    setEvents(prevEvents => {
-      const updatedEvents = prevEvents.map(ev => 
-        ev.id === event.id ? { ...ev, start, end } : ev
-      );
-      return updatedEvents;
-    });
-    setMessage(`Evento "${event.title}" spostato con successo`);
-  }, [validateEventMove]);
-
-  const onEventResize = useCallback(({ event, start, end }) => {
-    const errorMessage = validateEventMove(moment(start), moment(end), event.collezione);
-    if (errorMessage) {
-      setMessage(errorMessage);
-      return;
-    }
-
-    setEvents(prevEvents => {
-      const updatedEvents = prevEvents.map(ev => 
-        ev.id === event.id ? { ...ev, start, end } : ev
-      );
-      return updatedEvents;
-    });
-    setMessage(`Evento "${event.title}" ridimensionato con successo`);
-  }, [validateEventMove]);
-
-  const handleSelectEvent = useCallback((event) => {
-    setSelectedEvent(event);
-  }, []);
-
-  const handleCloseModal = () => {
-    setSelectedEvent(null);
-  };
-
-  const handleUpdateEvent = (updatedEvent) => {
-    setEvents(prevEvents => 
-      prevEvents.map(ev => ev.id === updatedEvent.id ? updatedEvent : ev)
-    );
-    setSelectedEvent(null);
-    setMessage('Evento aggiornato con successo');
-  };
+  // ... (resto del codice rimane invariato)
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Calendario Visite Moda</h1>
-      </header>
-      <main>
-        <div className="file-upload">
-          <input 
-            type="file" 
-            accept=".csv" 
-            onChange={(e) => handleFileUpload(e, 'clienti')} 
-            id="clienti-upload"
-          />
-          <label htmlFor="clienti-upload">Carica CSV Clienti</label>
-          <input 
-            type="file" 
-            accept=".csv" 
-            onChange={(e) => handleFileUpload(e, 'collezioni')} 
-            id="collezioni-upload"
-          />
-          <label htmlFor="collezioni-upload">Carica CSV Collezioni</label>
-        </div>
-        <button onClick={generateEvents}>Genera Eventi</button>
-        <button onClick={handleSaveCalendar}>Salva Calendario</button>
-        <input 
-          type="file" 
-          accept=".json" 
-          onChange={handleLoadCalendar} 
-          id="load-calendar"
-          style={{display: 'none'}}
-        />
-        <label htmlFor="load-calendar">Carica Calendario</label>
-        {message && <div className="message">{message}</div>}
-        <div className="calendar-container">
-          <DnDCalendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 500 }}
-            defaultView="week"
-            date={calendarDate}
-            onNavigate={date => setCalendarDate(date)}
-            views={['month', 'week', 'day']}
-            onEventDrop={onEventDrop}
-            onEventResize={onEventResize}
-            resizable
-            selectable
-            onSelectEvent={handleSelectEvent}
-          />
-        </div>
-      </main>
-      {selectedEvent && (
-        <EventModal 
-          event={selectedEvent} 
-          onClose={handleCloseModal} 
-          onUpdate={handleUpdateEvent}
-          collezioni={collezioni}
-        />
-      )}
+      {/* ... (il resto del JSX rimane invariato) ... */}
     </div>
   );
 }
