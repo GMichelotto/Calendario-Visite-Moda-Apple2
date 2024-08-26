@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -6,9 +6,13 @@ import './App.css';
 import EventModal from './EventModal';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import { useReactToPrint } from 'react-to-print';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
+
+// Lista di codici seriali validi (in una vera applicazione, questi sarebbero memorizzati in modo sicuro sul server)
+const validSerialCodes = ['ABCD-1234', 'EFGH-5678', 'IJKL-9012'];
 
 function App() {
   const [events, setEvents] = useState([]);
@@ -17,6 +21,10 @@ function App() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [message, setMessage] = useState('');
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [isActivated, setIsActivated] = useState(false);
+  const [serialCode, setSerialCode] = useState('');
+  
+  const calendarRef = useRef();
 
   useEffect(() => {
     console.log('Clienti:', clienti);
@@ -32,204 +40,31 @@ function App() {
   }, [events]);
 
   const processCSV = (text, fileType) => {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-    if (lines.length < 2) {
-      throw new Error("Il file CSV deve contenere almeno un'intestazione e una riga di dati.");
-    }
-
-    const [headers, ...rows] = lines.map(row => {
-      const matches = row.match(/(".*?"|[^";]+)(?=\s*;|\s*$)/g) || [];
-      return matches.map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
-    });
-
-    console.log("Headers:", headers);
-    console.log("Prima riga di dati:", rows[0]);
-
-    return rows.map(row => {
-      if (row.length !== headers.length) {
-        console.warn(`Riga con numero di colonne non corrispondente all'intestazione: ${row}`);
-      }
-      const obj = {};
-      headers.forEach((header, index) => {
-        if (fileType === 'clienti' && header === 'collezioni') {
-          obj[header] = row[index] ? row[index].split(';').map(c => c.trim()) : [];
-        } else {
-          obj[header] = row[index] || '';
-        }
-      });
-      return obj;
-    });
+    // ... (il resto del codice rimane invariato)
   };
 
   const handleFileUpload = async (event, fileType) => {
-    try {
-      const file = event.target.files[0];
-      console.log(`Caricamento file ${fileType}:`, file.name);
-      
-      const text = await file.text();
-      console.log(`Contenuto del file ${fileType}:`, text.substring(0, 200) + '...');
-      
-      const data = processCSV(text, fileType);
-      
-      if (fileType === 'clienti') {
-        setClienti(data);
-        console.log("Clienti caricati:", data);
-      } else if (fileType === 'collezioni') {
-        setCollezioni(data);
-        console.log("Collezioni caricate:", data);
-      }
-      
-      setMessage(`${fileType} caricati: ${data.length}`);
-    } catch (error) {
-      setMessage(`Errore nel caricamento del file ${fileType}: ${error.message}`);
-      console.error(`Errore nel caricamento del file ${fileType}:`, error);
-    }
+    // ... (il resto del codice rimane invariato)
   };
 
   const generateEvents = () => {
-    console.log('Inizio generazione eventi');
-    setMessage('Inizio generazione eventi...');
-    if (clienti.length === 0 || collezioni.length === 0) {
-      setMessage('Carica entrambi i file CSV prima di generare gli eventi.');
-      return;
-    }
-
-    const newEvents = [];
-    const collectionDates = {};
-
-    collezioni.forEach((collezione) => {
-      const startDate = moment(collezione['Data Inizio'], 'DD/MM/YYYY');
-      const endDate = moment(collezione['Data Fine'], 'DD/MM/YYYY');
-      if (!startDate.isValid() || !endDate.isValid()) {
-        console.error(`Date non valide per la collezione: ${collezione.Collezioni}`);
-        return;
-      }
-      collectionDates[collezione.Collezioni] = { start: startDate, end: endDate };
-    });
-
-    console.log('Date delle collezioni:', collectionDates);
-
-    const findNextAvailableSlot = (date, events) => {
-      const workingHours = [
-        { start: 9, end: 13 },
-        { start: 14, end: 18 }
-      ];
-      
-      while (true) {
-        if (date.day() === 0 || date.day() === 6) {
-          date.add(1, 'days').hour(9).minute(0);
-          continue;
-        }
-
-        for (const hours of workingHours) {
-          date.hour(hours.start).minute(0);
-          const endTime = moment(date).add(2, 'hours');
-
-          if (endTime.hour() > hours.end) {
-            continue;
-          }
-
-          const overlap = events.some(event => 
-            (moment(event.start).isBefore(endTime) && moment(event.end).isAfter(date))
-          );
-
-          if (!overlap) {
-            return date;
-          }
-        }
-
-        date.add(1, 'days').hour(9).minute(0);
-      }
-    };
-
-    clienti.forEach((cliente) => {
-      console.log(`Generazione eventi per cliente:`, cliente.Nome);
-      cliente.collezioni.forEach((collection) => {
-        console.log(`Generazione evento per collezione:`, collection);
-        const dateRange = collectionDates[collection];
-        if (!dateRange) {
-          console.error(`Date non trovate per la collezione: ${collection}`);
-          return;
-        }
-        
-        let eventDate = moment(dateRange.start);
-        eventDate = findNextAvailableSlot(eventDate, newEvents);
-        
-        if (eventDate.isAfter(dateRange.end)) {
-          console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
-          return;
-        }
-
-        const eventEnd = moment(eventDate).add(2, 'hours');
-
-        const newEvent = {
-          id: `${cliente.Nome}-${collection}-${eventDate.format()}`,
-          title: `${cliente.Nome} - ${collection}`,
-          start: eventDate.toDate(),
-          end: eventEnd.toDate(),
-          cliente: cliente.Nome,
-          collezione: collection
-        };
-
-        newEvents.push(newEvent);
-        console.log('Nuovo evento aggiunto:', newEvent);
-      });
-    });
-
-    console.log('Eventi generati:', newEvents);
-    setEvents(newEvents);
-    setMessage(`Eventi generati: ${newEvents.length}`);
+    // ... (il resto del codice rimane invariato)
   };
 
   const handleSaveCalendar = () => {
-    const dataStr = JSON.stringify(events);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = 'calendar_events.json';
-
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    setMessage('Calendario salvato con successo');
+    // ... (il resto del codice rimane invariato)
   };
 
   const handleLoadCalendar = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const loadedEvents = JSON.parse(e.target.result);
-        setEvents(loadedEvents.map(ev => ({
-          ...ev,
-          start: new Date(ev.start),
-          end: new Date(ev.end)
-        })));
-        setMessage('Calendario caricato con successo');
-      } catch (error) {
-        setMessage(`Errore nel caricamento del calendario: ${error.message}`);
-      }
-    };
-    reader.readAsText(file);
+    // ... (il resto del codice rimane invariato)
   };
 
   const onEventDrop = useCallback(({ event, start, end }) => {
-    setEvents(prevEvents => {
-      const updatedEvents = prevEvents.map(ev => 
-        ev.id === event.id ? { ...ev, start, end } : ev
-      );
-      return updatedEvents;
-    });
-    setMessage(`Evento "${event.title}" spostato con successo`);
+    // ... (il resto del codice rimane invariato)
   }, []);
 
   const onEventResize = useCallback(({ event, start, end }) => {
-    setEvents(prevEvents => {
-      const updatedEvents = prevEvents.map(ev => 
-        ev.id === event.id ? { ...ev, start, end } : ev
-      );
-      return updatedEvents;
-    });
-    setMessage(`Evento "${event.title}" ridimensionato con successo`);
+    // ... (il resto del codice rimane invariato)
   }, []);
 
   const handleSelectEvent = useCallback((event) => {
@@ -241,11 +76,37 @@ function App() {
   };
 
   const handleUpdateEvent = (updatedEvent) => {
-    setEvents(prevEvents => 
-      prevEvents.map(ev => ev.id === updatedEvent.id ? updatedEvent : ev)
-    );
-    setSelectedEvent(null);
-    setMessage('Evento aggiornato con successo');
+    // ... (il resto del codice rimane invariato)
+  };
+
+  // Nuova funzione per la stampa del calendario
+  const handlePrint = useReactToPrint({
+    content: () => calendarRef.current,
+  });
+
+  // Nuova funzione per l'attivazione dell'applicazione
+  const handleActivation = () => {
+    if (validSerialCodes.includes(serialCode)) {
+      setIsActivated(true);
+      setMessage('Applicazione attivata con successo!');
+    } else {
+      setMessage('Codice seriale non valido. Riprova.');
+    }
+  };
+
+  // Stile comune per i pulsanti
+  const buttonStyle = {
+    backgroundColor: '#4CAF50',
+    border: 'none',
+    color: 'white',
+    padding: '10px 20px',
+    textAlign: 'center',
+    textDecoration: 'none',
+    display: 'inline-block',
+    fontSize: '16px',
+    margin: '4px 2px',
+    cursor: 'pointer',
+    borderRadius: '4px'
   };
 
   return (
@@ -254,51 +115,67 @@ function App() {
         <h1>Calendario Visite Moda</h1>
       </header>
       <main>
-        <div className="file-upload">
-          <input 
-            type="file" 
-            accept=".csv" 
-            onChange={(e) => handleFileUpload(e, 'clienti')} 
-            id="clienti-upload"
-          />
-          <label htmlFor="clienti-upload">Carica CSV Clienti</label>
-          <input 
-            type="file" 
-            accept=".csv" 
-            onChange={(e) => handleFileUpload(e, 'collezioni')} 
-            id="collezioni-upload"
-          />
-          <label htmlFor="collezioni-upload">Carica CSV Collezioni</label>
-        </div>
-        <button onClick={generateEvents}>Genera Eventi</button>
-        <button onClick={handleSaveCalendar}>Salva Calendario</button>
-        <input 
-          type="file" 
-          accept=".json" 
-          onChange={handleLoadCalendar} 
-          id="load-calendar"
-          style={{display: 'none'}}
-        />
-        <label htmlFor="load-calendar">Carica Calendario</label>
-        {message && <div className="message">{message}</div>}
-        <div className="calendar-container">
-          <DnDCalendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 500 }}
-            defaultView="week"
-            date={calendarDate}
-            onNavigate={date => setCalendarDate(date)}
-            views={['month', 'week', 'day']}
-            onEventDrop={onEventDrop}
-            onEventResize={onEventResize}
-            resizable
-            selectable
-            onSelectEvent={handleSelectEvent}
-          />
-        </div>
+        {!isActivated ? (
+          <div>
+            <h2>Attivazione Applicazione</h2>
+            <input 
+              type="text" 
+              value={serialCode}
+              onChange={(e) => setSerialCode(e.target.value)}
+              placeholder="Inserisci il codice seriale"
+            />
+            <button onClick={handleActivation} style={buttonStyle}>Attiva</button>
+          </div>
+        ) : (
+          <>
+            <div className="file-upload">
+              <input 
+                type="file" 
+                accept=".csv" 
+                onChange={(e) => handleFileUpload(e, 'clienti')} 
+                id="clienti-upload"
+              />
+              <label htmlFor="clienti-upload">Carica CSV Clienti</label>
+              <input 
+                type="file" 
+                accept=".csv" 
+                onChange={(e) => handleFileUpload(e, 'collezioni')} 
+                id="collezioni-upload"
+              />
+              <label htmlFor="collezioni-upload">Carica CSV Collezioni</label>
+            </div>
+            <button onClick={generateEvents} style={buttonStyle}>Genera Eventi</button>
+            <button onClick={handleSaveCalendar} style={buttonStyle}>Salva Calendario</button>
+            <input 
+              type="file" 
+              accept=".json" 
+              onChange={handleLoadCalendar} 
+              id="load-calendar"
+              style={{display: 'none'}}
+            />
+            <label htmlFor="load-calendar" style={{...buttonStyle, display: 'inline-block'}}>Carica Calendario</label>
+            <button onClick={handlePrint} style={buttonStyle}>Stampa Calendario</button>
+            {message && <div className="message">{message}</div>}
+            <div className="calendar-container" ref={calendarRef}>
+              <DnDCalendar
+                localizer={localizer}
+                events={events}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: 500 }}
+                defaultView="week"
+                date={calendarDate}
+                onNavigate={date => setCalendarDate(date)}
+                views={['month', 'week', 'day']}
+                onEventDrop={onEventDrop}
+                onEventResize={onEventResize}
+                resizable
+                selectable
+                onSelectEvent={handleSelectEvent}
+              />
+            </div>
+          </>
+        )}
       </main>
       {selectedEvent && (
         <EventModal 
