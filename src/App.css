@@ -1,36 +1,28 @@
 .App {
-  text-align: center;
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
 }
 
 .App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
+  text-align: center;
   margin-bottom: 20px;
 }
 
 .file-upload {
+  display: flex;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
-.file-upload input[type="file"] {
-  display: none;
+.button-group {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
-.calendar-container {
-  height: 600px;
-  margin-top: 20px;
-}
-
-.message {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-}
-
-button, label.button {
+.button, .file-upload label {
   background-color: #4CAF50;
   border: none;
   color: white;
@@ -42,20 +34,32 @@ button, label.button {
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
+  transition: background-color 0.3s;
 }
 
-input[type="text"], input[type="password"] {
+.button:hover, .file-upload label:hover {
+  background-color: #45a049;
+}
+
+.message {
+  text-align: center;
+  margin-bottom: 20px;
   padding: 10px;
-  margin: 5px;
+  background-color: #f2f2f2;
   border-radius: 4px;
-  border: 1px solid #ddd;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+.calendar-container {
+  height: 600px;
+  margin-top: 20px;
 }
 
-li {
-  margin: 5px 0;
+@media print {
+  .file-upload, .button-group, .message {
+    display: none;
+  }
+
+  .calendar-container {
+    height: auto;
+  }
 }
