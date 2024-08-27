@@ -254,43 +254,7 @@ function App() {
   };
 
   const handlePrintCalendar = useCallback(() => {
-    const printContent = document.querySelector('.calendar-container');
-    const windowPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
-    
-    windowPrint.document.write(`
-      <html>
-        <head>
-          <title>Calendario Visite Moda</title>
-          <style>
-            @media print {
-              body { 
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-                font-family: Helvetica, Arial, sans-serif;
-              }
-              .calendar-container {
-                width: 100%;
-                height: 100%;
-                page-break-after: always;
-              }
-              @page {
-                size: landscape;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
-    
-    windowPrint.document.close();
-    windowPrint.focus();
-    windowPrint.print();
-    windowPrint.close();
+    window.print();
   }, []);
 
   return (
