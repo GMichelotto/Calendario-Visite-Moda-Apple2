@@ -11,8 +11,10 @@ import { useReactToPrint } from 'react-to-print';
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
-// Lista di codici seriali validi (in una vera applicazione, questi sarebbero memorizzati in modo sicuro sul server)
-const validSerialCodes = ['ABCD-1234', 'EFGH-5678', 'IJKL-9012'];
+// Funzione per generare codici seriali
+const generateSerialCode = () => {
+  return Math.random().toString(36).substring(2, 15).toUpperCase();
+};
 
 function App() {
   const [events, setEvents] = useState([]);
@@ -23,6 +25,9 @@ function App() {
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [isActivated, setIsActivated] = useState(false);
   const [serialCode, setSerialCode] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [serialCodes, setSerialCodes] = useState([]);
   
   const calendarRef = useRef();
 
@@ -40,31 +45,31 @@ function App() {
   }, [events]);
 
   const processCSV = (text, fileType) => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per processare CSV)
   };
 
   const handleFileUpload = async (event, fileType) => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per caricare file)
   };
 
   const generateEvents = () => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per generare eventi)
   };
 
   const handleSaveCalendar = () => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per salvare il calendario)
   };
 
   const handleLoadCalendar = (event) => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per caricare il calendario)
   };
 
   const onEventDrop = useCallback(({ event, start, end }) => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per spostare eventi)
   }, []);
 
   const onEventResize = useCallback(({ event, start, end }) => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per ridimensionare eventi)
   }, []);
 
   const handleSelectEvent = useCallback((event) => {
@@ -76,7 +81,7 @@ function App() {
   };
 
   const handleUpdateEvent = (updatedEvent) => {
-    // ... (il resto del codice rimane invariato)
+    // ... (codice esistente per aggiornare eventi)
   };
 
   // Nuova funzione per la stampa del calendario
@@ -84,11 +89,31 @@ function App() {
     content: () => calendarRef.current,
   });
 
-  // Nuova funzione per l'attivazione dell'applicazione
+  const handleAdminLogin = () => {
+    // In una vera applicazione, questa password dovrebbe essere crittografata e verificata in modo sicuro
+    if (adminPassword === 'admin123') {
+      setIsAdmin(true);
+      setMessage('Accesso admin effettuato con successo');
+    } else {
+      setMessage('Password admin non valida');
+    }
+  };
+
+  const handleGenerateCode = () => {
+    const newCode = generateSerialCode();
+    setSerialCodes(prev => [...prev, { code: newCode, isUsed: false }]);
+    setMessage(`Nuovo codice generato: ${newCode}`);
+  };
+
   const handleActivation = () => {
-    if (validSerialCodes.includes(serialCode)) {
+    const validCode = serialCodes.find(code => code.code === serialCode && !code.isUsed);
+    if (validCode) {
       setIsActivated(true);
       setMessage('Applicazione attivata con successo!');
+      // Marca il codice come usato
+      setSerialCodes(prev => prev.map(code => 
+        code.code === serialCode ? { ...code, isUsed: true } : code
+      ));
     } else {
       setMessage('Codice seriale non valido. Riprova.');
     }
@@ -115,7 +140,7 @@ function App() {
         <h1>Calendario Visite Moda</h1>
       </header>
       <main>
-        {!isActivated ? (
+        {!isActivated && !isAdmin ? (
           <div>
             <h2>Attivazione Applicazione</h2>
             <input 
@@ -125,6 +150,27 @@ function App() {
               placeholder="Inserisci il codice seriale"
             />
             <button onClick={handleActivation} style={buttonStyle}>Attiva</button>
+            <hr />
+            <h3>Accesso Admin</h3>
+            <input 
+              type="password"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              placeholder="Password Admin"
+            />
+            <button onClick={handleAdminLogin} style={buttonStyle}>Login Admin</button>
+          </div>
+        ) : isAdmin ? (
+          <div>
+            <h2>Pannello Admin</h2>
+            <button onClick={handleGenerateCode} style={buttonStyle}>Genera Nuovo Codice</button>
+            <h3>Codici Seriali:</h3>
+            <ul>
+              {serialCodes.map((code, index) => (
+                <li key={index}>{code.code} - {code.isUsed ? 'Usato' : 'Non usato'}</li>
+              ))}
+            </ul>
+            <button onClick={() => setIsAdmin(false)} style={buttonStyle}>Esci da Admin</button>
           </div>
         ) : (
           <>
@@ -135,14 +181,14 @@ function App() {
                 onChange={(e) => handleFileUpload(e, 'clienti')} 
                 id="clienti-upload"
               />
-              <label htmlFor="clienti-upload">Carica CSV Clienti</label>
+              <label htmlFor="clienti-upload" style={buttonStyle}>Carica CSV Clienti</label>
               <input 
                 type="file" 
                 accept=".csv" 
                 onChange={(e) => handleFileUpload(e, 'collezioni')} 
                 id="collezioni-upload"
               />
-              <label htmlFor="collezioni-upload">Carica CSV Collezioni</label>
+              <label htmlFor="collezioni-upload" style={buttonStyle}>Carica CSV Collezioni</label>
             </div>
             <button onClick={generateEvents} style={buttonStyle}>Genera Eventi</button>
             <button onClick={handleSaveCalendar} style={buttonStyle}>Salva Calendario</button>
@@ -155,7 +201,6 @@ function App() {
             />
             <label htmlFor="load-calendar" style={{...buttonStyle, display: 'inline-block'}}>Carica Calendario</label>
             <button onClick={handlePrint} style={buttonStyle}>Stampa Calendario</button>
-            {message && <div className="message">{message}</div>}
             <div className="calendar-container" ref={calendarRef}>
               <DnDCalendar
                 localizer={localizer}
@@ -176,6 +221,7 @@ function App() {
             </div>
           </>
         )}
+        {message && <div className="message">{message}</div>}
       </main>
       {selectedEvent && (
         <EventModal 
