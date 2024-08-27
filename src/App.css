@@ -1,5 +1,10 @@
+body, .App {
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
 .App {
-  font-family: Arial, sans-serif;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
@@ -54,12 +59,46 @@
   margin-top: 20px;
 }
 
+/* Stili per react-big-calendar */
+.rbc-calendar {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.rbc-event {
+  background-color: #3174ad;
+}
+
+.rbc-today {
+  background-color: #eaf6ff;
+}
+
+.rbc-event-label {
+  font-size: 0.8em;
+}
+
+.rbc-event-content {
+  font-size: 0.9em;
+}
+
+/* Stili per la stampa */
 @media print {
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+  }
+
   .file-upload, .button-group, .message {
     display: none;
   }
 
   .calendar-container {
     height: auto;
+  }
+
+  .rbc-calendar {
+    height: 100% !important;
+  }
+
+  @page {
+    size: landscape;
   }
 }
