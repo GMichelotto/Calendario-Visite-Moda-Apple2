@@ -110,35 +110,31 @@ function App() {
     console.log('Date delle collezioni:', collectionDates);
 
     const findNextAvailableSlot = (date, events) => {
-      const workingHours = [
-        { start: 9, end: 13 },
-        { start: 14, end: 18 }
-      ];
+      const workingHours = { start: 9, end: 18 };
 
       while (true) {
         if (date.day() === 0 || date.day() === 6) {
-          date.add(1, 'days').hour(9).minute(0);
+          date.add(1, 'days').hour(workingHours.start).minute(0);
           continue;
         }
 
-        for (const hours of workingHours) {
-          date.hour(hours.start).minute(0);
-          const endTime = moment(date).add(2, 'hours');
+        date.hour(workingHours.start).minute(0);
+        const endTime = moment(date).add(2, 'hours');
 
-          if (endTime.hour() > hours.end) {
-            continue;
-          }
-
-          const overlap = events.some(event => 
-            (moment(event.start).isBefore(endTime) && moment(event.end).isAfter(date))
-          );
-
-          if (!overlap) {
-            return date;
-          }
+        if (endTime.hour() > workingHours.end) {
+          date.add(1, 'days').hour(workingHours.start).minute(0);
+          continue;
         }
 
-        date.add(1, 'days').hour(9).minute(0);
+        const overlap = events.some(event => 
+          (moment(event.start).isBefore(endTime) && moment(event.end).isAfter(date))
+        );
+
+        if (!overlap) {
+          return date;
+        }
+
+        date.add(2, 'hours');
       }
     };
 
@@ -249,7 +245,43 @@ function App() {
   };
 
   const handlePrintCalendar = useCallback(() => {
-    window.print();
+    const printContent = document.querySelector('.calendar-container');
+    const windowPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    
+    windowPrint.document.write(`
+      <html>
+        <head>
+          <title>Calendario Visite Moda</title>
+          <style>
+            @media print {
+              body { 
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: Helvetica, Arial, sans-serif;
+              }
+              .calendar-container {
+                width: 100%;
+                height: 100%;
+                page-break-after: always;
+              }
+              @page {
+                size: landscape;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    
+    windowPrint.document.close();
+    windowPrint.focus();
+    windowPrint.print();
+    windowPrint.close();
   }, []);
 
   return (
@@ -264,6 +296,7 @@ function App() {
             accept=".csv" 
             onChange={(e) => handleFileUpload(e, 'clienti')} 
             id="clienti-upload"
+            style={{display: 'none'}}
           />
           <label htmlFor="clienti-upload" className="button">Carica CSV Clienti</label>
           <input 
@@ -271,6 +304,7 @@ function App() {
             accept=".csv" 
             onChange={(e) => handleFileUpload(e, 'collezioni')} 
             id="collezioni-upload"
+            style={{display: 'none'}}
           />
           <label htmlFor="collezioni-upload" className="button">Carica CSV Collezioni</label>
         </div>
