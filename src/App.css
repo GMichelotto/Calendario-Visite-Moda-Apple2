@@ -86,19 +86,64 @@ body, .App {
     font-family: Helvetica, Arial, sans-serif;
   }
 
-  .file-upload, .button-group, .message {
+  .App {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .file-upload, .button-group, .message, .App-header {
     display: none;
   }
 
   .calendar-container {
-    height: auto;
+    height: auto !important;
+    margin-top: 0;
   }
 
   .rbc-calendar {
     height: 100% !important;
   }
 
-  @page {
-    size: landscape;
+  .rbc-toolbar {
+    display: none;
+  }
+
+  .rbc-month-view, .rbc-time-view {
+    border: none;
+  }
+
+  .rbc-header {
+    font-weight: bold;
+  }
+
+  .rbc-event {
+    background-color: #f0f0f0 !important;
+    color: #000 !important;
+    border: 1px solid #ccc;
+  }
+
+  .rbc-event-content {
+    font-size: 8pt;
+  }
+
+  .rbc-row-segment {
+    padding: 0 1px;
+  }
+
+  .rbc-time-slot {
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .rbc-timeslot-group {
+    min-height: 40px;
+  }
+
+  .rbc-time-view .rbc-header {
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .rbc-day-slot .rbc-events-container {
+    margin-right: 0;
   }
 }
