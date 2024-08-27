@@ -11,7 +11,65 @@ const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
 function App() {
-  // ... (il codice esistente rimane invariato)
+  const [events, setEvents] = useState([]);
+  const [clienti, setClienti] = useState([]);
+  const [collezioni, setCollezioni] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [message, setMessage] = useState('');
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
+  useEffect(() => {
+    console.log('Clienti:', clienti);
+    console.log('Collezioni:', collezioni);
+    console.log('Eventi:', events);
+  }, [clienti, collezioni, events]);
+
+  useEffect(() => {
+    if (events.length > 0) {
+      const firstEventStart = moment(events[0].start);
+      setCalendarDate(firstEventStart.toDate());
+    }
+  }, [events]);
+
+  const processCSV = (text, fileType) => {
+    // ... (il codice esistente rimane invariato)
+  };
+
+  const handleFileUpload = async (event, fileType) => {
+    // ... (il codice esistente rimane invariato)
+  };
+
+  const generateEvents = () => {
+    // ... (il codice esistente rimane invariato)
+  };
+
+  const handleSaveCalendar = () => {
+    // ... (il codice esistente rimane invariato)
+  };
+
+  const handleLoadCalendar = (event) => {
+    // ... (il codice esistente rimane invariato)
+  };
+
+  const onEventDrop = useCallback(({ event, start, end }) => {
+    // ... (il codice esistente rimane invariato)
+  }, []);
+
+  const onEventResize = useCallback(({ event, start, end }) => {
+    // ... (il codice esistente rimane invariato)
+  }, []);
+
+  const handleSelectEvent = useCallback((event) => {
+    setSelectedEvent(event);
+  }, []);
+
+  const handleCloseModal = () => {
+    setSelectedEvent(null);
+  };
+
+  const handleUpdateEvent = (updatedEvent) => {
+    // ... (il codice esistente rimane invariato)
+  };
 
   const handlePrintCalendar = useCallback(() => {
     window.print();
