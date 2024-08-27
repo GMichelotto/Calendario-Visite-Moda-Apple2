@@ -111,17 +111,22 @@ function App() {
 
     const findNextAvailableSlot = (date, events) => {
       const workingHours = { start: 9, end: 18 };
+      let attempts = 0;
+      const maxAttempts = 1000; // Limite di sicurezza per evitare cicli infiniti
 
-      while (true) {
+      while (attempts < maxAttempts) {
         if (date.day() === 0 || date.day() === 6) {
           date.add(1, 'days').hour(workingHours.start).minute(0);
           continue;
         }
 
-        date.hour(workingHours.start).minute(0);
+        if (date.hour() < workingHours.start) {
+          date.hour(workingHours.start).minute(0);
+        }
+
         const endTime = moment(date).add(2, 'hours');
 
-        if (endTime.hour() > workingHours.end) {
+        if (date.hour() >= workingHours.end || endTime.hour() > workingHours.end) {
           date.add(1, 'days').hour(workingHours.start).minute(0);
           continue;
         }
@@ -134,8 +139,12 @@ function App() {
           return date;
         }
 
-        date.add(2, 'hours');
+        date.add(30, 'minutes');
+        attempts++;
       }
+
+      console.error('Impossibile trovare uno slot disponibile dopo molti tentativi');
+      return null;
     };
 
     clienti.forEach((cliente) => {
@@ -151,7 +160,7 @@ function App() {
         let eventDate = moment(dateRange.start);
         eventDate = findNextAvailableSlot(eventDate, newEvents);
 
-        if (eventDate.isAfter(dateRange.end)) {
+        if (!eventDate || eventDate.isAfter(dateRange.end)) {
           console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
           return;
         }
