@@ -11,15 +11,22 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
-        node-version: '16'
+        node-version: '20'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Clean install and update package-lock.json
+      run: |
+        Remove-Item -Path package-lock.json -ErrorAction Ignore
+        npm install
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add package-lock.json
+        git diff --staged --quiet || (git commit -m "Update package-lock.json" && git push)
+      shell: pwsh
       
     - name: Build React app
       run: npm run build
@@ -27,12 +34,12 @@ jobs:
         CI: false
       
     - name: Build Electron app
-      run: npm run electron:build:ci
+      run: npm run electron:build
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CI: false
       
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: windows-app
         path: dist/*.exe
