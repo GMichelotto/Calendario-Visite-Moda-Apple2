@@ -112,7 +112,7 @@ function App() {
     const findNextAvailableSlot = (date, events) => {
       const workingHours = { start: 9, end: 18 };
       let attempts = 0;
-      const maxAttempts = 1000; // Limite di sicurezza per evitare cicli infiniti
+      const maxAttempts = 1000;
 
       while (attempts < maxAttempts) {
         if (date.day() === 0 || date.day() === 6) {
@@ -254,7 +254,67 @@ function App() {
   };
 
   const handlePrintCalendar = useCallback(() => {
-    window.print();
+    const printContent = document.querySelector('.calendar-container');
+    const windowPrint = window.open('', '', 'width=1000,height=600');
+    windowPrint.document.write(`
+      <html>
+        <head>
+          <title>Anteprima di Stampa - Calendario Visite Moda</title>
+          <style>
+            body {
+              font-family: Helvetica, Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+            }
+            .calendar-container {
+              width: 100%;
+              height: calc(100vh - 100px);
+              overflow: hidden;
+            }
+            .print-controls {
+              margin-bottom: 20px;
+            }
+            @media print {
+              .print-controls {
+                display: none;
+              }
+              .calendar-container {
+                height: 100vh;
+              }
+              @page {
+                size: landscape;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-controls">
+            <button onclick="window.print()">Stampa</button>
+            <button onclick="window.close()">Chiudi</button>
+          </div>
+          <div class="calendar-container">
+            ${printContent.innerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              var style = document.createElement('style');
+              style.innerHTML = \`
+                .rbc-calendar {
+                  height: 100% !important;
+                }
+                .rbc-time-view, .rbc-month-view {
+                  flex: 1;
+                  overflow: hidden;
+                }
+              \`;
+              document.head.appendChild(style);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    windowPrint.document.close();
+    windowPrint.focus();
   }, []);
 
   return (
