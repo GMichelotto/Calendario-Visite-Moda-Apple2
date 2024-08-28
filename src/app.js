@@ -255,12 +255,24 @@ function App() {
 
   const handlePrintCalendar = useCallback(() => {
     const printContent = document.querySelector('.calendar-container');
+    const styles = Array.from(document.styleSheets)
+      .map(styleSheet => {
+        try {
+          return Array.from(styleSheet.cssRules).map(rule => rule.cssText).join('');
+        } catch (e) {
+          console.log('Error accessing styleSheet', e);
+          return '';
+        }
+      })
+      .join('\n');
+
     const windowPrint = window.open('', '', 'width=1000,height=600');
     windowPrint.document.write(`
       <html>
         <head>
           <title>Anteprima di Stampa - Calendario Visite Moda</title>
           <style>
+            ${styles}
             body {
               font-family: Helvetica, Arial, sans-serif;
               margin: 0;
@@ -269,7 +281,6 @@ function App() {
             .calendar-container {
               width: 100%;
               height: calc(100vh - 100px);
-              overflow: hidden;
             }
             .print-controls {
               margin-bottom: 20px;
@@ -285,6 +296,12 @@ function App() {
                 size: landscape;
               }
             }
+            .rbc-calendar {
+              height: 100% !important;
+            }
+            .rbc-time-view, .rbc-month-view {
+              height: 100% !important;
+            }
           </style>
         </head>
         <body>
@@ -297,17 +314,10 @@ function App() {
           </div>
           <script>
             window.onload = function() {
-              var style = document.createElement('style');
-              style.innerHTML = \`
-                .rbc-calendar {
-                  height: 100% !important;
-                }
-                .rbc-time-view, .rbc-month-view {
-                  flex: 1;
-                  overflow: hidden;
-                }
-              \`;
-              document.head.appendChild(style);
+              const calendar = document.querySelector('.rbc-calendar');
+              if (calendar) {
+                calendar.style.height = '100%';
+              }
             };
           </script>
         </body>
