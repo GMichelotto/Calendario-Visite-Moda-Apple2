@@ -55,21 +55,39 @@ body, .App {
 }
 
 .calendar-container {
-  height: 600px;
+  height: calc(100vh - 200px);
   margin-top: 20px;
+  overflow: hidden;
 }
 
-/* Stili per react-big-calendar */
 .rbc-calendar {
   font-family: Helvetica, Arial, sans-serif;
+  height: 100% !important;
+}
+
+.rbc-time-view {
+  border: none;
+}
+
+.rbc-time-header {
+  font-size: 0.9em;
+}
+
+.rbc-time-content {
+  font-size: 0.85em;
 }
 
 .rbc-event {
   background-color: #3174ad;
+  font-size: 0.8em;
 }
 
 .rbc-today {
   background-color: #eaf6ff;
+}
+
+.rbc-time-slot {
+  min-height: 20px;
 }
 
 .rbc-event-label {
@@ -97,7 +115,7 @@ body, .App {
   }
 
   .calendar-container {
-    height: auto !important;
+    height: 100vh;
     margin-top: 0;
   }
 
@@ -145,5 +163,9 @@ body, .App {
 
   .rbc-day-slot .rbc-events-container {
     margin-right: 0;
+  }
+
+  @page {
+    size: landscape;
   }
 }
