@@ -55,7 +55,7 @@ body, .App {
 }
 
 .calendar-container {
-  height: calc(100vh - 200px);
+  height: calc(100vh - 250px);
   margin-top: 20px;
   overflow: hidden;
 }
@@ -65,107 +65,6 @@ body, .App {
   height: 100% !important;
 }
 
-.rbc-time-view {
-  border: none;
-}
-
-.rbc-time-header {
-  font-size: 0.9em;
-}
-
-.rbc-time-content {
-  font-size: 0.85em;
-}
-
 .rbc-event {
   background-color: #3174ad;
-  font-size: 0.8em;
-}
-
-.rbc-today {
-  background-color: #eaf6ff;
-}
-
-.rbc-time-slot {
-  min-height: 20px;
-}
-
-.rbc-event-label {
-  font-size: 0.8em;
-}
-
-.rbc-event-content {
-  font-size: 0.9em;
-}
-
-/* Stili per la stampa */
-@media print {
-  body {
-    font-family: Helvetica, Arial, sans-serif;
-  }
-
-  .App {
-    max-width: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .file-upload, .button-group, .message, .App-header {
-    display: none;
-  }
-
-  .calendar-container {
-    height: 100vh;
-    margin-top: 0;
-  }
-
-  .rbc-calendar {
-    height: 100% !important;
-  }
-
-  .rbc-toolbar {
-    display: none;
-  }
-
-  .rbc-month-view, .rbc-time-view {
-    border: none;
-  }
-
-  .rbc-header {
-    font-weight: bold;
-  }
-
-  .rbc-event {
-    background-color: #f0f0f0 !important;
-    color: #000 !important;
-    border: 1px solid #ccc;
-  }
-
-  .rbc-event-content {
-    font-size: 8pt;
-  }
-
-  .rbc-row-segment {
-    padding: 0 1px;
-  }
-
-  .rbc-time-slot {
-    border-top: 1px solid #e5e5e5;
-  }
-
-  .rbc-timeslot-group {
-    min-height: 40px;
-  }
-
-  .rbc-time-view .rbc-header {
-    border-bottom: 1px solid #e5e5e5;
-  }
-
-  .rbc-day-slot .rbc-events-container {
-    margin-right: 0;
-  }
-
-  @page {
-    size: landscape;
-  }
 }
