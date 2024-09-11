@@ -254,7 +254,52 @@ function App() {
   };
 
   const handlePrintCalendar = useCallback(() => {
-    window.print();
+    const printContent = document.querySelector('.calendar-container');
+    const windowPrint = window.open('', '', 'width=1000,height=600');
+    windowPrint.document.write(`
+      <html>
+        <head>
+          <title>Stampa Calendario Visite Moda</title>
+          <style>
+            body { font-family: Helvetica, Arial, sans-serif; }
+            .calendar-container { height: 100vh; }
+            .rbc-calendar { height: 100% !important; }
+            .rbc-event { background-color: #3174ad; color: white; }
+            @media print {
+              @page { size: landscape; }
+              body { margin: 0; }
+              .rbc-btn-group, .rbc-toolbar-label { display: none; }
+            }
+          </style>
+          ${Array.from(document.styleSheets)
+            .map(styleSheet => {
+              try {
+                return Array.from(styleSheet.cssRules)
+                  .map(rule => rule.cssText)
+                  .join('');
+              } catch (e) {
+                console.log('Error accessing styleSheet', e);
+                return '';
+              }
+            })
+            .join('\n')}
+        </head>
+        <body>
+          <div class="calendar-container">
+            ${printContent.innerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              }
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    windowPrint.document.close();
   }, []);
 
   return (
