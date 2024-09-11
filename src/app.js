@@ -261,28 +261,44 @@ function App() {
         <head>
           <title>Stampa Calendario Visite Moda</title>
           <style>
-            body { font-family: Helvetica, Arial, sans-serif; }
-            .calendar-container { height: 100vh; }
-            .rbc-calendar { height: 100% !important; }
-            .rbc-event { background-color: #3174ad; color: white; }
+            ${Array.from(document.styleSheets)
+              .map(styleSheet => {
+                try {
+                  return Array.from(styleSheet.cssRules).map(rule => rule.cssText).join('');
+                } catch (e) {
+                  console.log('Error accessing styleSheet', e);
+                  return '';
+                }
+              })
+              .join('\n')}
+            body { 
+              font-family: Helvetica, Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+            }
+            .calendar-container {
+              height: 100vh;
+            }
+            .rbc-calendar {
+              height: 100% !important;
+            }
             @media print {
               @page { size: landscape; }
               body { margin: 0; }
               .rbc-btn-group, .rbc-toolbar-label { display: none; }
+              .rbc-time-view {
+                flex: 1;
+                width: 100%;
+                border: none;
+              }
+              .rbc-time-header {
+                display: none;
+              }
+              .rbc-time-content {
+                border: none;
+              }
             }
           </style>
-          ${Array.from(document.styleSheets)
-            .map(styleSheet => {
-              try {
-                return Array.from(styleSheet.cssRules)
-                  .map(rule => rule.cssText)
-                  .join('');
-              } catch (e) {
-                console.log('Error accessing styleSheet', e);
-                return '';
-              }
-            })
-            .join('\n')}
         </head>
         <body>
           <div class="calendar-container">
