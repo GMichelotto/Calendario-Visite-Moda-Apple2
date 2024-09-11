@@ -68,3 +68,15 @@ body, .App {
 .rbc-event {
   background-color: #3174ad;
 }
+
+.rbc-today {
+  background-color: #eaf6ff;
+}
+
+.rbc-event-label {
+  font-size: 0.8em;
+}
+
+.rbc-event-content {
+  font-size: 0.9em;
+}
