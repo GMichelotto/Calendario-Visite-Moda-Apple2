@@ -6,8 +6,8 @@ import './App.css';
 import EventModal from './EventModal';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -255,21 +255,32 @@ function App() {
     setMessage('Evento aggiornato con successo');
   };
 
-  const handlePrintCalendar = useCallback(() => {
-    const input = document.querySelector('.calendar-container');
-    html2canvas(input, {
-      logging: true,
-      letterRendering: 1,
-      useCORS: true,
-    }).then((canvas) => {
-      const imgWidth = 208;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save('calendario.pdf');
+  const handleSavePDF = useCallback(() => {
+    const doc = new jsPDF('l', 'mm', 'a4');
+    doc.setFontSize(18);
+    doc.text('Calendario Visite Moda', 14, 22);
+    doc.setFontSize(11);
+    doc.text(`Generato il: ${moment().format('DD/MM/YYYY HH:mm')}`, 14, 30);
+
+    const tableData = events.map(event => [
+      moment(event.start).format('DD/MM/YYYY HH:mm'),
+      moment(event.end).format('HH:mm'),
+      event.cliente,
+      event.collezione
+    ]);
+
+    doc.autoTable({
+      head: [['Data e Ora Inizio', 'Ora Fine', 'Cliente', 'Collezione']],
+      body: tableData,
+      startY: 40,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 20 } }
     });
-  }, []);
+
+    doc.save('calendario_visite_moda.pdf');
+    setMessage('Calendario salvato come PDF con successo');
+  }, [events]);
 
   return (
     <div className="App">
@@ -306,7 +317,7 @@ function App() {
             style={{display: 'none'}}
           />
           <label htmlFor="load-calendar" className="button">Carica Calendario</label>
-          <button className="button" onClick={handlePrintCalendar}>Stampa Calendario</button>
+          <button className="button" onClick={handleSavePDF}>Salva PDF</button>
         </div>
         {message && <div className="message">{message}</div>}
         <div className="calendar-container">
