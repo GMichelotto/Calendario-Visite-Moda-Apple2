@@ -6,6 +6,8 @@ import './App.css';
 import EventModal from './EventModal';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -254,68 +256,19 @@ function App() {
   };
 
   const handlePrintCalendar = useCallback(() => {
-    const printContent = document.querySelector('.calendar-container');
-    const windowPrint = window.open('', '', 'width=1000,height=600');
-    windowPrint.document.write(`
-      <html>
-        <head>
-          <title>Stampa Calendario Visite Moda</title>
-          <style>
-            ${Array.from(document.styleSheets)
-              .map(styleSheet => {
-                try {
-                  return Array.from(styleSheet.cssRules).map(rule => rule.cssText).join('');
-                } catch (e) {
-                  console.log('Error accessing styleSheet', e);
-                  return '';
-                }
-              })
-              .join('\n')}
-            body { 
-              font-family: Helvetica, Arial, sans-serif;
-              margin: 0;
-              padding: 20px;
-            }
-            .calendar-container {
-              height: 100vh;
-            }
-            .rbc-calendar {
-              height: 100% !important;
-            }
-            @media print {
-              @page { size: landscape; }
-              body { margin: 0; }
-              .rbc-btn-group, .rbc-toolbar-label { display: none; }
-              .rbc-time-view {
-                flex: 1;
-                width: 100%;
-                border: none;
-              }
-              .rbc-time-header {
-                display: none;
-              }
-              .rbc-time-content {
-                border: none;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="calendar-container">
-            ${printContent.innerHTML}
-          </div>
-          <script>
-            window.onload = function() {
-              window.print();
-              window.onafterprint = function() {
-                window.close();
-              }
-            }
-          </script>
-        </body>
-      </html>
-    `);
-    windowPrint.document.close();
+    const input = document.querySelector('.calendar-container');
+    html2canvas(input, {
+      logging: true,
+      letterRendering: 1,
+      useCORS: true,
+    }).then((canvas) => {
+      const imgWidth = 208;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save('calendario.pdf');
+    });
   }, []);
 
   return (
