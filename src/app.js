@@ -3,11 +3,10 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './App.css';
+import './print.css';
 import EventModal from './EventModal';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import { jsPDF } from "jspdf";
-import autoTable from 'jspdf-autotable';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -44,9 +43,6 @@ function App() {
       return matches.map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
     });
 
-    console.log("Headers:", headers);
-    console.log("Prima riga di dati:", rows[0]);
-
     return rows.map(row => {
       if (row.length !== headers.length) {
         console.warn(`Riga con numero di colonne non corrispondente all'intestazione: ${row}`);
@@ -66,19 +62,13 @@ function App() {
   const handleFileUpload = async (event, fileType) => {
     try {
       const file = event.target.files[0];
-      console.log(`Caricamento file ${fileType}:`, file.name);
-      
       const text = await file.text();
-      console.log(`Contenuto del file ${fileType}:`, text.substring(0, 200) + '...');
-      
       const data = processCSV(text, fileType);
       
       if (fileType === 'clienti') {
         setClienti(data);
-        console.log("Clienti caricati:", data);
       } else if (fileType === 'collezioni') {
         setCollezioni(data);
-        console.log("Collezioni caricate:", data);
       }
       
       setMessage(`${fileType} caricati: ${data.length}`);
@@ -89,8 +79,6 @@ function App() {
   };
 
   const generateEvents = () => {
-    console.log('Inizio generazione eventi');
-    setMessage('Inizio generazione eventi...');
     if (clienti.length === 0 || collezioni.length === 0) {
       setMessage('Carica entrambi i file CSV prima di generare gli eventi.');
       return;
@@ -108,8 +96,6 @@ function App() {
       }
       collectionDates[collezione.Collezioni] = { start: startDate, end: endDate };
     });
-
-    console.log('Date delle collezioni:', collectionDates);
 
     const findNextAvailableSlot = (date, events) => {
       const workingHours = { start: 9, end: 18 };
@@ -145,15 +131,12 @@ function App() {
         attempts++;
       }
 
-      console.error('Impossibile trovare uno slot disponibile dopo molti tentativi');
       return null;
     };
 
     clienti.forEach((cliente) => {
-      console.log(`Generazione eventi per cliente:`, cliente);
       if (cliente.collezioni) {
         cliente.collezioni.forEach((collection) => {
-          console.log(`Generazione evento per collezione:`, collection);
           const dateRange = collectionDates[collection];
           if (!dateRange) {
             console.error(`Date non trovate per la collezione: ${collection}`);
@@ -180,14 +163,10 @@ function App() {
           };
 
           newEvents.push(newEvent);
-          console.log('Nuovo evento aggiunto:', newEvent);
         });
-      } else {
-        console.warn(`Il cliente ${cliente.Nome} non ha collezioni associate`);
       }
     });
 
-    console.log('Eventi generati:', newEvents);
     setEvents(newEvents);
     setMessage(`Eventi generati: ${newEvents.length}`);
   };
@@ -259,40 +238,76 @@ function App() {
     setMessage('Evento aggiornato con successo');
   };
 
-  const handleSavePDF = useCallback(() => {
-    const doc = new jsPDF('l', 'mm', 'a4');
-    doc.setFont("helvetica");
-    doc.setFontSize(18);
-    doc.text('Calendario Visite Moda', 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Generato il: ${moment().format('DD/MM/YYYY HH:mm')}`, 14, 30);
+  const handlePrint = useCallback(() => {
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      alert('Per favore, abilita i popup per permettere la stampa');
+      return;
+    }
 
-    const tableData = events.map(event => [
-      moment(event.start).format('DD/MM/YYYY HH:mm'),
-      moment(event.end).format('HH:mm'),
-      event.cliente,
-      event.collezione
-    ]);
+    const styles = Array.from(document.styleSheets)
+      .map(styleSheet => {
+        try {
+          return Array.from(styleSheet.cssRules)
+            .map(rule => rule.cssText)
+            .join('\n');
+        } catch (e) {
+          console.log('Error accessing styleSheet', e);
+          return '';
+        }
+      })
+      .join('\n');
 
-    doc.autoTable({
-      head: [['Data e Ora Inizio', 'Ora Fine', 'Cliente', 'Collezione']],
-      body: tableData,
-      startY: 40,
-      theme: 'grid',
-      styles: { 
-        fontSize: 8, 
-        cellPadding: 2,
-        font: "helvetica"
-      },
-      columnStyles: { 
-        0: { cellWidth: 30 }, 
-        1: { cellWidth: 20 } 
-      }
-    });
+    const calendarHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Calendario Visite Moda - Stampa</title>
+          <style>
+            ${styles}
+            body {
+              margin: 0;
+              padding: 20px;
+            }
+            .calendar-container {
+              height: 100vh !important;
+            }
+            @media print {
+              .rbc-toolbar-label {
+                font-size: 18pt !important;
+                margin: 15px 0 !important;
+              }
+              .rbc-event {
+                page-break-inside: avoid;
+              }
+              @page {
+                size: landscape;
+                margin: 1cm;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <h1 style="text-align: center; margin-bottom: 20px;">Calendario Visite Moda</h1>
+          <div class="calendar-container">
+            ${document.querySelector('.calendar-container').innerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `;
 
-    doc.save('calendario_visite_moda.pdf');
-    setMessage('Calendario salvato come PDF con successo');
-  }, [events]);
+    printWindow.document.write(calendarHtml);
+    printWindow.document.close();
+  }, []);
 
   return (
     <div className="App">
@@ -329,7 +344,7 @@ function App() {
             style={{display: 'none'}}
           />
           <label htmlFor="load-calendar" className="button">Carica Calendario</label>
-          <button className="button" onClick={handleSavePDF}>Salva PDF</button>
+          <button className="button" onClick={handlePrint}>Stampa Calendario</button>
         </div>
         {message && <div className="message">{message}</div>}
         <div className="calendar-container">
