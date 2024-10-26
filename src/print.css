@@ -1,13 +1,11 @@
-/* print.css */
 @media print {
-  /* Reset generale per la stampa */
   * {
     -webkit-print-color-adjust: exact !important;
     color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Nasconde elementi non necessari */
+  /* Nascondi elementi non necessari */
   .file-upload,
   .button-group,
   .message,
@@ -16,52 +14,57 @@
     display: none !important;
   }
 
-  /* Impostazioni pagina */
-  @page {
-    size: landscape;
-    margin: 1cm;
+  /* Impostazioni base */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
   }
 
-  /* Stili contenitore principale */
+  /* Forza la pagina singola */
   .App {
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform-origin: top left;
+    transform: scale(0.8); /* Riduce leggermente la dimensione per far entrare tutto */
   }
 
   /* Header */
-  .App-header {
-    margin-bottom: 1cm !important;
-  }
-
   .App-header h1 {
-    font-size: 24pt !important;
-    color: #000 !important;
-    margin: 0 !important;
-    padding: 10px 0 !important;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16pt !important;
+    margin: 10px 0 !important;
+    padding: 0 !important;
   }
 
   /* Container calendario */
   .calendar-container {
     width: 100% !important;
-    height: calc(100vh - 100px) !important;
+    height: calc(100vh - 60px) !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Calendario */
   .rbc-calendar {
+    font-family: 'Roboto', sans-serif !important;
     height: 100% !important;
-    border: none !important;
+    transform-origin: top left;
+    transform: scale(0.9); /* Riduce leggermente per assicurare che entri tutto */
   }
 
   /* Intestazioni e celle */
   .rbc-header {
-    font-size: 12pt !important;
-    font-weight: bold !important;
-    padding: 8px 4px !important;
-    border-color: #999 !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 9pt !important;
+    padding: 4px !important;
   }
 
   .rbc-time-header {
@@ -69,11 +72,11 @@
   }
 
   .rbc-time-content {
-    border-color: #999 !important;
+    font-size: 8pt !important;
   }
 
   .rbc-time-gutter {
-    font-size: 10pt !important;
+    font-size: 8pt !important;
   }
 
   /* Eventi */
@@ -83,29 +86,43 @@
     color: #000 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    font-family: 'Roboto', sans-serif !important;
   }
 
   .rbc-event-content {
-    font-size: 10pt !important;
-    line-height: 1.2 !important;
-    padding: 2px 4px !important;
+    font-size: 8pt !important;
+    line-height: 1.1 !important;
+    padding: 1px 2px !important;
   }
 
   .rbc-event-label {
-    font-size: 9pt !important;
+    font-size: 7pt !important;
   }
 
-  /* Griglia temporale */
-  .rbc-time-column {
-    border-color: #ccc !important;
+  /* Impostazioni pagina */
+  @page {
+    size: landscape;
+    margin: 0.5cm;
   }
 
-  .rbc-timeslot-group {
-    border-color: #ccc !important;
+  /* Forza contenuto su singola pagina */
+  .calendar-container * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  /* Oggi */
-  .rbc-today {
-    background-color: #fff !important;
+  /* Riduci spazi tra elementi */
+  .rbc-time-slot {
+    min-height: auto !important;
+  }
+
+  .rbc-time-gutter .rbc-timeslot-group {
+    min-height: auto !important;
+  }
+
+  /* Override per forzare la stampa su una pagina */
+  .rbc-time-view {
+    flex: 1 0 auto !important;
+    min-height: 0 !important;
   }
 }
