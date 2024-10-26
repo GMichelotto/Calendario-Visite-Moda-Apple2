@@ -1,3 +1,8 @@
+/* Applicazione globale del font Roboto */
+* {
+  font-family: 'Roboto', sans-serif;
+}
+
 body, .App {
   font-family: 'Roboto', sans-serif;
   margin: 0;
@@ -15,6 +20,13 @@ body, .App {
   margin-bottom: 20px;
 }
 
+.App-header h1 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 28px;
+  color: #333;
+}
+
 .file-upload {
   display: flex;
   justify-content: center;
@@ -29,7 +41,14 @@ body, .App {
   gap: 10px;
 }
 
-.button {
+/* Stili dei bottoni con Roboto */
+.button, 
+.file-upload label,
+input[type="button"],
+input[type="submit"],
+button {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
   background-color: #4CAF50;
   border: none;
   color: white;
@@ -37,25 +56,26 @@ body, .App {
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 16px;
-  font-family: 'Roboto', sans-serif;
+  font-size: 15px;
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.3s;
 }
 
-.button:hover {
+.button:hover, 
+.file-upload label:hover {
   background-color: #45a049;
 }
 
 .message {
+  font-family: 'Roboto', sans-serif;
   text-align: center;
   margin-bottom: 20px;
   padding: 10px;
   background-color: #f2f2f2;
   border-radius: 4px;
-  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
 }
 
 .calendar-container {
@@ -64,20 +84,24 @@ body, .App {
   overflow: hidden;
 }
 
+/* Stili del calendario con Roboto */
 .rbc-calendar {
   font-family: 'Roboto', sans-serif !important;
   height: 100% !important;
 }
 
+/* Header del calendario */
 .rbc-header {
+  font-family: 'Roboto', sans-serif !important;
   padding: 10px 3px !important;
   font-weight: 500 !important;
   font-size: 14px !important;
 }
 
+/* Toolbar del calendario */
 .rbc-toolbar {
-  margin-bottom: 20px !important;
   font-family: 'Roboto', sans-serif !important;
+  margin-bottom: 20px !important;
 }
 
 .rbc-toolbar button {
@@ -86,32 +110,31 @@ body, .App {
 }
 
 .rbc-toolbar-label {
+  font-family: 'Roboto', sans-serif !important;
   font-size: 18px !important;
   font-weight: 500 !important;
 }
 
-.rbc-time-header-content {
-  font-family: 'Roboto', sans-serif !important;
-}
-
-.rbc-time-view {
-  font-family: 'Roboto', sans-serif !important;
-}
-
-.rbc-time-content {
+/* Time slots e contenuti */
+.rbc-time-header-content,
+.rbc-time-view,
+.rbc-time-content,
+.rbc-time-gutter,
+.rbc-time-slot,
+.rbc-event-label,
+.rbc-event-content {
   font-family: 'Roboto', sans-serif !important;
 }
 
 .rbc-time-gutter {
-  font-family: 'Roboto', sans-serif !important;
   font-size: 12px !important;
 }
 
+/* Eventi */
 .rbc-event {
   background-color: #3174ad !important;
   border: none !important;
   border-radius: 3px !important;
-  font-family: 'Roboto', sans-serif !important;
   padding: 2px 5px !important;
   box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
 }
@@ -128,6 +151,7 @@ body, .App {
   line-height: 1.3 !important;
 }
 
+/* Celle e indicatori */
 .rbc-today {
   background-color: #eaf6ff !important;
 }
@@ -138,14 +162,15 @@ body, .App {
 }
 
 .rbc-time-slot {
-  font-family: 'Roboto', sans-serif !important;
   font-size: 12px !important;
 }
 
+/* Nascondere la sezione all-day */
 .rbc-allday-cell {
   display: none !important;
 }
 
+/* Dimensioni minime delle righe */
 .rbc-time-view .rbc-row {
   min-height: 20px !important;
 }
@@ -154,8 +179,22 @@ body, .App {
   min-height: 40px !important;
 }
 
-/* Stili per la stampa */
+/* Modal e altri componenti UI */
+.modal-backdrop,
+.modal,
+.modal h2,
+.modal label,
+.modal input,
+.modal button {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+/* Stili specifici per la stampa */
 @media print {
+  * {
+    font-family: 'Roboto', sans-serif !important;
+  }
+
   .file-upload,
   .button-group,
   .message {
@@ -171,6 +210,7 @@ body, .App {
   .App-header h1 {
     font-size: 18pt !important;
     margin-bottom: 20px !important;
+    font-weight: 500 !important;
   }
 
   .calendar-container {
@@ -195,7 +235,7 @@ body, .App {
 
   .rbc-toolbar-label {
     font-size: 14pt !important;
-    font-weight: bold !important;
+    font-weight: 500 !important;
   }
 
   .rbc-header {
@@ -204,15 +244,7 @@ body, .App {
 
   .rbc-event-content {
     font-size: 10pt !important;
-  }
-
-  .rbc-time-content {
-    height: auto !important;
-    min-height: 0 !important;
-  }
-
-  .rbc-time-gutter .rbc-timeslot-group {
-    min-height: auto !important;
+    font-weight: 400 !important;
   }
 
   @page {
@@ -238,15 +270,5 @@ body, .App {
   .rbc-time-view {
     flex: 1 0 auto !important;
     min-height: 0 !important;
-  }
-
-  /* Aggiustamenti per la stampa */
-  .rbc-time-view {
-    transform-origin: top left;
-    transform: scale(0.9);
-  }
-
-  .rbc-day-slot .rbc-events-container {
-    margin-right: 0 !important;
   }
 }
