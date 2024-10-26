@@ -273,22 +273,41 @@ function App() {
             }
             body {
               margin: 0;
-              padding: 20px;
+              padding: 10px;
               font-family: 'Roboto', sans-serif;
               width: 100%;
+              height: 100vh;
+            }
+            .print-wrapper {
+              width: 100%;
               height: 100%;
+              display: flex;
+              flex-direction: column;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 10px;
+              flex-shrink: 0;
+            }
+            .header h1 {
+              font-size: 18pt;
+              margin: 0;
+              padding: 0;
+              font-family: 'Roboto', sans-serif;
+              font-weight: 500;
+            }
+            .header p {
+              margin: 2px 0;
+              font-size: 10pt;
+              font-family: 'Roboto', sans-serif;
             }
             .calendar-container {
-              height: 100vh !important;
-              width: 100% !important;
-              transform-origin: center;
-              transform: rotate(0deg) scale(0.9);
+              flex-grow: 1;
+              height: calc(100% - 60px) !important;
+              transform-origin: top center;
+              transform: scale(0.85);
             }
             @media print {
-              body {
-                width: 100vw;
-                height: 100vh;
-              }
               .rbc-toolbar-label {
                 font-size: 18pt !important;
                 margin: 15px 0 !important;
@@ -330,18 +349,17 @@ function App() {
           </style>
         </head>
         <body>
-          <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="font-size: 24pt; margin: 0; font-family: 'Roboto', sans-serif;">Calendario Visite Moda</h1>
-            <p style="margin: 5px 0; font-size: 12pt; font-family: 'Roboto', sans-serif;">
-              ${moment().format('DD/MM/YYYY')}
-            </p>
-          </div>
-          <div class="calendar-container">
-            ${document.querySelector('.calendar-container').innerHTML}
+          <div class="print-wrapper">
+            <div class="header">
+              <h1>Calendario Visite Moda</h1>
+              <p>${moment().format('DD/MM/YYYY')}</p>
+            </div>
+            <div class="calendar-container">
+              ${document.querySelector('.calendar-container').innerHTML}
+            </div>
           </div>
           <script>
             window.onload = function() {
-              // Assicurati che tutti gli stili siano caricati
               setTimeout(() => {
                 window.print();
                 window.onafterprint = function() {
