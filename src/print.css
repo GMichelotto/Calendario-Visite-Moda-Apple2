@@ -1,0 +1,111 @@
+/* print.css */
+@media print {
+  /* Reset generale per la stampa */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Nasconde elementi non necessari */
+  .file-upload,
+  .button-group,
+  .message,
+  .rbc-toolbar button,
+  .rbc-btn-group {
+    display: none !important;
+  }
+
+  /* Impostazioni pagina */
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+
+  /* Stili contenitore principale */
+  .App {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Header */
+  .App-header {
+    margin-bottom: 1cm !important;
+  }
+
+  .App-header h1 {
+    font-size: 24pt !important;
+    color: #000 !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+  }
+
+  /* Container calendario */
+  .calendar-container {
+    width: 100% !important;
+    height: calc(100vh - 100px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Calendario */
+  .rbc-calendar {
+    height: 100% !important;
+    border: none !important;
+  }
+
+  /* Intestazioni e celle */
+  .rbc-header {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    padding: 8px 4px !important;
+    border-color: #999 !important;
+  }
+
+  .rbc-time-header {
+    border-color: #999 !important;
+  }
+
+  .rbc-time-content {
+    border-color: #999 !important;
+  }
+
+  .rbc-time-gutter {
+    font-size: 10pt !important;
+  }
+
+  /* Eventi */
+  .rbc-event {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #666 !important;
+    color: #000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .rbc-event-content {
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
+    padding: 2px 4px !important;
+  }
+
+  .rbc-event-label {
+    font-size: 9pt !important;
+  }
+
+  /* Griglia temporale */
+  .rbc-time-column {
+    border-color: #ccc !important;
+  }
+
+  .rbc-timeslot-group {
+    border-color: #ccc !important;
+  }
+
+  /* Oggi */
+  .rbc-today {
+    background-color: #fff !important;
+  }
+}
