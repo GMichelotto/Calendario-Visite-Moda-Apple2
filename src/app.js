@@ -239,74 +239,168 @@ function App() {
   };
 
   const handlePrint = useCallback(() => {
-  const printWindow = window.open('', '_blank');
-  
-  if (!printWindow) {
-    alert('Per favore, abilita i popup per permettere la stampa');
-    return;
-  }
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      alert('Per favore, abilita i popup per permettere la stampa');
+      return;
+    }
 
-  const styles = Array.from(document.styleSheets)
-    .map(styleSheet => {
-      try {
-        return Array.from(styleSheet.cssRules)
-          .map(rule => rule.cssText)
-          .join('\n');
-      } catch (e) {
-        console.log('Error accessing styleSheet', e);
-        return '';
-      }
-    })
-    .join('\n');
+    const calendarHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Calendario Visite Moda - Stampa</title>
+          <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+          <style>
+            @media print {
+              @page {
+                size: A4 landscape;  /* Forza l'orientamento orizzontale */
+                margin: 0.5cm;
+              }
+            }
 
-  const calendarHtml = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Calendario Visite Moda - Stampa</title>
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-        <style>
-          ${styles}
-          body {
-            margin: 0;
-            padding: 10px;
-            font-family: 'Roboto', sans-serif;
-          }
-          .print-container {
-            width: 100%;
-            height: 100vh;
-          }
-          .calendar-container {
-            height: calc(100vh - 60px) !important;
-          }
-          @page {
-            size: landscape;
-            margin: 0.5cm;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="print-container">
-          <h1 style="text-align: center; margin: 10px 0; font-size: 16pt;">Calendario Visite Moda</h1>
-          <div class="calendar-container">
-            ${document.querySelector('.calendar-container').innerHTML}
+            * {
+              font-family: 'Roboto', sans-serif !important;
+              box-sizing: border-box;
+            }
+
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+            }
+
+            body {
+              padding: 10px;
+            }
+
+            .print-container {
+              width: 100%;
+              height: 100%;
+              overflow: hidden;
+              transform-origin: center center;
+              page-orientation: landscape;
+            }
+
+            .header {
+              text-align: center;
+              margin-bottom: 10px;
+            }
+
+            .header h1 {
+              font-size: 16pt;
+              margin: 0;
+              padding: 0;
+              font-weight: 500;
+            }
+
+            .calendar-wrapper {
+              width: 100%;
+              height: calc(100% - 50px);
+              transform-origin: top left;
+              transform: scale(0.95);
+              overflow: hidden;
+            }
+
+            .rbc-calendar {
+              width: 100% !important;
+              height: 100% !important;
+            }
+
+            .rbc-time-view {
+              border: none !important;
+            }
+
+            .rbc-time-content {
+              border: none !important;
+            }
+
+            .rbc-event {
+              background-color: #f5f5f5 !important;
+              color: #000 !important;
+              border: 1px solid #666 !important;
+              break-inside: avoid !important;
+              font-size: 9pt !important;
+              padding: 2px 4px !important;
+            }
+
+            .rbc-event-content {
+              font-size: 9pt !important;
+            }
+
+            .rbc-toolbar, .rbc-btn-group {
+              display: none !important;
+            }
+
+            .rbc-time-gutter {
+              font-size: 8pt !important;
+            }
+
+            .rbc-header {
+              font-size: 10pt !important;
+              padding: 4px !important;
+              font-weight: 500 !important;
+            }
+
+            /* Forza l'adattamento del contenuto per l'orientamento orizzontale */
+            @media print {
+              .calendar-wrapper * {
+                break-inside: avoid !important;
+              }
+
+              .rbc-time-view {
+                display: flex !important;
+                flex-direction: row !important;
+              }
+
+              .rbc-time-content {
+                flex: 1 !important;
+              }
+
+              /* Riduci gli spazi per ottimizzare l'uso dello spazio orizzontale */
+              .rbc-timeslot-group {
+                min-height: auto !important;
+                height: auto !important;
+              }
+
+              .rbc-time-slot {
+                min-height: auto !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-container">
+            <div class="header">
+              <h1>Calendario Visite Moda</h1>
+              <p style="margin: 5px 0; font-size: 10pt;">
+                ${moment().format('DD/MM/YYYY')}
+              </p>
+            </div>
+            <div class="calendar-wrapper">
+              ${document.querySelector('.calendar-container').innerHTML}
+            </div>
           </div>
-        </div>
-        <script>
-          window.onload = function() {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
+          <script>
+            window.onload = function() {
+              // Assicurati che il contenuto sia completamente caricato prima di stampare
+              const printDelay = setTimeout(() => {
+                window.print();
+                window.onafterprint = function() {
+                  window.close();
+                };
+              }, 1000);
             };
-          };
-        </script>
-      </body>
-    </html>
-  `;
+          </script>
+        </body>
+      </html>
+    `;
 
-  printWindow.document.write(calendarHtml);
-  printWindow.document.close();
-}, []);
+    printWindow.document.write(calendarHtml);
+    printWindow.document.close();
+  }, []);
 
   return (
     <div className="App">
