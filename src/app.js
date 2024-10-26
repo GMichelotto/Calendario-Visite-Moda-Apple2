@@ -6,8 +6,8 @@ import './App.css';
 import EventModal from './EventModal';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -150,37 +150,41 @@ function App() {
     };
 
     clienti.forEach((cliente) => {
-      console.log(`Generazione eventi per cliente:`, cliente.Nome);
-      cliente.collezioni.forEach((collection) => {
-        console.log(`Generazione evento per collezione:`, collection);
-        const dateRange = collectionDates[collection];
-        if (!dateRange) {
-          console.error(`Date non trovate per la collezione: ${collection}`);
-          return;
-        }
-        
-        let eventDate = moment(dateRange.start);
-        eventDate = findNextAvailableSlot(eventDate, newEvents);
-        
-        if (!eventDate || eventDate.isAfter(dateRange.end)) {
-          console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
-          return;
-        }
+      console.log(`Generazione eventi per cliente:`, cliente);
+      if (cliente.collezioni) {
+        cliente.collezioni.forEach((collection) => {
+          console.log(`Generazione evento per collezione:`, collection);
+          const dateRange = collectionDates[collection];
+          if (!dateRange) {
+            console.error(`Date non trovate per la collezione: ${collection}`);
+            return;
+          }
+          
+          let eventDate = moment(dateRange.start);
+          eventDate = findNextAvailableSlot(eventDate, newEvents);
+          
+          if (!eventDate || eventDate.isAfter(dateRange.end)) {
+            console.warn(`Non è possibile programmare un evento per ${cliente.Nome} - ${collection}`);
+            return;
+          }
 
-        const eventEnd = moment(eventDate).add(2, 'hours');
+          const eventEnd = moment(eventDate).add(2, 'hours');
 
-        const newEvent = {
-          id: `${cliente.Nome}-${collection}-${eventDate.format()}`,
-          title: `${cliente.Nome} - ${collection}`,
-          start: eventDate.toDate(),
-          end: eventEnd.toDate(),
-          cliente: cliente.Nome,
-          collezione: collection
-        };
+          const newEvent = {
+            id: `${cliente.Nome}-${collection}-${eventDate.format()}`,
+            title: `${cliente.Nome} - ${collection}`,
+            start: eventDate.toDate(),
+            end: eventEnd.toDate(),
+            cliente: cliente.Nome,
+            collezione: collection
+          };
 
-        newEvents.push(newEvent);
-        console.log('Nuovo evento aggiunto:', newEvent);
-      });
+          newEvents.push(newEvent);
+          console.log('Nuovo evento aggiunto:', newEvent);
+        });
+      } else {
+        console.warn(`Il cliente ${cliente.Nome} non ha collezioni associate`);
+      }
     });
 
     console.log('Eventi generati:', newEvents);
@@ -257,6 +261,7 @@ function App() {
 
   const handleSavePDF = useCallback(() => {
     const doc = new jsPDF('l', 'mm', 'a4');
+    doc.setFont("helvetica");
     doc.setFontSize(18);
     doc.text('Calendario Visite Moda', 14, 22);
     doc.setFontSize(11);
@@ -274,8 +279,15 @@ function App() {
       body: tableData,
       startY: 40,
       theme: 'grid',
-      styles: { fontSize: 8, cellPadding: 2 },
-      columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 20 } }
+      styles: { 
+        fontSize: 8, 
+        cellPadding: 2,
+        font: "helvetica"
+      },
+      columnStyles: { 
+        0: { cellWidth: 30 }, 
+        1: { cellWidth: 20 } 
+      }
     });
 
     doc.save('calendario_visite_moda.pdf');
