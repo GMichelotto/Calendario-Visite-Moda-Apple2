@@ -239,75 +239,74 @@ function App() {
   };
 
   const handlePrint = useCallback(() => {
-    const printWindow = window.open('', '_blank');
-    
-    if (!printWindow) {
-      alert('Per favore, abilita i popup per permettere la stampa');
-      return;
-    }
+  const printWindow = window.open('', '_blank');
+  
+  if (!printWindow) {
+    alert('Per favore, abilita i popup per permettere la stampa');
+    return;
+  }
 
-    const styles = Array.from(document.styleSheets)
-      .map(styleSheet => {
-        try {
-          return Array.from(styleSheet.cssRules)
-            .map(rule => rule.cssText)
-            .join('\n');
-        } catch (e) {
-          console.log('Error accessing styleSheet', e);
-          return '';
-        }
-      })
-      .join('\n');
+  const styles = Array.from(document.styleSheets)
+    .map(styleSheet => {
+      try {
+        return Array.from(styleSheet.cssRules)
+          .map(rule => rule.cssText)
+          .join('\n');
+      } catch (e) {
+        console.log('Error accessing styleSheet', e);
+        return '';
+      }
+    })
+    .join('\n');
 
-    const calendarHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Calendario Visite Moda - Stampa</title>
-          <style>
-            ${styles}
-            body {
-              margin: 0;
-              padding: 20px;
-            }
-            .calendar-container {
-              height: 100vh !important;
-            }
-            @media print {
-              .rbc-toolbar-label {
-                font-size: 18pt !important;
-                margin: 15px 0 !important;
-              }
-              .rbc-event {
-                page-break-inside: avoid;
-              }
-              @page {
-                size: landscape;
-                margin: 1cm;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <h1 style="text-align: center; margin-bottom: 20px;">Calendario Visite Moda</h1>
+  const calendarHtml = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Calendario Visite Moda - Stampa</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+        <style>
+          ${styles}
+          body {
+            margin: 0;
+            padding: 10px;
+            font-family: 'Roboto', sans-serif;
+          }
+          .print-container {
+            width: 100%;
+            height: 100vh;
+          }
+          .calendar-container {
+            height: calc(100vh - 60px) !important;
+          }
+          @page {
+            size: landscape;
+            margin: 0.5cm;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          <h1 style="text-align: center; margin: 10px 0; font-size: 16pt;">Calendario Visite Moda</h1>
           <div class="calendar-container">
             ${document.querySelector('.calendar-container').innerHTML}
           </div>
-          <script>
-            window.onload = function() {
-              window.print();
-              window.onafterprint = function() {
-                window.close();
-              };
+        </div>
+        <script>
+          window.onload = function() {
+            window.print();
+            window.onafterprint = function() {
+              window.close();
             };
-          </script>
-        </body>
-      </html>
-    `;
+          };
+        </script>
+      </body>
+    </html>
+  `;
 
-    printWindow.document.write(calendarHtml);
-    printWindow.document.close();
-  }, []);
+  printWindow.document.write(calendarHtml);
+  printWindow.document.close();
+}, []);
 
   return (
     <div className="App">
