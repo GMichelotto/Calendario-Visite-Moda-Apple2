@@ -1,5 +1,5 @@
 body, .App {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
 }
@@ -38,6 +38,7 @@ body, .App {
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
+  font-family: 'Roboto', sans-serif;
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
@@ -54,6 +55,7 @@ body, .App {
   padding: 10px;
   background-color: #f2f2f2;
   border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
 }
 
 .calendar-container {
@@ -63,24 +65,93 @@ body, .App {
 }
 
 .rbc-calendar {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', sans-serif !important;
   height: 100% !important;
 }
 
-.rbc-event {
-  background-color: #3174ad;
+.rbc-header {
+  padding: 10px 3px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
 }
 
-.rbc-today {
-  background-color: #eaf6ff;
+.rbc-toolbar {
+  margin-bottom: 20px !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.rbc-toolbar button {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 400 !important;
+}
+
+.rbc-toolbar-label {
+  font-size: 18px !important;
+  font-weight: 500 !important;
+}
+
+.rbc-time-header-content {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.rbc-time-view {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.rbc-time-content {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+.rbc-time-gutter {
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 12px !important;
+}
+
+.rbc-event {
+  background-color: #3174ad !important;
+  border: none !important;
+  border-radius: 3px !important;
+  font-family: 'Roboto', sans-serif !important;
+  padding: 2px 5px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
 }
 
 .rbc-event-label {
-  font-size: 0.8em;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  margin-bottom: 2px !important;
 }
 
 .rbc-event-content {
-  font-size: 0.9em;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+}
+
+.rbc-today {
+  background-color: #eaf6ff !important;
+}
+
+.rbc-current-time-indicator {
+  background-color: #f44336 !important;
+  height: 2px !important;
+}
+
+.rbc-time-slot {
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 12px !important;
+}
+
+.rbc-allday-cell {
+  display: none !important;
+}
+
+.rbc-time-view .rbc-row {
+  min-height: 20px !important;
+}
+
+.rbc-timeslot-group {
+  min-height: 40px !important;
 }
 
 /* Stili per la stampa */
@@ -92,14 +163,14 @@ body, .App {
   }
 
   .App {
-    max-width: none;
-    margin: 0;
-    padding: 0;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .App-header h1 {
-    font-size: 18pt;
-    margin-bottom: 20px;
+    font-size: 18pt !important;
+    margin-bottom: 20px !important;
   }
 
   .calendar-container {
@@ -119,6 +190,7 @@ body, .App {
     color: #000 !important;
     border: 1px solid #999 !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .rbc-toolbar-label {
@@ -134,8 +206,47 @@ body, .App {
     font-size: 10pt !important;
   }
 
+  .rbc-time-content {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .rbc-time-gutter .rbc-timeslot-group {
+    min-height: auto !important;
+  }
+
   @page {
     size: landscape;
-    margin: 1cm;
+    margin: 0.5cm;
+  }
+
+  /* Forza il contenuto su una singola pagina */
+  .calendar-container * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Riduci spazi tra elementi */
+  .rbc-time-slot {
+    min-height: auto !important;
+  }
+
+  .rbc-time-gutter .rbc-timeslot-group {
+    min-height: auto !important;
+  }
+
+  .rbc-time-view {
+    flex: 1 0 auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Aggiustamenti per la stampa */
+  .rbc-time-view {
+    transform-origin: top left;
+    transform: scale(0.9);
+  }
+
+  .rbc-day-slot .rbc-events-container {
+    margin-right: 0 !important;
   }
 }
