@@ -50,13 +50,15 @@
         }
       ],
       "category": "public.app-category.business",
-      "hardenedRuntime": true,
+      "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
+      "identity": null,
+      "entitlements": null,
+      "entitlementsInherit": null,
       "icon": "assets/icon.icns"
     },
     "dmg": {
+      "sign": false,
       "contents": [
         {
           "x": 130,
