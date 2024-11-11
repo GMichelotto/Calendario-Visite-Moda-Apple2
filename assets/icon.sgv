@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sfondo calendario -->
+  <rect x="64" y="64" width="384" height="384" fill="#f0f0f0" rx="32"/>
+  
+  <!-- Bordo superiore con fori -->
+  <rect x="64" y="32" width="384" height="64" fill="#4a90e2" rx="16"/>
+  <circle cx="160" cy="64" r="16" fill="#2c5282"/>
+  <circle cx="352" cy="64" r="16" fill="#2c5282"/>
+  
+  <!-- Linee della griglia del calendario -->
+  <line x1="128" y1="160" x2="384" y2="160" stroke="#ccc" stroke-width="4"/>
+  <line x1="128" y1="240" x2="384" y2="240" stroke="#ccc" stroke-width="4"/>
+  <line x1="128" y1="320" x2="384" y2="320" stroke="#ccc" stroke-width="4"/>
+  
+  <line x1="192" y1="160" x2="192" y2="400" stroke="#ccc" stroke-width="4"/>
+  <line x1="256" y1="160" x2="256" y2="400" stroke="#ccc" stroke-width="4"/>
+  <line x1="320" y1="160" x2="320" y2="400" stroke="#ccc" stroke-width="4"/>
+  
+  <!-- Elemento evidenziato -->
+  <rect x="208" y="256" width="96" height="48" fill="#4a90e2" opacity="0.5" rx="8"/>
+  
+  <!-- Clock element -->
+  <circle cx="256" cy="400" r="32" fill="#4a90e2"/>
+  <line x1="256" y1="400" x2="256" y2="380" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="256" y1="400" x2="270" y2="400" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg>
