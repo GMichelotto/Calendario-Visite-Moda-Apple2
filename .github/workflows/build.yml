@@ -1,0 +1,113 @@
+name: Build Cross-Platform Apps
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Clean install and update package-lock.json
+      run: |
+        Remove-Item -Path package-lock.json -ErrorAction Ignore
+        npm install
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add package-lock.json
+        git diff --staged --quiet || (git commit -m "Update package-lock.json" && git push)
+      shell: pwsh
+      
+    - name: Build React app
+      run: npm run build
+      env:
+        CI: false
+      
+    - name: Build Electron app
+      run: npm run electron:build
+      env:
+        CI: false
+      
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-app
+        path: dist/*.exe
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+        
+    - name: Create entitlements file
+      run: |
+        mkdir -p build
+        cat > build/entitlements.mac.plist << EOL
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+          <dict>
+            <key>com.apple.security.cs.allow-jit</key>
+            <true/>
+            <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+            <true/>
+            <key>com.apple.security.cs.debugger</key>
+            <true/>
+            <key>com.apple.security.device.audio-input</key>
+            <true/>
+            <key>com.apple.security.device.camera</key>
+            <true/>
+            <key>com.apple.security.personal-information.addressbook</key>
+            <true/>
+            <key>com.apple.security.personal-information.calendars</key>
+            <true/>
+            <key>com.apple.security.personal-information.photos-library</key>
+            <true/>
+          </dict>
+        </plist>
+        EOL
+
+    - name: Create placeholder icon
+      run: |
+        mkdir -p assets
+        touch assets/icon.icns
+        
+    - name: Build React app
+      run: npm run build
+      env:
+        CI: false
+        
+    - name: Build macOS app
+      run: npm run electron:package:universal
+      env:
+        CI: false
+        
+    - name: Upload macOS artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-app
+        path: |
+          dist/*.dmg
+          dist/*.zip
+        if-no-files-found: error
