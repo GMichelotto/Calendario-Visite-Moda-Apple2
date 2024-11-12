@@ -18,14 +18,13 @@ jobs:
       with:
         node-version: '20'
         
+    - name: Install electron-builder globally
+      run: npm install -g electron-builder
+        
     - name: Clean install and update package-lock.json
       run: |
         Remove-Item -Path package-lock.json -ErrorAction Ignore
         npm install --legacy-peer-deps
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add package-lock.json
-        git diff --staged --quiet || (git commit -m "Update package-lock.json" && git push)
       shell: pwsh
       
     - name: Build React app
