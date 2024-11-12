@@ -1,76 +1,48 @@
 {
-  "name": "calendario-visite-moda",
+  "name": "fashion-calendar",
   "version": "1.0.0",
+  "description": "Fashion Agency Calendar Management System",
+  "main": "electron/main.js",
   "private": true,
-  "main": "public/electron.js",
-  "homepage": "./",
   "author": {
-    "name": "Your Name",
-    "email": "your.email@example.com"
-  },
-  "description": "Calendario Visite Moda",
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "electron-is-dev": "^2.0.0",
-    "moment": "^2.29.4",
-    "react": "^18.2.0",
-    "react-big-calendar": "^1.6.9",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "name": "Fashion Calendar Team",
+    "email": "support@fashioncalendar.com"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron:serve": "concurrently -k \"cross-env BROWSER=none yarn start\" \"yarn electron:start\"",
-    "electron:build": "yarn build && electron-builder -c.extraMetadata.main=build/electron.js",
-    "electron:start": "wait-on tcp:3000 && electron .",
-    "electron:package:mac": "yarn build && electron-builder -m -c.extraMetadata.main=build/electron.js",
-    "electron:package:universal": "yarn build && electron-builder --mac --universal -c.extraMetadata.main=build/electron.js"
+    "electron:start": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
+    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/electron/main.js",
+    "electron:build:mac": "npm run build && electron-builder --mac",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
-    "appId": "com.yourcompany.calendario-visite-moda",
-    "productName": "Calendario Visite Moda",
+    "appId": "com.fashioncalendar.app",
+    "productName": "Fashion Calendar",
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    },
     "files": [
       "build/**/*",
-      "node_modules/**/*"
+      "electron/**/*"
     ],
-    "directories": {
-      "buildResources": "assets"
-    },
     "mac": {
+      "category": "public.app-category.business",
       "target": [
         {
           "target": "dmg",
           "arch": ["x64", "arm64"]
         }
       ],
-      "category": "public.app-category.business",
-      "hardenedRuntime": false,
+      "icon": "assets/icon.icns",
+      "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "identity": null,
-      "entitlements": null,
-      "entitlementsInherit": null,
-      "icon": "assets/icon.icns"
-    },
-    "dmg": {
-      "sign": false,
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist"
     },
     "win": {
       "target": [
@@ -80,31 +52,40 @@
         }
       ],
       "icon": "assets/icon.ico"
+    },
+    "dmg": {
+      "sign": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.6",
+    "better-sqlite3": "^9.3.0",
+    "electron-is-dev": "^2.0.0",
+    "electron-log": "^5.0.3",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7",
+    "moment": "^2.30.1",
+    "react": "^18.2.0",
+    "react-big-calendar": "^1.8.6",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0",
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.2",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "electron": "^23.1.3",
-    "electron-builder": "^23.6.0",
-    "wait-on": "^7.0.1"
+    "electron": "^28.1.4",
+    "electron-builder": "^24.9.1",
+    "wait-on": "^7.2.0"
   }
 }
