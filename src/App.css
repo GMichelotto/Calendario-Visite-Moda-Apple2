@@ -1,274 +1,302 @@
-/* Applicazione globale del font Roboto */
-* {
-  font-family: 'Roboto', sans-serif;
+/* Base styles */
+.app-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
-body, .App {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  padding: 0;
+/* Header */
+.app-header {
+  background: linear-gradient(to right, #1976d2, #1565c0);
+  padding: 1rem;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.App {
-  max-width: 1200px;
+.header-content {
+  display: flex;
+  align-items: center;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 20px;
 }
 
-.App-header {
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   text-align: center;
-  margin-bottom: 20px;
 }
 
-.App-header h1 {
-  font-family: 'Roboto', sans-serif;
-  font-weight: 500;
-  font-size: 28px;
-  color: #333;
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1976d2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
 }
 
-.file-upload {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 10px;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.button-group {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 10px;
-}
-
-/* Stili dei bottoni con Roboto */
-.button, 
-.file-upload label,
-input[type="button"],
-input[type="submit"],
-button {
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400;
-  background-color: #4CAF50;
+/* Menu Button */
+.menu-button {
+  padding: 0.5rem;
+  background: none;
   border: none;
   color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 15px;
-  margin: 4px 2px;
   cursor: pointer;
+}
+
+.menu-button:hover {
+  background-color: rgba(255,255,255,0.1);
   border-radius: 4px;
-  transition: background-color 0.3s;
 }
 
-.button:hover, 
-.file-upload label:hover {
-  background-color: #45a049;
+/* Drawer */
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
 }
 
-.message {
-  font-family: 'Roboto', sans-serif;
-  text-align: center;
-  margin-bottom: 20px;
-  padding: 10px;
-  background-color: #f2f2f2;
-  border-radius: 4px;
-  font-size: 14px;
+.drawer.open {
+  transform: translateX(0);
 }
 
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+
+.drawer nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.drawer nav ul li {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.drawer nav ul li:hover {
+  background-color: #f5f5f5;
+}
+
+/* Content Area */
+.main-content {
+  max-width: 1280px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Toolbar */
+.toolbar {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #1565c0;
+}
+
+/* Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stats-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-card h3 {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.stats-card p {
+  color: #1976d2;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/* File Input Styling */
+.file-input-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.file-input-label:hover {
+  background-color: #1565c0;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Calendar */
 .calendar-container {
-  height: calc(100vh - 250px);
-  margin-top: 20px;
-  overflow: hidden;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 600px;
 }
 
-/* Stili del calendario con Roboto */
-.rbc-calendar {
-  font-family: 'Roboto', sans-serif !important;
-  height: 100% !important;
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-/* Header del calendario */
-.rbc-header {
-  font-family: 'Roboto', sans-serif !important;
-  padding: 10px 3px !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
+.calendar-navigation {
+  display: flex;
+  gap: 0.5rem;
 }
 
-/* Toolbar del calendario */
-.rbc-toolbar {
-  font-family: 'Roboto', sans-serif !important;
-  margin-bottom: 20px !important;
+.calendar-navigation button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
 }
 
-.rbc-toolbar button {
-  font-family: 'Roboto', sans-serif !important;
-  font-weight: 400 !important;
+.calendar-navigation button:hover {
+  background-color: #e0e0e0;
 }
 
-.rbc-toolbar-label {
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 18px !important;
-  font-weight: 500 !important;
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
 }
 
-/* Time slots e contenuti */
-.rbc-time-header-content,
-.rbc-time-view,
-.rbc-time-content,
-.rbc-time-gutter,
-.rbc-time-slot,
-.rbc-event-label,
-.rbc-event-content {
-  font-family: 'Roboto', sans-serif !important;
+.calendar-day {
+  aspect-ratio: 1;
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  cursor: pointer;
 }
 
-.rbc-time-gutter {
-  font-size: 12px !important;
+.calendar-day:hover {
+  background-color: #f5f5f5;
 }
 
-/* Eventi */
-.rbc-event {
-  background-color: #3174ad !important;
-  border: none !important;
-  border-radius: 3px !important;
-  padding: 2px 5px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
+/* Toast Messages */
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #333;
+  color: white;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 1100;
+  animation: slideIn 0.3s ease-out;
 }
 
-.rbc-event-label {
-  font-size: 12px !important;
-  font-weight: 400 !important;
-  margin-bottom: 2px !important;
-}
-
-.rbc-event-content {
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  line-height: 1.3 !important;
-}
-
-/* Celle e indicatori */
-.rbc-today {
-  background-color: #eaf6ff !important;
-}
-
-.rbc-current-time-indicator {
-  background-color: #f44336 !important;
-  height: 2px !important;
-}
-
-.rbc-time-slot {
-  font-size: 12px !important;
-}
-
-/* Nascondere la sezione all-day */
-.rbc-allday-cell {
-  display: none !important;
-}
-
-/* Dimensioni minime delle righe */
-.rbc-time-view .rbc-row {
-  min-height: 20px !important;
-}
-
-.rbc-timeslot-group {
-  min-height: 40px !important;
-}
-
-/* Modal e altri componenti UI */
-.modal-backdrop,
-.modal,
-.modal h2,
-.modal label,
-.modal input,
-.modal button {
-  font-family: 'Roboto', sans-serif !important;
-}
-
-/* Stili specifici per la stampa */
-@media print {
-  * {
-    font-family: 'Roboto', sans-serif !important;
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
   }
-
-  .file-upload,
-  .button-group,
-  .message {
-    display: none !important;
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
+}
 
-  .App {
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
+.toast.error {
+  background-color: #dc3545;
+}
+
+.toast.success {
+  background-color: #28a745;
+}
+
+.toast.info {
+  background-color: #0dcaf0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
-
-  .App-header h1 {
-    font-size: 18pt !important;
-    margin-bottom: 20px !important;
-    font-weight: 500 !important;
+  
+  .toolbar {
+    flex-direction: column;
+    gap: 1rem;
   }
-
-  .calendar-container {
-    height: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  .rbc-calendar {
-    height: 100vh !important;
-  }
-
-  .rbc-event {
-    background-color: #f0f0f0 !important;
-    color: #000 !important;
-    border: 1px solid #999 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .rbc-toolbar-label {
-    font-size: 14pt !important;
-    font-weight: 500 !important;
-  }
-
-  .rbc-header {
-    font-size: 12pt !important;
-  }
-
-  .rbc-event-content {
-    font-size: 10pt !important;
-    font-weight: 400 !important;
-  }
-
-  @page {
-    size: landscape;
-    margin: 0.5cm;
-  }
-
-  /* Forza il contenuto su una singola pagina */
-  .calendar-container * {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  /* Riduci spazi tra elementi */
-  .rbc-time-slot {
-    min-height: auto !important;
-  }
-
-  .rbc-time-gutter .rbc-timeslot-group {
-    min-height: auto !important;
-  }
-
-  .rbc-time-view {
-    flex: 1 0 auto !important;
-    min-height: 0 !important;
+  
+  .btn, .file-input-label {
+    width: 100%;
+    justify-content: center;
   }
 }
