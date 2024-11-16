@@ -1,54 +1,89 @@
-/* Base styles */
+/* src/App.css */
 .app-container {
-  min-height: 100vh;
-  background-color: #f5f5f5;
+  display: flex;
+  height: 100vh;
+  background-color: #f8f9fa;
 }
 
-/* Header */
-.app-header {
-  background: linear-gradient(to right, #1976d2, #1565c0);
-  padding: 1rem;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: #fff;
+  border-right: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 }
 
-.header-content {
+.logo {
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #4a90e2;
+}
+
+.nav-menu {
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-item {
   display: flex;
   align-items: center;
-  max-width: 1280px;
-  margin: 0 auto;
+  gap: 10px;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 1em;
+  color: #495057;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Loading Overlay */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
+.nav-item:hover {
+  background-color: #f8f9fa;
+  color: #4a90e2;
+}
+
+.nav-item.active {
+  background-color: #e7f1ff;
+  color: #4a90e2;
+  font-weight: 500;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+
+/* Loading State */
+.app-loading {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.loading-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  text-align: center;
+  height: 100vh;
+  gap: 20px;
 }
 
 .loading-spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #1976d2;
-  border-radius: 50%;
   width: 40px;
   height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4a90e2;
+  border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
 }
 
 @keyframes spin {
@@ -56,247 +91,83 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Menu Button */
-.menu-button {
-  padding: 0.5rem;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
+/* Error State */
+.app-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 20px;
+  text-align: center;
+  padding: 20px;
 }
 
-.menu-button:hover {
-  background-color: rgba(255,255,255,0.1);
-  border-radius: 4px;
-}
-
-/* Drawer */
-.drawer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 250px;
-  background-color: white;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
-  z-index: 1000;
-}
-
-.drawer.open {
-  transform: translateX(0);
-}
-
-.drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  z-index: 999;
-}
-
-.drawer nav ul {
-  list-style: none;
-  padding: 0;
+.app-error h2 {
+  color: #dc3545;
   margin: 0;
 }
 
-.drawer nav ul li {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-
-.drawer nav ul li:hover {
-  background-color: #f5f5f5;
-}
-
-/* Content Area */
-.main-content {
-  max-width: 1280px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-/* Toolbar */
-.toolbar {
-  background-color: white;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-weight: 500;
+.app-error button {
+  padding: 10px 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.btn-primary {
-  background-color: #1976d2;
-  color: white;
-  border: none;
+.app-error button:hover {
+  background-color: #357abd;
 }
 
-.btn-primary:hover {
-  background-color: #1565c0;
-}
-
-/* Cards */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stats-card {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.stats-card h3 {
-  color: #666;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.stats-card p {
-  color: #1976d2;
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-/* File Input Styling */
-.file-input-label {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  background-color: #1976d2;
-  color: white;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.file-input-label:hover {
-  background-color: #1565c0;
-}
-
-.hidden {
-  display: none;
-}
-
-/* Calendar */
-.calendar-container {
-  background-color: white;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  height: 600px;
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.calendar-navigation {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.calendar-navigation button {
-  padding: 0.5rem 1rem;
-  background-color: #f0f0f0;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-}
-
-.calendar-navigation button:hover {
-  background-color: #e0e0e0;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-}
-
-.calendar-day {
-  aspect-ratio: 1;
-  border: 1px solid #eee;
-  padding: 0.5rem;
-  cursor: pointer;
-}
-
-.calendar-day:hover {
-  background-color: #f5f5f5;
-}
-
-/* Toast Messages */
-.toast {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #333;
-  color: white;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 1100;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .app-container {
+    background-color: #1a1a1a;
   }
-  to {
-    transform: translateX(0);
-    opacity: 1;
+
+  .sidebar {
+    background-color: #2d2d2d;
+    border-right-color: #404040;
   }
-}
 
-.toast.error {
-  background-color: #dc3545;
-}
+  .logo h1 {
+    color: #4a90e2;
+  }
 
-.toast.success {
-  background-color: #28a745;
-}
+  .nav-item {
+    color: #e9ecef;
+  }
 
-.toast.info {
-  background-color: #0dcaf0;
+  .nav-item:hover {
+    background-color: #404040;
+    color: #4a90e2;
+  }
+
+  .nav-item.active {
+    background-color: #404040;
+    color: #4a90e2;
+  }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .sidebar {
+    width: 60px;
   }
-  
-  .toolbar {
-    flex-direction: column;
-    gap: 1rem;
+
+  .logo {
+    display: none;
   }
-  
-  .btn, .file-input-label {
-    width: 100%;
+
+  .nav-item {
+    padding: 12px;
     justify-content: center;
+  }
+
+  .nav-item span {
+    display: none;
   }
 }
