@@ -10,6 +10,7 @@ import CalendarEvent from './CalendarEvent';
 import './Calendar.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import EventModal from './EventModal';
 
 moment.locale('it');
 const localizer = momentLocalizer(moment);
@@ -19,6 +20,9 @@ const Calendar = () => {
   const [view, setView] = useState('week');
   const [date, setDate] = useState(new Date());
   const { eventi, isLoading, error, updateEvento, createEvento, deleteEvento } = useEventi();
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalInitialDates, setModalInitialDates] = useState(null);
 
   // Formatta gli eventi per react-big-calendar
   const calendarEvents = useMemo(() => {
@@ -63,28 +67,38 @@ const Calendar = () => {
   }, [updateEvento]);
 
   // Gestione selezione slot vuoto
-  const handleSelectSlot = useCallback(async ({ start, end }) => {
-    // Qui potremmo aprire un modal per la creazione evento
-    // Per ora solo un esempio base
-    const isWorkingHours = (date) => {
-      const hour = moment(date).hour();
-      return (hour >= 9 && hour < 13) || (hour >= 14 && hour < 18);
-    };
+  const handleSelectSlot = useCallback(({ start, end }) => {
+  const isWorkingHours = (date) => {
+    const hour = moment(date).hour();
+    const minute = moment(date).minute();
+    const timeInMinutes = hour * 60 + minute;
+    const workDayStart = 9 * 60;  // 9:00 in minuti
+    const workDayEnd = 18 * 60;   // 18:00 in minuti
+    
+    return timeInMinutes >= workDayStart && timeInMinutes <= workDayEnd;
+  };
 
-    const isWorkingDay = (date) => {
-      const day = moment(date).day();
-      return day !== 0 && day !== 6;
-    };
+  const isWorkingDay = (date) => {
+    const day = moment(date).day();
+    return day >= 1 && day <= 5;  // 1 = Lunedì, 5 = Venerdì
+  };
 
-    if (!isWorkingDay(start) || !isWorkingDay(end)) {
-      alert('Gli eventi possono essere creati solo nei giorni lavorativi');
-      return;
-    }
+  // Verifica se le date sono nei giorni lavorativi
+  if (!isWorkingDay(start) || !isWorkingDay(end)) {
+    alert('Gli appuntamenti possono essere programmati solo dal lunedì al venerdì');
+    return;
+  }
 
-    if (!isWorkingHours(start) || !isWorkingHours(end)) {
-      alert('Gli eventi possono essere creati solo negli orari lavorativi (9-13, 14-18)');
-      return;
-    }
+  // Verifica se gli orari sono nell'orario lavorativo
+  if (!isWorkingHours(start) || !isWorkingHours(end)) {
+    alert('Gli appuntamenti possono essere programmati solo dalle 9:00 alle 18:00');
+    return;
+  }
+
+  // Se tutte le validazioni passano, mostra il modal per la creazione dell'evento
+  setModalInitialDates({ start, end });
+  setShowModal(true);
+}, [setModalInitialDates, setShowModal]);
 
     // TODO: Aprire modal per creazione evento invece di questo prompt
     const title = prompt('Inserisci il titolo dell\'evento');
