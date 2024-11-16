@@ -1,0 +1,329 @@
+/* src/components/Collezioni/CollezioniPage.css */
+.collezioni-page {
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.collezioni-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.header-title h1 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8em;
+  font-weight: 600;
+}
+
+.collezioni-stats {
+  display: flex;
+  gap: 10px;
+  color: #666;
+  font-size: 0.9em;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 5px;
+  margin-right: 10px;
+}
+
+.view-button {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-button.active {
+  background-color: #f0f0f0;
+  border-color: #999;
+}
+
+.button {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button.primary {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+}
+
+.button.primary:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.button.outline {
+  background-color: white;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.button.outline:hover:not(:disabled) {
+  background-color: #f5f5f5;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Grid View */
+.collezioni-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.collezione-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-top: 4px solid;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.collezione-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.collezione-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.collezione-card-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.card-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+  background-color: #f5f5f5;
+}
+
+.collezione-card-content {
+  color: #666;
+}
+
+.date-range {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+}
+
+.collezione-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9em;
+}
+
+/* Messages */
+.message {
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message.info {
+  background-color: #cce5ff;
+  color: #004085;
+  border: 1px solid #b8daff;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Container */
+.error-container {
+  text-align: center;
+  padding: 40px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.error-container p {
+  color: #721c24;
+  margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .collezioni-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .collezioni-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .collezioni-page {
+    background-color: #1a1a1a;
+  }
+
+  .collezioni-header,
+  .collezione-card,
+  .loading-container,
+  .error-container {
+    background-color: #2d2d2d;
+    color: #ffffff;
+  }
+
+  .header-title h1 {
+    color: #ffffff;
+  }
+
+  .collezione-card-header h3 {
+    color: #ffffff;
+  }
+
+  .button.outline {
+    background-color: #2d2d2d;
+    border-color: #404040;
+    color: #ffffff;
+  }
+
+  .button.outline:hover:not(:disabled) {
+    background-color: #404040;
+  }
+
+  .view-button {
+    border-color: #404040;
+    color: #ffffff;
+  }
+
+  .view-button.active {
+    background-color: #404040;
+  }
+
+  .icon-button:hover {
+    background-color: #404040;
+  }
+
+  .loading-spinner {
+    border-color: #404040;
+    border-top-color: #4a90e2;
+  }
+
+  .collezione-card-content,
+  .collezioni-stats {
+    color: #999;
+  }
+}
