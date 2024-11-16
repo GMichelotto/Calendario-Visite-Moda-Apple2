@@ -43,6 +43,22 @@ const EventModal = ({
     }
   }, [event, initialStart, initialEnd]);
 
+  // Funzioni di utilità per la validazione
+  const isWorkingHours = (date) => {
+    const hour = date.hours();
+    const minute = date.minutes();
+    const timeInMinutes = hour * 60 + minute;
+    const workDayStart = 9 * 60;  // 9:00 in minuti
+    const workDayEnd = 18 * 60;   // 18:00 in minuti
+    
+    return timeInMinutes >= workDayStart && timeInMinutes <= workDayEnd;
+  };
+
+  const isWorkingDay = (date) => {
+    const day = date.day();
+    return day >= 1 && day <= 5;  // 1 = Lunedì, 5 = Venerdì
+  };
+
   // Validazione del form
   const validateForm = useCallback(() => {
     const newErrors = {};
@@ -68,27 +84,54 @@ const EventModal = ({
       newErrors.data_fine = 'Inserisci una data di fine';
     }
 
-    // Validazione orari lavorativi
-    const startHour = start.hours();
-    const endHour = end.hours();
-    if (startHour < 9 || startHour >= 18 || (startHour >= 13 && startHour < 14) ||
-        endHour < 9 || endHour > 18 || (endHour > 13 && endHour <= 14)) {
-      newErrors.orario = 'Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00';
-    }
-
-    // Validazione giorni lavorativi
-    if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
-      newErrors.giorno = 'Gli eventi devono essere programmati dal lunedì al venerdì';
-    }
-
-    // Validazione durata
+    // Validazione data fine successiva a data inizio
     if (end.isSameOrBefore(start)) {
       newErrors.data_fine = 'La data di fine deve essere successiva alla data di inizio';
     }
 
+    // Validazione giorni lavorativi
+    if (!isWorkingDay(start)) {
+      newErrors.data_inizio = 'La data di inizio deve essere in un giorno lavorativo (Lun-Ven)';
+    }
+
+    if (!isWorkingDay(end)) {
+      newErrors.data_fine = 'La data di fine deve essere in un giorno lavorativo (Lun-Ven)';
+    }
+
+    // Validazione orari lavorativi
+    if (!isWorkingHours(start)) {
+      newErrors.data_inizio = 'L\'orario di inizio deve essere tra le 9:00 e le 18:00';
+    }
+
+    if (!isWorkingHours(end)) {
+      newErrors.data_fine = 'L\'orario di fine deve essere tra le 9:00 e le 18:00';
+    }
+
+    // Validazione durata massima evento
+    const durationInHours = moment.duration(end.diff(start)).asHours();
+    if (durationInHours > 4) {
+      newErrors.durata = 'La durata massima di un appuntamento è di 4 ore';
+    }
+
+    // Validazione evento nello stesso giorno
+    if (!start.isSame(end, 'day')) {
+      newErrors.date = 'L\'appuntamento deve iniziare e finire nello stesso giorno';
+    }
+
+    // Validazione collezione date
+    const collezione = collezioni.find(c => c.id === Number(formData.collezione_id));
+    if (collezione) {
+      const collezioneStart = moment(collezione.data_apertura, 'YYYY-MM-DD');
+      const collezioneEnd = moment(collezione.data_chiusura, 'YYYY-MM-DD');
+      
+      if (start.isBefore(collezioneStart) || end.isAfter(collezioneEnd)) {
+        newErrors.collezione = 'Le date devono essere comprese nel periodo della collezione';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, collezioni]);
 
   // Gestione cambiamenti form
   const handleChange = (e) => {
@@ -229,10 +272,15 @@ const EventModal = ({
           </div>
 
           {/* Messaggi di errore generali */}
-          {(errors.orario || errors.giorno) && (
+          {Object.keys(errors).length > 0 && (
             <div className="error-messages">
-              {errors.orario && <p className="error-message">{errors.orario}</p>}
-              {errors.giorno && <p className="error-message">{errors.giorno}</p>}
+              {Object.entries(errors)
+                .filter(([key]) => !['cliente_id', 'collezione_id', 'data_inizio', 'data_fine'].includes(key))
+                .map(([key, message]) => (
+                  <p key={key} className="error-message">
+                    {message}
+                  </p>
+                ))}
             </div>
           )}
 
