@@ -19,7 +19,8 @@
     "electron:build:mac": "npm run build && electron-builder --mac -c.extraMetadata.main=build/electron/main.js",
     "predist": "npm run build",
     "dist": "electron-builder",
-    "pack": "electron-builder --dir"
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@emotion/react": "11.11.3",
@@ -55,11 +56,21 @@
     "appId": "com.fashioncalendar.app",
     "productName": "Fashion Calendar",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
       "build/**/*",
       "electron/**/*"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      }
     ],
     "mac": {
       "category": "public.app-category.business",
@@ -93,5 +104,24 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
+  },
+  "homepage": "./",
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
