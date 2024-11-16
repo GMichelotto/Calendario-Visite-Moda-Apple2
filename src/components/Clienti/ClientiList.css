@@ -1,0 +1,131 @@
+/* src/components/Clienti/ClientiList.css */
+.clienti-list-container {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.clienti-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.total-count {
+  font-weight: 500;
+  color: #666;
+}
+
+.clienti-table-container {
+  overflow-x: auto;
+}
+
+.clienti-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.clienti-table th,
+.clienti-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.clienti-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.clienti-table th:hover {
+  background-color: #e9ecef;
+}
+
+.sort-indicator {
+  margin-left: 5px;
+  color: #4a90e2;
+}
+
+.collezioni-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.collezione-chip {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.contatti-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contatto-item {
+  display: flex;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.contatto-label {
+  color: #666;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.action-buttons button:hover {
+  background-color: #f5f5f5;
+}
+
+.clienti-loading,
+.clienti-error {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.clienti-error {
+  color: #ff4444;
+}
