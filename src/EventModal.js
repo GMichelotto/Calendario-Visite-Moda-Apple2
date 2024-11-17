@@ -56,31 +56,63 @@ const styles = `
   font-size: 0.8em;
   margin-top: 5px;
 }
+
+.visit-duration-info {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 5px;
+  font-style: italic;
+}
 `;
 
-function EventModal({ event, onClose, onUpdate, collezioni }) {
-  const [editedEvent, setEditedEvent] = useState({
+function EventModal({ event, onClose, onUpdate, collezioni, clienteCollezioni }) {
+  const getVisitDuration = useCallback(() => {
+    // Cerca la durata specifica per il cliente e la collezione
+    const clienteCollezione = clienteCollezioni?.find(
+      cc => cc.cliente_id === event.cliente_id && cc.collezione_id === event.collezione_id
+    );
+    
+    // Ritorna la durata specifica o il default di 120 minuti (2 ore)
+    return clienteCollezione?.tempo_visita || 120;
+  }, [clienteCollezioni, event.cliente_id, event.collezione_id]);
+
+  // Inizializza l'evento con la durata corretta
+  const initializeEventTimes = useCallback((startTime) => {
+    const start = moment(startTime);
+    const end = moment(startTime).add(getVisitDuration(), 'minutes');
+    
+    return {
+      start: start.format('YYYY-MM-DDTHH:mm'),
+      end: end.format('YYYY-MM-DDTHH:mm')
+    };
+  }, [getVisitDuration]);
+
+  const [editedEvent, setEditedEvent] = useState(() => ({
     ...event,
-    start: moment(event.start).format('YYYY-MM-DDTHH:mm'),
-    end: moment(event.end).format('YYYY-MM-DDTHH:mm')
-  });
+    ...initializeEventTimes(event.start)
+  }));
+  
   const [error, setError] = useState('');
 
   const validateEvent = useCallback((event) => {
     const start = moment(event.start);
     const end = moment(event.end);
     
+    // Verifica giorni lavorativi (no weekend)
     if (start.day() === 0 || start.day() === 6 || end.day() === 0 || end.day() === 6) {
       return 'Gli eventi devono essere programmati dal lunedì al venerdì.';
     }
 
+    // Verifica orario lavorativo (9:00-18:00)
     const startHour = start.hour();
     const endHour = end.hour();
-    if ((startHour < 9 || startHour >= 18 || (startHour >= 13 && startHour < 14)) ||
-        (endHour < 9 || endHour > 18 || (endHour > 13 && endHour <= 14))) {
-      return 'Gli eventi devono essere programmati dalle 9:00 alle 13:00 e dalle 14:00 alle 18:00.';
+    const endMinutes = end.minutes();
+    
+    if (startHour < 9 || (endHour === 18 && endMinutes > 0) || endHour > 18) {
+      return 'Gli eventi devono essere programmati dalle 9:00 alle 18:00.';
     }
 
+    // Verifica periodo della collezione
     const collezione = collezioni.find(c => c.Collezioni === event.collezione);
     if (collezione) {
       const collectionStart = moment(collezione['Data Inizio'], 'DD/MM/YYYY');
@@ -93,15 +125,27 @@ function EventModal({ event, onClose, onUpdate, collezioni }) {
     return null;
   }, [collezioni]);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'start') {
+      // Se viene modificato l'orario di inizio, aggiorna automaticamente l'orario di fine
+      // mantenendo la durata della visita
+      const newTimes = initializeEventTimes(value);
+      setEditedEvent(prev => ({
+        ...prev,
+        start: newTimes.start,
+        end: newTimes.end
+      }));
+    } else {
+      setEditedEvent(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
   useEffect(() => {
     const errorMessage = validateEvent(editedEvent);
     setError(errorMessage || '');
   }, [editedEvent, validateEvent]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditedEvent(prev => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -132,13 +176,31 @@ function EventModal({ event, onClose, onUpdate, collezioni }) {
               Collezione:
               <input type="text" name="collezione" value={editedEvent.collezione} onChange={handleChange} readOnly />
             </label>
+            <div className="visit-duration-info">
+              Durata visita: {getVisitDuration()} minuti
+            </div>
             <label>
               Inizio:
-              <input type="datetime-local" name="start" value={editedEvent.start} onChange={handleChange} />
+              <input 
+                type="datetime-local" 
+                name="start" 
+                value={editedEvent.start} 
+                onChange={handleChange}
+                min="09:00"
+                max="18:00"
+              />
             </label>
             <label>
               Fine:
-              <input type="datetime-local" name="end" value={editedEvent.end} onChange={handleChange} />
+              <input 
+                type="datetime-local" 
+                name="end" 
+                value={editedEvent.end} 
+                onChange={handleChange}
+                min="09:00"
+                max="18:00"
+                readOnly
+              />
             </label>
             {error && <div className="error-message">{error}</div>}
             <div className="button-group">
