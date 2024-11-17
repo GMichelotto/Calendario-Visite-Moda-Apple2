@@ -11,7 +11,163 @@ class DatabaseService {
     this.dbPath = this.getDatabasePath();
   }
 
-  // ... [Previous initialization code remains the same]
+  getDatabasePath() {
+    const userDataPath = app.getPath('userData');
+    return path.join(userDataPath, 'fashion-calendar.sqlite');
+  }
+
+  init() {
+    try {
+      // Crea la directory se non esiste
+      const dbDir = path.dirname(this.dbPath);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+
+      // Inizializza la connessione al database
+      this.db = new Database(this.dbPath, {
+        verbose: log.info
+      });
+
+      // Abilita i vincoli di foreign key
+      this.db.pragma('foreign_keys = ON');
+
+      // Crea le tabelle
+      const schema = `
+        -- Tabella Clienti
+        CREATE TABLE IF NOT EXISTS Clienti (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ragione_sociale VARCHAR(200) NOT NULL,
+            indirizzo VARCHAR(200),
+            cap VARCHAR(5),
+            citta VARCHAR(100),
+            provincia VARCHAR(2),
+            regione VARCHAR(100),
+            telefono VARCHAR(20),
+            cellulare VARCHAR(20),
+            email VARCHAR(100),
+            sito_web VARCHAR(200)
+        );
+
+        -- Tabella Collezioni
+        CREATE TABLE IF NOT EXISTS Collezioni (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome VARCHAR(100) NOT NULL,
+            colore VARCHAR(7) NOT NULL,
+            data_apertura DATE NOT NULL,
+            data_chiusura DATE NOT NULL
+        );
+
+        -- Tabella ponte ClientiCollezioni
+        CREATE TABLE IF NOT EXISTS ClientiCollezioni (
+            cliente_id INTEGER NOT NULL,
+            collezione_id INTEGER NOT NULL,
+            tempo_visita INTEGER NOT NULL DEFAULT 120,
+            priorita INTEGER CHECK(priorita IN (1,2,3)) DEFAULT 2,
+            PRIMARY KEY (cliente_id, collezione_id),
+            FOREIGN KEY (cliente_id) REFERENCES Clienti(id) ON DELETE CASCADE,
+            FOREIGN KEY (collezione_id) REFERENCES Collezioni(id) ON DELETE CASCADE
+        );
+
+        -- Tabella Eventi
+        CREATE TABLE IF NOT EXISTS Eventi (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            collezione_id INTEGER NOT NULL,
+            data_inizio DATETIME NOT NULL,
+            data_fine DATETIME NOT NULL,
+            note TEXT,
+            FOREIGN KEY (cliente_id) REFERENCES Clienti(id) ON DELETE CASCADE,
+            FOREIGN KEY (collezione_id) REFERENCES Collezioni(id) ON DELETE CASCADE
+        );
+
+        -- Indici
+        CREATE INDEX IF NOT EXISTS idx_eventi_date ON Eventi(data_inizio, data_fine);
+        CREATE INDEX IF NOT EXISTS idx_collezioni_date ON Collezioni(data_apertura, data_chiusura);
+        CREATE INDEX IF NOT EXISTS idx_clienti_collezioni ON ClientiCollezioni(cliente_id, collezione_id);
+      `;
+
+      // Esegui le query di creazione del database in una transazione
+      this.db.transaction(() => {
+        this.db.exec(schema);
+      })();
+
+      log.info('Database initialized successfully');
+      return true;
+    } catch (error) {
+      log.error('Error initializing database:', error);
+      throw error;
+    }
+  }
+
+  close() {
+    try {
+      if (this.db) {
+        this.db.close();
+        this.db = null;
+        log.info('Database connection closed');
+      }
+    } catch (error) {
+      log.error('Error closing database:', error);
+      throw error;
+    }
+  }
+
+  checkDatabaseHealth() {
+    try {
+      if (!this.db) {
+        throw new Error('Database connection not initialized');
+      }
+
+      const tables = ['Clienti', 'Collezioni', 'ClientiCollezioni', 'Eventi'];
+      for (const table of tables) {
+        const result = this.db.prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+        ).get(table);
+        
+        if (!result) {
+          throw new Error(`Table ${table} not found in database`);
+        }
+      }
+
+      const foreignKeys = this.db.pragma('foreign_keys');
+      if (!foreignKeys) {
+        throw new Error('Foreign key constraints are not enabled');
+      }
+
+      return { status: 'healthy', message: 'Database is properly configured' };
+    } catch (error) {
+      log.error('Database health check failed:', error);
+      return { status: 'error', message: error.message };
+    }
+  }
+
+  async backup(backupPath) {
+    try {
+      if (!this.db) {
+        throw new Error('Database connection not initialized');
+      }
+
+      if (!backupPath) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupDir = path.join(app.getPath('userData'), 'backups');
+        
+        if (!fs.existsSync(backupDir)) {
+          fs.mkdirSync(backupDir, { recursive: true });
+        }
+        
+        backupPath = path.join(backupDir, `fashion-calendar-${timestamp}.sqlite`);
+      }
+
+      fs.copyFileSync(this.dbPath, backupPath);
+      
+      log.info(`Database backup created at: ${backupPath}`);
+      return { success: true, path: backupPath };
+    } catch (error) {
+      log.error('Database backup failed:', error);
+      throw error;
+    }
+  }
 
   // =============== CLIENTI OPERATIONS ===============
 
@@ -71,7 +227,6 @@ class DatabaseService {
 
     try {
       return this.db.transaction(() => {
-        // Insert cliente
         const insertCliente = this.db.prepare(`
           INSERT INTO Clienti (
             ragione_sociale, indirizzo, cap, citta, provincia, 
@@ -92,7 +247,6 @@ class DatabaseService {
           sito_web
         );
 
-        // Insert collezioni relationships
         if (collezioni && collezioni.length > 0) {
           const insertClienteCollezioni = this.db.prepare(`
             INSERT INTO ClientiCollezioni (
@@ -135,7 +289,6 @@ class DatabaseService {
 
     try {
       return this.db.transaction(() => {
-        // Update cliente
         const updateCliente = this.db.prepare(`
           UPDATE Clienti 
           SET ragione_sociale = ?, indirizzo = ?, cap = ?, 
@@ -158,7 +311,6 @@ class DatabaseService {
           id
         );
 
-        // Update collezioni relationships
         const deleteOldCollezioni = this.db.prepare(
           'DELETE FROM ClientiCollezioni WHERE cliente_id = ?'
         );
@@ -192,7 +344,6 @@ class DatabaseService {
   async deleteCliente(id) {
     try {
       return this.db.transaction(() => {
-        // Delete related records first
         const deleteCollezioni = this.db.prepare(
           'DELETE FROM ClientiCollezioni WHERE cliente_id = ?'
         );
@@ -203,7 +354,6 @@ class DatabaseService {
         deleteCollezioni.run(id);
         deleteEventi.run(id);
 
-        // Delete cliente
         const deleteCliente = this.db.prepare(
           'DELETE FROM Clienti WHERE id = ?'
         );
@@ -272,7 +422,6 @@ class DatabaseService {
   async deleteCollezione(id) {
     try {
       return this.db.transaction(() => {
-        // Delete related records first
         const deleteClienteCollezioni = this.db.prepare(
           'DELETE FROM ClientiCollezioni WHERE collezione_id = ?'
         );
@@ -283,7 +432,6 @@ class DatabaseService {
         deleteClienteCollezioni.run(id);
         deleteEventi.run(id);
 
-        // Delete collezione
         const deleteCollezione = this.db.prepare(
           'DELETE FROM Collezioni WHERE id = ?'
         );
