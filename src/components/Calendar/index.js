@@ -8,6 +8,7 @@ import { useEventi, useCollezioni } from '../../hooks/useDatabase';
 import CalendarHeader from './CalendarHeader';
 import CalendarEvent from './CalendarEvent';
 import EventModal from './EventModal';
+import ValidationService from '../../services/validation.service';
 import './Calendar.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
@@ -24,13 +25,13 @@ const Calendar = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalInitialDates, setModalInitialDates] = useState(null);
+  const [validationResults, setValidationResults] = useState(null);
   const [message, setMessage] = useState(null);
 
-  // Mostra messaggi temporanei
-  const showMessage = (text, type = 'success') => {
+  const showMessage = useCallback((text, type = 'info') => {
     setMessage({ text, type });
     setTimeout(() => setMessage(null), 3000);
-  };
+  }, []);
 
   // Formatta gli eventi per il calendario
   const calendarEvents = useMemo(() => {
@@ -43,163 +44,194 @@ const Calendar = () => {
       collezione_id: evento.collezione_id,
       cliente_nome: evento.cliente_nome,
       collezione_nome: evento.collezione_nome,
+      note: evento.note,
       color: collezioni.find(c => c.id === evento.collezione_id)?.colore || '#4A90E2'
     }));
   }, [eventi, collezioni]);
 
-  // Validazione orari lavorativi
-  const validateWorkingHours = (start, end) => {
-    const startHour = moment(start).hours();
-    const endHour = moment(end).hours();
-    const endMinutes = moment(end).minutes();
-    
-    if (startHour < 9 || startHour >= 18 || endHour > 18 || (endHour === 18 && endMinutes > 0)) {
-      showMessage('Gli appuntamenti possono essere programmati solo dalle 9:00 alle 18:00', 'error');
-      return false;
-    }
-    return true;
-  };
+  // Validazione evento
+  const validateEvent = useCallback(async (eventData, excludeEventId = null) => {
+    try {
+      const validation = await window.electronAPI.database.operation(
+        'validateEventConstraints',
+        { eventData, excludeEventId }
+      );
 
-  // Validazione giorni lavorativi
-  const validateWorkingDays = (start, end) => {
-    const startDay = moment(start).day();
-    const endDay = moment(end).day();
-    
-    if (startDay === 0 || startDay === 6 || endDay === 0 || endDay === 6) {
-      showMessage('Gli appuntamenti possono essere programmati solo dal lunedì al venerdì', 'error');
+      if (!validation.isValid) {
+        showMessage(validation.error, 'error');
+        return false;
+      }
+
+      // Se ci sono warning, mostrali ma permetti di procedere
+      if (validation.warnings?.length > 0) {
+        validation.warnings.forEach(warning => {
+          showMessage(warning, 'warning');
+        });
+      }
+
+      return true;
+    } catch (error) {
+      showMessage('Errore durante la validazione', 'error');
+      console.error('Validation error:', error);
       return false;
     }
-    return true;
-  };
+  }, [showMessage]);
 
   // Gestione drag & drop
   const moveEvent = useCallback(async ({ event, start, end }) => {
     try {
-      if (!validateWorkingHours(start, end) || !validateWorkingDays(start, end)) {
-        return;
-      }
-
-      // Mantieni la durata originale
-      const originalDuration = moment(event.end).diff(moment(event.start), 'minutes');
-      const newEnd = moment(start).add(originalDuration, 'minutes').toDate();
-
-      await updateEvento(event.id, {
+      const eventData = {
         ...event,
         data_inizio: start,
-        data_fine: newEnd,
-      });
-      showMessage('Evento spostato con successo');
-    } catch (err) {
-      console.error('Errore nello spostamento evento:', err);
-      showMessage(err.message, 'error');
+        data_fine: end,
+        cliente_id: event.cliente_id,
+        collezione_id: event.collezione_id
+      };
+
+      const isValid = await validateEvent(eventData, event.id);
+      if (!isValid) return;
+
+      await updateEvento(event.id, eventData);
+      showMessage('Evento spostato con successo', 'success');
+    } catch (error) {
+      showMessage('Errore nello spostamento dell\'evento', 'error');
+      console.error('Move event error:', error);
     }
-  }, [updateEvento]);
+  }, [updateEvento, validateEvent, showMessage]);
 
   // Gestione resize evento
   const resizeEvent = useCallback(async ({ event, start, end }) => {
     try {
-      if (!validateWorkingHours(start, end) || !validateWorkingDays(start, end)) {
-        return;
-      }
-
-      // Verifica la durata configurata
-      const response = await window.electronAPI.database.operation(
-        'getClienteCollezioneDuration',
-        { 
-          cliente_id: event.cliente_id, 
-          collezione_id: event.collezione_id 
-        }
-      );
-
-      const configuredDuration = response.success ? response.data : 120;
-      const newDuration = moment(end).diff(moment(start), 'minutes');
-
-      if (newDuration !== configuredDuration) {
-        showMessage(`La durata dell'appuntamento deve essere di ${configuredDuration} minuti`, 'error');
-        return;
-      }
-
-      await updateEvento(event.id, {
+      const eventData = {
         ...event,
         data_inizio: start,
         data_fine: end,
-      });
-      showMessage('Evento aggiornato con successo');
-    } catch (err) {
-      console.error('Errore nel ridimensionamento evento:', err);
-      showMessage(err.message, 'error');
-    }
-  }, [updateEvento]);
+        cliente_id: event.cliente_id,
+        collezione_id: event.collezione_id
+      };
 
-  // Gestione selezione slot vuoto
-  const handleSelectSlot = useCallback(({ start, end }) => {
-    if (!validateWorkingHours(start, end) || !validateWorkingDays(start, end)) {
+      const isValid = await validateEvent(eventData, event.id);
+      if (!isValid) return;
+
+      await updateEvento(event.id, eventData);
+      showMessage('Evento ridimensionato con successo', 'success');
+    } catch (error) {
+      showMessage('Errore nel ridimensionamento dell\'evento', 'error');
+      console.error('Resize event error:', error);
+    }
+  }, [updateEvento, validateEvent, showMessage]);
+
+  // Selezione slot vuoto
+  const handleSelectSlot = useCallback(async ({ start, end }) => {
+    // Reset stato validazione
+    setValidationResults(null);
+    
+    // Verifica preliminare orari lavorativi
+    const startHour = moment(start).hours();
+    const endHour = moment(end).hours();
+    const startDay = moment(start).day();
+    
+    if (startHour < 9 || endHour >= 18 || startDay === 0 || startDay === 6) {
+      showMessage('Seleziona un orario valido (Lun-Ven, 9:00-18:00)', 'error');
       return;
     }
 
-    setModalInitialDates({ start, end });
-    setShowModal(true);
-  }, []);
-
-  // Gestione click su evento
-  const handleSelectEvent = useCallback((event) => {
-    setSelectedEvent(event);
-    setShowModal(true);
-  }, []);
-
-  // Gestione salvataggio evento dal modal
-  const handleSaveEvent = async (eventData) => {
+    // Controlla disponibilità slot
     try {
+      const overlappingEvents = await window.electronAPI.database.operation(
+        'getOverlappingEvents',
+        { start_date: start, end_date: end }
+      );
+
+      if (overlappingEvents.length > 0) {
+        showMessage('Questo slot è già occupato', 'error');
+        return;
+      }
+
+      setModalInitialDates({ start, end });
+      setShowModal(true);
+    } catch (error) {
+      showMessage('Errore nel controllo disponibilità', 'error');
+      console.error('Slot selection error:', error);
+    }
+  }, [showMessage]);
+
+  // Gestione salvataggio evento
+  const handleSaveEvent = useCallback(async (eventData) => {
+    try {
+      const isValid = await validateEvent(
+        eventData,
+        selectedEvent?.id
+      );
+
+      if (!isValid) return;
+
       if (selectedEvent) {
         await updateEvento(selectedEvent.id, eventData);
-        showMessage('Evento aggiornato con successo');
+        showMessage('Evento aggiornato con successo', 'success');
       } else {
         await createEvento(eventData);
-        showMessage('Evento creato con successo');
+        showMessage('Evento creato con successo', 'success');
       }
+
       setShowModal(false);
       setSelectedEvent(null);
       setModalInitialDates(null);
-    } catch (err) {
-      showMessage(err.message, 'error');
+      setValidationResults(null);
+    } catch (error) {
+      showMessage('Errore nel salvataggio dell\'evento', 'error');
+      console.error('Save event error:', error);
     }
-  };
+  }, [createEvento, updateEvento, selectedEvent, showMessage, validateEvent]);
 
-  // Custom toolbar component
-  const CustomToolbar = useCallback(props => (
-    <CalendarHeader
-      {...props}
-      view={view}
-      date={date}
-      onViewChange={setView}
-      onNavigate={setDate}
-    />
-  ), [view, date]);
+  // Selezione evento esistente
+  const handleSelectEvent = useCallback(async (event) => {
+    try {
+      // Carica i dettagli completi dell'evento
+      const eventDetails = await window.electronAPI.database.operation(
+        'getEventoById',
+        { id: event.id }
+      );
 
-  // Custom event component
-  const EventComponent = useCallback(props => (
-    <CalendarEvent 
-      {...props} 
-      onDelete={async (id) => {
-        try {
-          await deleteEvento(id);
-          showMessage('Evento eliminato con successo');
-        } catch (err) {
-          showMessage(err.message, 'error');
+      // Carica il carico di lavoro del cliente per il giorno
+      const workload = await window.electronAPI.database.operation(
+        'getClienteWorkload',
+        { 
+          cliente_id: event.cliente_id,
+          start_date: moment(event.start).format('YYYY-MM-DD'),
+          end_date: moment(event.start).format('YYYY-MM-DD')
         }
-      }} 
-    />
-  ), [deleteEvento]);
+      );
 
-  // Custom event style
-  const eventStyleGetter = useCallback((event) => {
-    return {
-      style: {
-        backgroundColor: event.color,
-        borderColor: event.color
-      }
-    };
-  }, []);
+      setSelectedEvent({ ...eventDetails, workload });
+      setShowModal(true);
+    } catch (error) {
+      showMessage('Errore nel caricamento dei dettagli evento', 'error');
+      console.error('Select event error:', error);
+    }
+  }, [showMessage]);
+
+  const handleDeleteEvent = useCallback(async (eventId) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo evento?')) {
+      return;
+    }
+
+    try {
+      await deleteEvento(eventId);
+      showMessage('Evento eliminato con successo', 'success');
+    } catch (error) {
+      showMessage('Errore nell\'eliminazione dell\'evento', 'error');
+      console.error('Delete event error:', error);
+    }
+  }, [deleteEvento, showMessage]);
+
+  // Event style
+  const eventStyleGetter = useCallback((event) => ({
+    style: {
+      backgroundColor: event.color,
+      borderColor: event.color
+    }
+  }), []);
 
   if (isLoading) {
     return <div className="calendar-loading">Caricamento calendario...</div>;
@@ -232,8 +264,21 @@ const Calendar = () => {
         resizable
         popup
         components={{
-          toolbar: CustomToolbar,
-          event: EventComponent,
+          toolbar: props => (
+            <CalendarHeader
+              {...props}
+              view={view}
+              date={date}
+              onViewChange={setView}
+              onNavigate={setDate}
+            />
+          ),
+          event: props => (
+            <CalendarEvent
+              {...props}
+              onDelete={handleDeleteEvent}
+            />
+          ),
         }}
         eventPropGetter={eventStyleGetter}
         messages={{
@@ -261,11 +306,13 @@ const Calendar = () => {
             setShowModal(false);
             setSelectedEvent(null);
             setModalInitialDates(null);
+            setValidationResults(null);
           }}
           onSave={handleSaveEvent}
           event={selectedEvent}
           initialStart={modalInitialDates?.start}
           initialEnd={modalInitialDates?.end}
+          validationResults={validationResults}
           isLoading={isLoading}
         />
       )}
