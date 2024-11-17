@@ -4,13 +4,13 @@ import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'moment/locale/it';
-import { useEventi } from '../../hooks/useDatabase';
+import { useEventi, useCollezioni } from '../../hooks/useDatabase';
 import CalendarHeader from './CalendarHeader';
 import CalendarEvent from './CalendarEvent';
+import EventModal from './EventModal';
 import './Calendar.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import EventModal from './EventModal';
 
 moment.locale('it');
 const localizer = momentLocalizer(moment);
@@ -20,11 +20,19 @@ const Calendar = () => {
   const [view, setView] = useState('week');
   const [date, setDate] = useState(new Date());
   const { eventi, isLoading, error, updateEvento, createEvento, deleteEvento } = useEventi();
+  const { collezioni } = useCollezioni();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalInitialDates, setModalInitialDates] = useState(null);
+  const [message, setMessage] = useState(null);
 
-  // Formatta gli eventi per react-big-calendar
+  // Mostra messaggi temporanei
+  const showMessage = (text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  // Formatta gli eventi per il calendario
   const calendarEvents = useMemo(() => {
     return eventi.map(evento => ({
       id: evento.id,
@@ -35,93 +43,127 @@ const Calendar = () => {
       collezione_id: evento.collezione_id,
       cliente_nome: evento.cliente_nome,
       collezione_nome: evento.collezione_nome,
+      color: collezioni.find(c => c.id === evento.collezione_id)?.colore || '#4A90E2'
     }));
-  }, [eventi]);
+  }, [eventi, collezioni]);
+
+  // Validazione orari lavorativi
+  const validateWorkingHours = (start, end) => {
+    const startHour = moment(start).hours();
+    const endHour = moment(end).hours();
+    const endMinutes = moment(end).minutes();
+    
+    if (startHour < 9 || startHour >= 18 || endHour > 18 || (endHour === 18 && endMinutes > 0)) {
+      showMessage('Gli appuntamenti possono essere programmati solo dalle 9:00 alle 18:00', 'error');
+      return false;
+    }
+    return true;
+  };
+
+  // Validazione giorni lavorativi
+  const validateWorkingDays = (start, end) => {
+    const startDay = moment(start).day();
+    const endDay = moment(end).day();
+    
+    if (startDay === 0 || startDay === 6 || endDay === 0 || endDay === 6) {
+      showMessage('Gli appuntamenti possono essere programmati solo dal lunedì al venerdì', 'error');
+      return false;
+    }
+    return true;
+  };
 
   // Gestione drag & drop
   const moveEvent = useCallback(async ({ event, start, end }) => {
     try {
+      if (!validateWorkingHours(start, end) || !validateWorkingDays(start, end)) {
+        return;
+      }
+
+      // Mantieni la durata originale
+      const originalDuration = moment(event.end).diff(moment(event.start), 'minutes');
+      const newEnd = moment(start).add(originalDuration, 'minutes').toDate();
+
       await updateEvento(event.id, {
         ...event,
         data_inizio: start,
-        data_fine: end,
+        data_fine: newEnd,
       });
+      showMessage('Evento spostato con successo');
     } catch (err) {
       console.error('Errore nello spostamento evento:', err);
-      // TODO: Mostrare notifica errore
+      showMessage(err.message, 'error');
     }
   }, [updateEvento]);
 
   // Gestione resize evento
   const resizeEvent = useCallback(async ({ event, start, end }) => {
     try {
+      if (!validateWorkingHours(start, end) || !validateWorkingDays(start, end)) {
+        return;
+      }
+
+      // Verifica la durata configurata
+      const response = await window.electronAPI.database.operation(
+        'getClienteCollezioneDuration',
+        { 
+          cliente_id: event.cliente_id, 
+          collezione_id: event.collezione_id 
+        }
+      );
+
+      const configuredDuration = response.success ? response.data : 120;
+      const newDuration = moment(end).diff(moment(start), 'minutes');
+
+      if (newDuration !== configuredDuration) {
+        showMessage(`La durata dell'appuntamento deve essere di ${configuredDuration} minuti`, 'error');
+        return;
+      }
+
       await updateEvento(event.id, {
         ...event,
         data_inizio: start,
         data_fine: end,
       });
+      showMessage('Evento aggiornato con successo');
     } catch (err) {
       console.error('Errore nel ridimensionamento evento:', err);
-      // TODO: Mostrare notifica errore
+      showMessage(err.message, 'error');
     }
   }, [updateEvento]);
 
   // Gestione selezione slot vuoto
   const handleSelectSlot = useCallback(({ start, end }) => {
-  const isWorkingHours = (date) => {
-    const hour = moment(date).hour();
-    const minute = moment(date).minute();
-    const timeInMinutes = hour * 60 + minute;
-    const workDayStart = 9 * 60;  // 9:00 in minuti
-    const workDayEnd = 18 * 60;   // 18:00 in minuti
-    
-    return timeInMinutes >= workDayStart && timeInMinutes <= workDayEnd;
-  };
-
-  const isWorkingDay = (date) => {
-    const day = moment(date).day();
-    return day >= 1 && day <= 5;  // 1 = Lunedì, 5 = Venerdì
-  };
-
-  // Verifica se le date sono nei giorni lavorativi
-  if (!isWorkingDay(start) || !isWorkingDay(end)) {
-    alert('Gli appuntamenti possono essere programmati solo dal lunedì al venerdì');
-    return;
-  }
-
-  // Verifica se gli orari sono nell'orario lavorativo
-  if (!isWorkingHours(start) || !isWorkingHours(end)) {
-    alert('Gli appuntamenti possono essere programmati solo dalle 9:00 alle 18:00');
-    return;
-  }
-
-  // Se tutte le validazioni passano, mostra il modal per la creazione dell'evento
-  setModalInitialDates({ start, end });
-  setShowModal(true);
-}, [setModalInitialDates, setShowModal]);
-
-    // TODO: Aprire modal per creazione evento invece di questo prompt
-    const title = prompt('Inserisci il titolo dell\'evento');
-    if (title) {
-      try {
-        await createEvento({
-          data_inizio: start,
-          data_fine: end,
-          cliente_id: 1, // TODO: Selezionare da modal
-          collezione_id: 1, // TODO: Selezionare da modal
-        });
-      } catch (err) {
-        console.error('Errore nella creazione evento:', err);
-        // TODO: Mostrare notifica errore
-      }
+    if (!validateWorkingHours(start, end) || !validateWorkingDays(start, end)) {
+      return;
     }
-  }, [createEvento]);
+
+    setModalInitialDates({ start, end });
+    setShowModal(true);
+  }, []);
 
   // Gestione click su evento
   const handleSelectEvent = useCallback((event) => {
-    // TODO: Aprire modal per visualizzazione/modifica evento
-    console.log('Evento selezionato:', event);
+    setSelectedEvent(event);
+    setShowModal(true);
   }, []);
+
+  // Gestione salvataggio evento dal modal
+  const handleSaveEvent = async (eventData) => {
+    try {
+      if (selectedEvent) {
+        await updateEvento(selectedEvent.id, eventData);
+        showMessage('Evento aggiornato con successo');
+      } else {
+        await createEvento(eventData);
+        showMessage('Evento creato con successo');
+      }
+      setShowModal(false);
+      setSelectedEvent(null);
+      setModalInitialDates(null);
+    } catch (err) {
+      showMessage(err.message, 'error');
+    }
+  };
 
   // Custom toolbar component
   const CustomToolbar = useCallback(props => (
@@ -136,8 +178,28 @@ const Calendar = () => {
 
   // Custom event component
   const EventComponent = useCallback(props => (
-    <CalendarEvent {...props} onDelete={deleteEvento} />
+    <CalendarEvent 
+      {...props} 
+      onDelete={async (id) => {
+        try {
+          await deleteEvento(id);
+          showMessage('Evento eliminato con successo');
+        } catch (err) {
+          showMessage(err.message, 'error');
+        }
+      }} 
+    />
   ), [deleteEvento]);
+
+  // Custom event style
+  const eventStyleGetter = useCallback((event) => {
+    return {
+      style: {
+        backgroundColor: event.color,
+        borderColor: event.color
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return <div className="calendar-loading">Caricamento calendario...</div>;
@@ -149,6 +211,12 @@ const Calendar = () => {
 
   return (
     <div className="calendar-container">
+      {message && (
+        <div className={`calendar-message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
       <DnDCalendar
         localizer={localizer}
         events={calendarEvents}
@@ -167,6 +235,7 @@ const Calendar = () => {
           toolbar: CustomToolbar,
           event: EventComponent,
         }}
+        eventPropGetter={eventStyleGetter}
         messages={{
           today: 'Oggi',
           previous: 'Precedente',
@@ -184,6 +253,22 @@ const Calendar = () => {
         step={30}
         timeslots={2}
       />
+
+      {showModal && (
+        <EventModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedEvent(null);
+            setModalInitialDates(null);
+          }}
+          onSave={handleSaveEvent}
+          event={selectedEvent}
+          initialStart={modalInitialDates?.start}
+          initialEnd={modalInitialDates?.end}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 };
