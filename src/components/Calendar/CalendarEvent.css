@@ -1,0 +1,178 @@
+/* src/components/Calendar/CalendarEvent.css */
+
+.calendar-event {
+  padding: 4px 6px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+.calendar-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-event.expanded {
+  min-height: 100px;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.event-title-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.event-title {
+  font-size: 0.9rem;
+  color: #1a202c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expand-button, .delete-button {
+  padding: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  color: #718096;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.expand-button:hover, .delete-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.delete-button {
+  font-size: 16px;
+  color: #e53e3e;
+}
+
+.event-time {
+  font-size: 0.8rem;
+  color: #4a5568;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.event-duration {
+  color: #718096;
+  font-size: 0.75rem;
+}
+
+.event-details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.detail-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.detail-label {
+  color: #718096;
+  min-width: 70px;
+}
+
+.detail-value {
+  color: #2d3748;
+  flex: 1;
+}
+
+.detail-value.note {
+  font-style: italic;
+  color: #4a5568;
+  font-size: 0.8rem;
+}
+
+.collezione-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+  .expand-button, .delete-button {
+    opacity: 1;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .calendar-event {
+    background-color: #2d3748;
+  }
+
+  .event-title {
+    color: #e2e8f0;
+  }
+
+  .event-time {
+    color: #a0aec0;
+  }
+
+  .detail-label {
+    color: #a0aec0;
+  }
+
+  .detail-value {
+    color: #e2e8f0;
+  }
+
+  .detail-value.note {
+    color: #cbd5e0;
+  }
+
+  .expand-button, .delete-button {
+    color: #a0aec0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .calendar-event {
+    padding: 3px 4px;
+  }
+
+  .event-title {
+    font-size: 0.8rem;
+  }
+
+  .event-time {
+    font-size: 0.75rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .detail-label {
+    min-width: auto;
+  }
+}
