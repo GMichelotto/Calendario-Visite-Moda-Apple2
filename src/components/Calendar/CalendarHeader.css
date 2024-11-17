@@ -1,1 +1,281 @@
+/* src/components/Calendar/CalendarHeader.css */
 
+.calendar-header {
+  padding: 16px;
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-arrows {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-button {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.nav-button:hover {
+  background-color: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.nav-button.today {
+  background-color: #ebf8ff;
+  border-color: #90cdf4;
+  color: #2b6cb0;
+}
+
+.nav-button.today:hover {
+  background-color: #bee3f8;
+}
+
+.current-date {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #2d3748;
+  min-width: 200px;
+  text-align: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-switcher {
+  display: flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.view-button {
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4a5568;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.view-button:not(:last-child) {
+  border-right: 1px solid #e2e8f0;
+}
+
+.view-button:hover {
+  background-color: #f7fafc;
+}
+
+.view-button.active {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.filter-button {
+  position: relative;
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-button.active {
+  background-color: #ebf8ff;
+  border-color: #90cdf4;
+}
+
+.filter-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e53e3e;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.collezioni-filter {
+  margin-top: 12px;
+  padding: 16px;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.filter-header h3 {
+  font-size: 1rem;
+  color: #2d3748;
+  margin: 0;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-actions button {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: none;
+  background: none;
+  color: #4a5568;
+  cursor: pointer;
+}
+
+.filter-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.collezioni-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.collezione-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collezione-checkbox:hover {
+  background-color: #f7fafc;
+}
+
+.collezione-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.collezione-name {
+  flex: 1;
+  font-size: 0.9rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.collezione-count {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .calendar-header {
+    background-color: #1a202c;
+    border-color: #2d3748;
+  }
+
+  .nav-button {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .nav-button:hover {
+    background-color: #4a5568;
+  }
+
+  .nav-button.today {
+    background-color: #2c5282;
+    border-color: #4299e1;
+    color: #ebf8ff;
+  }
+
+  .current-date {
+    color: #e2e8f0;
+  }
+
+  .view-button {
+    color: #e2e8f0;
+  }
+
+  .view-button.active {
+    background-color: #2c5282;
+  }
+
+  .collezioni-filter {
+    background-color: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .filter-header h3 {
+    color: #e2e8f0;
+  }
+
+  .filter-actions button {
+    color: #a0aec0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .calendar-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .current-date {
+    order: -1;
+  }
+
+  .collezioni-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-button {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+
+  .view-button {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+}
