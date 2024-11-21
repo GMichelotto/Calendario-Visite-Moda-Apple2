@@ -5,15 +5,15 @@
   "main": "electron/main.js",
   "private": true,
   "author": {
-    "name": "Fashion Calendar Team",
-    "email": "support@fashioncalendar.com"
+    "name": "Fashion Calendar App",
+    "email": "gianluigi.michelotto@gmail.com"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "tsc -p electron && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron:dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
+    "electron:dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://127.0.0.1:3000 && tsc -p electron && electron .\"",
     "electron:build": "npm run build && electron-builder",
     "electron:build:win": "npm run build && electron-builder --win -c.extraMetadata.main=build/electron/main.js",
     "electron:build:mac": "npm run build && electron-builder --mac -c.extraMetadata.main=build/electron/main.js",
@@ -36,12 +36,19 @@
     "react": "18.2.0",
     "react-big-calendar": "1.8.6",
     "react-dom": "18.2.0",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "lucide-react": "^0.263.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.2.0",
     "@testing-library/react": "14.1.2",
     "@testing-library/user-event": "14.5.2",
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/electron": "^1.6.10",
+    "@types/node": "^20.11.16",
+    "@types/react": "^18.2.51",
+    "@types/react-dom": "^18.2.18",
+    "@types/react-big-calendar": "^1.8.8",
     "autoprefixer": "10.4.17",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -50,6 +57,7 @@
     "postcss": "8.4.33",
     "postcss-cli": "11.0.0",
     "tailwindcss": "3.4.1",
+    "typescript": "^4.9.5",
     "wait-on": "7.2.0"
   },
   "build": {
