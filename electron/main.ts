@@ -1,7 +1,7 @@
 // electron/main.ts
 
 import { app, BrowserWindow } from 'electron';
-import { Database } from 'better-sqlite3';
+import BetterSqlite3, { Database } from 'better-sqlite3';
 import path from 'path';
 import isDev from 'electron-is-dev';
 import { setupClientiHandlers } from './handlers/clientiHandler';
@@ -42,12 +42,10 @@ function initDatabase() {
     ? path.join(__dirname, '../database.db')
     : path.join(app.getPath('userData'), 'database.db');
 
-  db = new Database(dbPath);
+  db = new BetterSqlite3(dbPath);
 
-  // Abilita le foreign keys
   db.pragma('foreign_keys = ON');
 
-  // Setup handlers
   setupClientiHandlers(db);
   setupCollezioniHandlers(db);
   setupEventiHandlers(db);
