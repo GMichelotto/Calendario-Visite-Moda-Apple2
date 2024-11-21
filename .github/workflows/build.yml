@@ -8,7 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
@@ -20,20 +23,14 @@ jobs:
         
     - name: Clean install dependencies
       run: |
-        Remove-Item -Path package-lock.json -ErrorAction Ignore
         npm install
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add package-lock.json
-        git diff --staged --quiet || (git commit -m "Update package-lock.json" && git push)
-      shell: pwsh
+      shell: bash
       
     - name: Install TypeScript
       run: npm install -g typescript
       
     - name: Build TypeScript
-      run: |
-        tsc -p electron/tsconfig.json
+      run: tsc -p electron/tsconfig.json
         
     - name: Build React app
       run: npm run build
@@ -41,12 +38,28 @@ jobs:
         CI: false
       
     - name: Build Electron app
-      run: npm run electron:build:win
+      run: |
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          npm run electron:build:win
+        else
+          npm run electron:build:mac
+        fi
+      shell: bash
       env:
         CI: false
       
-    - name: Upload artifacts
+    - name: Upload Windows artifacts
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: windows-app
         path: dist/*.exe
+        
+    - name: Upload macOS artifacts
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-app
+        path: |
+          dist/*.dmg
+          dist/mac-universal/*.dmg
