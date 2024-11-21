@@ -39,7 +39,10 @@
     "react-scripts": "5.0.1",
     "lucide-react": "^0.263.1",
     "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.8.1"
+    "jspdf-autotable": "^3.8.1",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.1",
+    "react-color": "^2.19.3"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.2.0",
