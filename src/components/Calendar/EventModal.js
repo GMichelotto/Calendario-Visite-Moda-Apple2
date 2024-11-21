@@ -13,6 +13,18 @@ import {
 } from 'lucide-react';
 import { useClienti, useCollezioni } from '../../hooks/useDatabase';
 
+const handleCloseModal = useCallback(() => {
+  resetForm();
+  onClose();
+}, [resetForm, onClose]);
+
+function EventModal({ event, onClose, onUpdate, collezioni }) {
+  const [editedEvent, setEditedEvent] = useState({
+    ...event,
+    start: moment(event.start).format('YYYY-MM-DDTHH:mm'),
+    end: moment(event.end).format('YYYY-MM-DDTHH:mm')
+  });
+
 const EventModal = ({ 
   isOpen, 
   onClose, 
