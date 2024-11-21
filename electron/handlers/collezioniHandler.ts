@@ -1,15 +1,26 @@
 // electron/handlers/collezioniHandler.ts
 
 import { ipcMain } from 'electron';
-import { Database } from 'better-sqlite3';
+import type { Database } from 'better-sqlite3';
+
+interface Collezione {
+  id?: number;
+  nome: string;
+  colore: string;
+  data_inizio: string;
+  data_fine: string;
+  [key: string]: any;
+}
+
+interface CollezioneStats extends Collezione {
+  clienti_associati: number;
+  appuntamenti_totali: number;
+  disponibilita: number;
+}
 
 export function setupCollezioniHandlers(db: Database) {
-  ipcMain.handle('collezioni:getAll', async () => {
-    return db.prepare('SELECT * FROM Collezioni').all();
-  });
-
   ipcMain.handle('collezioni:getAllWithStats', async () => {
-    return db.prepare(`
+    const result = db.prepare(`
       SELECT 
         c.*,
         COUNT(DISTINCT cc.cliente_id) as clienti_associati,
@@ -24,91 +35,27 @@ export function setupCollezioniHandlers(db: Database) {
       LEFT JOIN ClientiCollezioni cc ON c.id = cc.collezione_id
       LEFT JOIN Eventi e ON c.id = e.collezione_id
       GROUP BY c.id
-    `).all();
-  });
+    `).all() as CollezioneStats[];
 
-  ipcMain.handle('collezioni:getById', async (_, id: number) => {
-    return db.prepare('SELECT * FROM Collezioni WHERE id = ?').get(id);
-  });
-
-  ipcMain.handle('collezioni:create', async (_, collezione) => {
-    const stmt = db.prepare(`
-      INSERT INTO Collezioni (nome, colore, data_inizio, data_fine)
-      VALUES (?, ?, ?, ?)
-    `);
-
-    const result = stmt.run(
-      collezione.nome,
-      collezione.colore,
-      collezione.data_inizio,
-      collezione.data_fine
-    );
-
-    return result.lastInsertRowid;
-  });
-
-  ipcMain.handle('collezioni:update', async (_, id: number, collezione) => {
-    const fields = Object.keys(collezione)
-      .map(key => `${key} = @${key}`)
-      .join(', ');
-
-    const stmt = db.prepare(`
-      UPDATE Collezioni 
-      SET ${fields}
-      WHERE id = @id
-    `);
-
-    const result = stmt.run({ ...collezione, id });
-    return result.changes > 0;
-  });
-
-  ipcMain.handle('collezioni:delete', async (_, id: number) => {
-    const result = db.prepare('DELETE FROM Collezioni WHERE id = ?').run(id);
-    return result.changes > 0;
-  });
-
-  ipcMain.handle('collezioni:getClienti', async (_, collezioneId: number) => {
-    return db.prepare(`
-      SELECT 
-        c.*,
-        cc.tempo_visita
-      FROM Clienti c
-      JOIN ClientiCollezioni cc ON c.id = cc.cliente_id
-      WHERE cc.collezione_id = ?
-    `).all(collezioneId);
-  });
-
-  ipcMain.handle('collezioni:checkAvailability', async (_, collezioneId: number, start: string, end: string) => {
-    const conflitti = db.prepare(`
-      SELECT COUNT(*) as count
-      FROM Eventi
-      WHERE collezione_id = ?
-      AND (
-        (data_inizio <= ? AND data_fine > ?) OR
-        (data_inizio < ? AND data_fine >= ?) OR
-        (data_inizio >= ? AND data_fine <= ?)
-      )
-    `).get(collezioneId, start, start, end, end, start, end);
-
-    return conflitti.count === 0;
+    return result;
   });
 
   ipcMain.handle('collezioni:importCSV', async (_, csvContent: string) => {
     const errors: string[] = [];
-    const lines = csvContent.split('\n').map(line => line.trim());
+    const lines = csvContent.split('\n').map((line: string) => line.trim());
     
     if (lines.length < 2) {
       return { success: false, errors: ['File CSV vuoto o invalido'] };
     }
 
-    const db_transaction = db.transaction((lines) => {
+    const db_transaction = db.transaction((lines: string[]) => {
       const insertStmt = db.prepare(`
         INSERT INTO Collezioni (nome, colore, data_inizio, data_fine)
         VALUES (?, ?, ?, ?)
       `);
 
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(';').map(v => v.trim());
+        const values = lines[i].split(';').map((v: string) => v.trim());
         if (values.length !== 4) {
           errors.push(`Riga ${i + 1}: numero di colonne non valido`);
           continue;
@@ -116,7 +63,7 @@ export function setupCollezioniHandlers(db: Database) {
         try {
           insertStmt.run(values);
         } catch (error) {
-          errors.push(`Riga ${i + 1}: ${error.message}`);
+          errors.push(`Riga ${i + 1}: ${(error as Error).message}`);
         }
       }
     });
@@ -127,7 +74,7 @@ export function setupCollezioniHandlers(db: Database) {
     } catch (error) {
       return {
         success: false,
-        errors: [...errors, `Errore transazione: ${error.message}`]
+        errors: [...errors, `Errore transazione: ${(error as Error).message}`]
       };
     }
   });
