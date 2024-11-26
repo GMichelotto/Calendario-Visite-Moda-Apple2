@@ -6,13 +6,13 @@ import {
 import ClientiTable from './ClientiTable';
 import ClientiFilters from './ClientiFilters';
 import { useClienti } from '../../hooks/useDatabase';
-import { Cliente } from '../../types';
+import type { Cliente } from '../../types';
 
-interface ClientiPageProps {
+type ClientiPageProps = {
   // add props if needed
-}
+};
 
-const ClientiPage: React.FC<ClientiPageProps> = () => {
+const ClientiPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const { clienti, isLoading, error } = useClienti();
@@ -106,7 +106,4 @@ const ClientiPage: React.FC<ClientiPageProps> = () => {
   );
 };
 
-// Aggiunta esplicita dell'esportazione nominale
-export { ClientiPage };
-// Manteniamo anche l'export default per retrocompatibilità
 export default ClientiPage;
