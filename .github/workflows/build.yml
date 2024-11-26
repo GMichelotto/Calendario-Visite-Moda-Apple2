@@ -22,17 +22,40 @@ jobs:
         node-version: '20'
         cache: 'npm'
         
-    - name: Install dependencies
+    - name: Clean install dependencies
       run: |
         rm -rf node_modules
         rm -f package-lock.json
-        npm install
+        npm install --no-package-lock
       shell: bash
       
-    - name: Build TypeScript
+    - name: Install TypeScript globally
+      run: npm install -g typescript
+      
+    - name: Create TypeScript config
       run: |
-        npm install -g typescript
-        tsc -p electron/tsconfig.json
+        echo '{
+          "compilerOptions": {
+            "target": "ES2020",
+            "module": "commonjs",
+            "sourceMap": true,
+            "outDir": "../build/electron",
+            "rootDir": "./",
+            "strict": true,
+            "moduleResolution": "node",
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "forceConsistentCasingInFileNames": true,
+            "types": ["node"],
+            "typeRoots": ["../node_modules/@types"]
+          },
+          "include": ["./**/*"],
+          "exclude": ["node_modules"]
+        }' > electron/tsconfig.json
+      shell: bash
+        
+    - name: Build TypeScript
+      run: npm run build:electron
         
     - name: Build React app
       run: npm run build
