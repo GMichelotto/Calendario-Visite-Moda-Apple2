@@ -1,46 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Search, Plus, Filter, Download, Upload,
-  Edit, Trash2, ChevronDown, Tag, MapPin, Phone, Mail
+  Search, Plus, Filter, Download, Upload,
+  ChevronDown
 } from 'lucide-react';
-import ClientiTable from './ClientiTable';
-import ClientiFilters from './ClientiFilters';
-import { useClienti } from '../../hooks/useDatabase';
-import type { Cliente } from '../../types';
+import type { Cliente } from '../../types/database';
 
-type ClientiPageProps = {
-  // add props if needed
-};
-
-const ClientiPage = () => {
-  const [showFilters, setShowFilters] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const { clienti, isLoading, error } = useClienti();
+const ClientiPage: React.FC = () => {
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [clienti, setClienti] = useState<Cliente[]>([]);
   const [filteredClienti, setFilteredClienti] = useState<Cliente[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (clienti) {
-      setFilteredClienti(clienti);
-    }
-  }, [clienti]);
+    const loadClienti = async () => {
+      try {
+        const result = await window.electronAPI.database.operation('getClienti');
+        setClienti(result);
+        setFilteredClienti(result);
+      } catch (error) {
+        console.error('Errore nel caricamento clienti:', error);
+      }
+    };
+
+    loadClienti();
+  }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
     
-    if (clienti) {
-      const filtered = clienti.filter(cliente => 
-        cliente.ragione_sociale.toLowerCase().includes(term) ||
-        cliente.citta.toLowerCase().includes(term) ||
-        cliente.provincia.toLowerCase().includes(term)
-      );
-      setFilteredClienti(filtered);
-    }
+    const filtered = clienti.filter(cliente => 
+      cliente.ragione_sociale.toLowerCase().includes(term) ||
+      cliente.citta.toLowerCase().includes(term) ||
+      cliente.provincia.toLowerCase().includes(term)
+    );
+    setFilteredClienti(filtered);
   };
-
-  if (isLoading) return <div>Caricamento...</div>;
-  if (error) return <div>Errore: {error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -97,10 +93,67 @@ const ClientiPage = () => {
             </div>
           </div>
 
-          {showFilters && <ClientiFilters onFilter={(filtered) => setFilteredClienti(filtered)} />}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-white rounded-lg shadow">
+              {/* Contenuto filtri */}
+            </div>
+          )}
         </div>
 
-        <ClientiTable clienti={filteredClienti} />
+        {/* Table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Cliente
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Città
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Collezioni
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Azioni
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredClienti.map((cliente) => (
+                <tr key={cliente.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {cliente.ragione_sociale}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {cliente.citta} ({cliente.provincia})
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex flex-wrap gap-2">
+                      {cliente.collezioni?.map((collezione, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          {collezione}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button className="text-blue-600 hover:text-blue-900">
+                      Modifica
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   );
