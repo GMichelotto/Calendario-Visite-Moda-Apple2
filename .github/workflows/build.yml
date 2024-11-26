@@ -20,26 +20,28 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
         
-    - name: Clean install dependencies
+    - name: Install dependencies
       run: |
+        rm -rf node_modules
+        rm -f package-lock.json
         npm install
       shell: bash
       
-    - name: Install TypeScript
-      run: npm install -g typescript
-      
     - name: Build TypeScript
-      run: tsc -p electron/tsconfig.json
+      run: |
+        npm install -g typescript
+        tsc -p electron/tsconfig.json
         
     - name: Build React app
       run: npm run build
       env:
         CI: false
-      
+        
     - name: Build Electron app
       run: |
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
           npm run electron:build:win
         else
           npm run electron:build:mac
@@ -47,6 +49,7 @@ jobs:
       shell: bash
       env:
         CI: false
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
     - name: Upload Windows artifacts
       if: matrix.os == 'windows-latest'
@@ -63,3 +66,9 @@ jobs:
         path: |
           dist/*.dmg
           dist/mac-universal/*.dmg
+
+    - name: Clean up artifacts
+      run: |
+        rm -rf dist
+        rm -rf build
+      shell: bash
