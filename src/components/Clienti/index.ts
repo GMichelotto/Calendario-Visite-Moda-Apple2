@@ -1,1 +1,3 @@
-export { default as ClientiPage } from './ClientiPage';
+import ClientiPageComponent from './ClientiPage';
+
+export const ClientiPage = ClientiPageComponent;
