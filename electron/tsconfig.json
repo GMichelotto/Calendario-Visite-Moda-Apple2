@@ -1,21 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "es5",
     "module": "commonjs",
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "noImplicitAny": true,
     "sourceMap": true,
+    "strict": true,
     "outDir": "../build/electron",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*"]
-    }
+    "rootDir": "./",
+    "noEmitOnError": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "esModuleInterop": true
   },
   "include": [
-    "**/*"
+    "./**/*"
   ]
 }
