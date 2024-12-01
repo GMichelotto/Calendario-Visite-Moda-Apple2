@@ -12,11 +12,20 @@ import {
 } from 'lucide-react';
 import { useClienti, useCollezioni } from '../../hooks/useDatabase';
 
+interface CustomEvent {
+  id: number;
+  cliente_id: string;
+  collezione_id: string;
+  start: Date;
+  end: Date;
+  note?: string;
+}
+
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (formData: EventFormData) => Promise<void>;
-  event?: Event | null;
+  event?: CustomEvent | null;
   initialStart?: Date | null;
   initialEnd?: Date | null;
   isLoading?: boolean;
@@ -210,7 +219,6 @@ const EventModal: React.FC<EventModalProps> = ({
     }
   };
 
-  // Spostato qui, prima del return
   const getSlotClassName = useCallback((slot: moment.Moment) => {
     if (!validations.context?.collectionAvailability) return '';
     const slotInfo = validations.context.collectionAvailability.find(
@@ -234,7 +242,7 @@ export default EventModal;
 
 /**
  * Commit Message:
- * fix: move getSlotClassName useCallback before conditional return
+ * fix: add CustomEvent interface for proper type checking
  * 
- * Fix React Hook rules violation by moving useCallback hook before conditional return statement
+ * Add CustomEvent interface to fix TypeScript error about missing event properties
  */
