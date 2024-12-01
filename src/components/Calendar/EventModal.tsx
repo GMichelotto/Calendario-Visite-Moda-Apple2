@@ -210,8 +210,7 @@ const EventModal: React.FC<EventModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
+  // Spostato qui, prima del return
   const getSlotClassName = useCallback((slot: moment.Moment) => {
     if (!validations.context?.collectionAvailability) return '';
     const slotInfo = validations.context.collectionAvailability.find(
@@ -219,6 +218,8 @@ const EventModal: React.FC<EventModalProps> = ({
     );
     return slotInfo?.status || '';
   }, [validations.context?.collectionAvailability]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop">
@@ -230,3 +231,10 @@ const EventModal: React.FC<EventModalProps> = ({
 };
 
 export default EventModal;
+
+/**
+ * Commit Message:
+ * fix: move getSlotClassName useCallback before conditional return
+ * 
+ * Fix React Hook rules violation by moving useCallback hook before conditional return statement
+ */
