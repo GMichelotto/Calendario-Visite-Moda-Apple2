@@ -305,3 +305,79 @@ class ClientService {
       this.logger.info('Removing collection from client', {
         component: 'ClientService',
         action: 'removeCollezione',
+        clientId: clienteId,
+        collezioneId: collezioneId
+      });
+
+      const success = await this.ipcRenderer.invoke(
+        'clienti:removeCollezione', 
+        clienteId, 
+        collezioneId
+      );
+      
+      this.logger.debug('Collection removed successfully', {
+        component: 'ClientService',
+        action: 'removeCollezione',
+        clientId: clienteId,
+        collezioneId: collezioneId
+      });
+
+      return success;
+    } catch (error) {
+      this.logger.error('Failed to remove collection', {
+        component: 'ClientService',
+        action: 'removeCollezione',
+        clientId: clienteId,
+        collezioneId: collezioneId,
+        error
+      });
+      
+      throw new AppError(
+        ErrorCode.DB_QUERY,
+        'Errore nella rimozione della collezione dal cliente',
+        { originalError: error }
+      );
+    }
+  }
+
+  async importFromCSV(csvContent: string): Promise<{ success: boolean; errors: string[] }> {
+    try {
+      this.logger.info('Starting CSV import', {
+        component: 'ClientService',
+        action: 'importFromCSV',
+        contentLength: csvContent.length
+      });
+
+      const result = await this.ipcRenderer.invoke('clienti:importCSV', csvContent);
+      
+      if (result.errors.length > 0) {
+        this.logger.warn('CSV import completed with errors', {
+          component: 'ClientService',
+          action: 'importFromCSV',
+          errors: result.errors
+        });
+      } else {
+        this.logger.debug('CSV import completed successfully', {
+          component: 'ClientService',
+          action: 'importFromCSV'
+        });
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error('Failed to import CSV', {
+        component: 'ClientService',
+        action: 'importFromCSV',
+        error
+      });
+      
+      throw new AppError(
+        ErrorCode.DB_QUERY,
+        'Errore nell\'importazione del CSV',
+        { originalError: error }
+      );
+    }
+  }
+}
+
+export default new ClientService();
