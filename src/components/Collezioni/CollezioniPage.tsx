@@ -147,7 +147,8 @@ const CollezioniPage = () => {
 
   const handleUpdateCollezione = useCallback(async (collezione: Collezione) => {
     try {
-      await updateCollezione(collezione);
+      const { id, ...collezioneData } = collezione;  // Separiamo l'id dai dati
+      await updateCollezione(id, collezioneData);    // Passiamo entrambi i parametri
       setShowForm(false);
       setSelectedCollezione(null);
       refreshCollezioni();
