@@ -2,28 +2,17 @@ import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import { ChromePicker, ColorResult } from 'react-color';
 import './CollezioneForm.css';
-
-interface Collezione {
-  id?: number;
-  nome: string;
-  colore: string;
-  data_apertura: string;
-  data_chiusura: string;
-  note?: string;
-}
+import { Collezione } from '../../types/database';
 
 interface CollezioneFormProps {
   collezione: Collezione | null;
-  onSubmit: (collezione: Collezione) => Promise<void>;  // Cambiato da void a Promise<void>
+  onSubmit: (collezione: Collezione) => Promise<void>;
   onCancel: () => void;
+  onDelete?: (id: number) => Promise<void>;
   isLoading?: boolean;
 }
 
-interface FormData {
-  nome: string;
-  colore: string;
-  data_apertura: string;
-  data_chiusura: string;
+interface FormData extends Omit<Collezione, 'id' | 'clienti_count' | 'eventi_count'> {
   note: string;
 }
 
@@ -37,6 +26,7 @@ const CollezioneForm: React.FC<CollezioneFormProps> = ({
   collezione = null, 
   onSubmit, 
   onCancel, 
+  onDelete,
   isLoading = false 
 }) => {
   const [formData, setFormData] = useState<FormData>({
@@ -52,14 +42,13 @@ const CollezioneForm: React.FC<CollezioneFormProps> = ({
   useEffect(() => {
     if (collezione) {
       setFormData({
-        nome: collezione.nome || '',
-        colore: collezione.colore || '#4A90E2',
+        nome: collezione.nome,
+        colore: collezione.colore,
         data_apertura: moment(collezione.data_apertura).format('YYYY-MM-DD'),
         data_chiusura: moment(collezione.data_chiusura).format('YYYY-MM-DD'),
         note: collezione.note || ''
       });
     } else {
-      // Default per nuova collezione
       const today = moment();
       setFormData(prev => ({
         ...prev,
@@ -103,17 +92,15 @@ const CollezioneForm: React.FC<CollezioneFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
       const submittedData: Collezione = {
         ...formData,
-        nome: formData.nome.trim()
+        nome: formData.nome.trim(),
+        id: collezione?.id || 0
       };
-      if (collezione?.id) {
-        submittedData.id = collezione.id;
-      }
-      onSubmit(submittedData);
+      await onSubmit(submittedData);
     }
   };
 
