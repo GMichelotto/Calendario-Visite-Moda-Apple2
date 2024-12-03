@@ -1,9 +1,9 @@
-// src/types/database.ts
-
 export interface Cliente {
   id: number;
   ragione_sociale: string;
   collezioni_ids?: string;
+  collezioni?: string[];  // Aggiunto questo campo
+  collezioni_nomi?: string;  // Aggiunto per supportare la visualizzazione dei nomi
   indirizzo?: string;
   cap?: string;
   citta?: string;
