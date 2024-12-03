@@ -7,23 +7,14 @@ import 'jspdf-autotable';
 import moment from 'moment';
 import { Grid, List, Download, Plus, AlertCircle } from 'lucide-react';
 import './CollezioniPage.css';
-
-interface Collezione {
-  id: number;
-  nome: string;
-  colore: string;
-  data_apertura: string;
-  data_chiusura: string;
-  clienti_count?: number;
-  eventi_count?: number;
-}
+import { Collezione } from '../../types/database';
 
 interface Message {
   text: string;
   type: 'success' | 'error';
 }
 
-const CollezioniPage = () => {
+const CollezioniPage: React.FC = () => {
   const { 
     collezioni, 
     isLoading, 
@@ -44,7 +35,7 @@ const CollezioniPage = () => {
     isLoading: isLoadingEventi
   } = useEventi();
 
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState<boolean>(false);
   const [selectedCollezione, setSelectedCollezione] = useState<Collezione | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -147,8 +138,8 @@ const CollezioniPage = () => {
 
   const handleUpdateCollezione = useCallback(async (collezione: Collezione) => {
     try {
-      const { id, ...collezioneData } = collezione;  // Separiamo l'id dai dati
-      await updateCollezione(id, collezioneData);    // Passiamo entrambi i parametri
+      const { id, ...collezioneData } = collezione;
+      await updateCollezione(id, collezioneData);
       setShowForm(false);
       setSelectedCollezione(null);
       refreshCollezioni();
@@ -240,7 +231,7 @@ const CollezioniPage = () => {
           <CollezioneForm
             collezione={selectedCollezione}
             onSubmit={selectedCollezione ? handleUpdateCollezione : handleCreateCollezione}
-            onClose={() => {
+            onCancel={() => {
               setShowForm(false);
               setSelectedCollezione(null);
             }}
