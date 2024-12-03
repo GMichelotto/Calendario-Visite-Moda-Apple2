@@ -14,7 +14,7 @@ interface Collezione {
 
 interface CollezioneFormProps {
   collezione: Collezione | null;
-  onSubmit: (collezione: Collezione) => void;
+  onSubmit: (collezione: Collezione) => Promise<void>;  // Cambiato da void a Promise<void>
   onCancel: () => void;
   isLoading?: boolean;
 }
