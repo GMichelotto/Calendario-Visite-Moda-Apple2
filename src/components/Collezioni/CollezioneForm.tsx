@@ -1,26 +1,54 @@
-// src/components/Collezioni/CollezioneForm.js
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
-import { ChromePicker } from 'react-color';
+import { ChromePicker, ColorResult } from 'react-color';
 import './CollezioneForm.css';
 
-const CollezioneForm = ({ 
+interface Collezione {
+  id?: number;
+  nome: string;
+  colore: string;
+  data_apertura: string;
+  data_chiusura: string;
+  note?: string;
+}
+
+interface CollezioneFormProps {
+  collezione: Collezione | null;
+  onSubmit: (collezione: Collezione) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+}
+
+interface FormData {
+  nome: string;
+  colore: string;
+  data_apertura: string;
+  data_chiusura: string;
+  note: string;
+}
+
+interface FormErrors {
+  nome?: string;
+  data_apertura?: string;
+  data_chiusura?: string;
+}
+
+const CollezioneForm: React.FC<CollezioneFormProps> = ({ 
   collezione = null, 
   onSubmit, 
   onCancel, 
   isLoading = false 
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     nome: '',
     colore: '#4A90E2',
     data_apertura: '',
     data_chiusura: '',
     note: ''
   });
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
-  // Inizializzazione form con dati esistenti
   useEffect(() => {
     if (collezione) {
       setFormData({
@@ -41,18 +69,16 @@ const CollezioneForm = ({
     }
   }, [collezione]);
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
     const today = moment().startOf('day');
     const apertura = moment(formData.data_apertura);
     const chiusura = moment(formData.data_chiusura);
 
-    // Validazione nome
     if (!formData.nome.trim()) {
       newErrors.nome = 'Il nome della collezione è obbligatorio';
     }
 
-    // Validazione date
     if (!formData.data_apertura) {
       newErrors.data_apertura = 'La data di apertura è obbligatoria';
     }
@@ -61,17 +87,14 @@ const CollezioneForm = ({
       newErrors.data_chiusura = 'La data di chiusura è obbligatoria';
     }
 
-    // Data chiusura deve essere successiva a data apertura
     if (chiusura.isSameOrBefore(apertura)) {
       newErrors.data_chiusura = 'La data di chiusura deve essere successiva alla data di apertura';
     }
 
-    // Se è una nuova collezione, la data di apertura non può essere nel passato
     if (!collezione && apertura.isBefore(today)) {
       newErrors.data_apertura = 'La data di apertura non può essere nel passato';
     }
 
-    // Minimo 7 giorni di durata
     if (chiusura.diff(apertura, 'days') < 7) {
       newErrors.data_chiusura = 'La collezione deve durare almeno 7 giorni';
     }
@@ -80,17 +103,21 @@ const CollezioneForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit({
+      const submittedData: Collezione = {
         ...formData,
         nome: formData.nome.trim()
-      });
+      };
+      if (collezione?.id) {
+        submittedData.id = collezione.id;
+      }
+      onSubmit(submittedData);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -98,7 +125,7 @@ const CollezioneForm = ({
     }));
   };
 
-  const handleColorChange = (color) => {
+  const handleColorChange = (color: ColorResult) => {
     setFormData(prev => ({
       ...prev,
       colore: color.hex
@@ -120,7 +147,6 @@ const CollezioneForm = ({
         </div>
 
         <form onSubmit={handleSubmit} className="collezione-form">
-          {/* Nome Collezione */}
           <div className="form-section">
             <div className="form-group">
               <label htmlFor="nome">Nome Collezione *</label>
@@ -140,7 +166,6 @@ const CollezioneForm = ({
             </div>
           </div>
 
-          {/* Colore */}
           <div className="form-section">
             <div className="form-group">
               <label>Colore</label>
@@ -173,7 +198,6 @@ const CollezioneForm = ({
             </div>
           </div>
 
-          {/* Date */}
           <div className="form-section">
             <div className="form-row">
               <div className="form-group">
@@ -210,7 +234,6 @@ const CollezioneForm = ({
             </div>
           </div>
 
-          {/* Note */}
           <div className="form-section">
             <div className="form-group">
               <label htmlFor="note">Note</label>
@@ -219,14 +242,13 @@ const CollezioneForm = ({
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
-                rows="3"
+                rows={3}
                 disabled={isLoading}
                 placeholder="Note aggiuntive sulla collezione..."
               />
             </div>
           </div>
 
-          {/* Bottoni */}
           <div className="form-actions">
             <button
               type="button"
