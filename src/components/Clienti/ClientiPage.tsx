@@ -32,6 +32,14 @@ const ClientiPage: React.FC = () => {
     
     const filtered = clienti.filter(cliente => 
       cliente.ragione_sociale.toLowerCase().includes(term) ||
+      (cliente.citta?.toLowerCase() || '').includes(term) ||
+      (cliente.provincia?.toLowerCase() || '').includes(term)
+    );
+    setFilteredClienti(filtered);
+  };
+    
+    const filtered = clienti.filter(cliente => 
+      cliente.ragione_sociale.toLowerCase().includes(term) ||
       cliente.citta.toLowerCase().includes(term) ||
       cliente.provincia.toLowerCase().includes(term)
     );
