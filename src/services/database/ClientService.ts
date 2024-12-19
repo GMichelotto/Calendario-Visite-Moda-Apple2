@@ -1,26 +1,21 @@
 // src/services/database/ClientService.ts
 import { AppError, ErrorCode } from '../../types/errors';
 import Logger from '../../utils/logger';
+import { Cliente } from '../../types/database';
 
-interface Cliente {
-  id?: number;
-  ragione_sociale: string;
-  indirizzo?: string;
-  cap?: string;
-  citta?: string;
-  provincia?: string;
-  regione?: string;
-  telefono?: string;
-  cellulare?: string;
-  email?: string;
-  sito_web?: string;
+interface IClienteService {
+  getAll(): Promise<Cliente[]>;
+  getById(id: number): Promise<Cliente | null>;
+  create(clienteData: Omit<Cliente, 'id'>): Promise<Cliente | null>;
+  update(id: number, clienteData: Partial<Cliente>): Promise<boolean>;
+  delete(id: number): Promise<boolean>;
+  getAllWithCollezioni(): Promise<(Cliente & { collezioni: string[] })[]>;
+  assignCollezione(clienteId: number, collezioneId: number, tempoVisita?: number): Promise<boolean>;
+  removeCollezione(clienteId: number, collezioneId: number): Promise<boolean>;
+  importFromCSV(csvContent: string): Promise<{ success: boolean; errors: string[] }>;
 }
 
-interface ClienteWithCollezioni extends Cliente {
-  collezioni: string[];
-}
-
-class ClientService {
+class ClientService implements IClienteService {
   private ipcRenderer: typeof window.electron.ipcRenderer;
   private logger: typeof Logger;
 
@@ -60,7 +55,7 @@ class ClientService {
     }
   }
 
-  async getAllWithCollezioni(): Promise<ClienteWithCollezioni[]> {
+  async getAllWithCollezioni(): Promise<(Cliente & { collezioni: string[] })[]> {
     try {
       this.logger.info('Fetching all clients with collections', {
         component: 'ClientService',
@@ -91,7 +86,7 @@ class ClientService {
     }
   }
 
-  async getById(id: number): Promise<Cliente> {
+  async getById(id: number): Promise<Cliente | null> {
     try {
       this.logger.info('Fetching client by ID', {
         component: 'ClientService',
@@ -102,10 +97,11 @@ class ClientService {
       const client = await this.ipcRenderer.invoke('clienti:getById', id);
       
       if (!client) {
-        throw new AppError(
-          ErrorCode.NOT_FOUND,
-          `Cliente con ID ${id} non trovato`
-        );
+        this.logger.warn(`Client with ID ${id} not found`, {
+          component: 'ClientService',
+          action: 'getById'
+        });
+        return null;
       }
 
       this.logger.debug('Client fetched successfully', {
@@ -123,10 +119,6 @@ class ClientService {
         error
       });
       
-      if (error instanceof AppError) {
-        throw error;
-      }
-      
       throw new AppError(
         ErrorCode.DB_QUERY,
         'Errore nel recupero del cliente',
@@ -135,15 +127,21 @@ class ClientService {
     }
   }
 
-  async create(cliente: Omit<Cliente, 'id'>): Promise<number> {
+  async create(clienteData: Omit<Cliente, 'id'>): Promise<Cliente | null> {
     try {
       this.logger.info('Creating new client', {
         component: 'ClientService',
         action: 'create',
-        clientData: { ...cliente, password: '***' }
+        clientData: { ...clienteData }
       });
 
-      const clientId = await this.ipcRenderer.invoke('clienti:create', cliente);
+      const clientId = await this.ipcRenderer.invoke('clienti:create', clienteData);
+      
+      if (!clientId) {
+        return null;
+      }
+
+      const newClient = await this.getById(clientId);
       
       this.logger.debug('Client created successfully', {
         component: 'ClientService',
@@ -151,12 +149,12 @@ class ClientService {
         clientId
       });
 
-      return clientId;
+      return newClient;
     } catch (error) {
       this.logger.error('Failed to create client', {
         component: 'ClientService',
         action: 'create',
-        clientData: { ...cliente, password: '***' },
+        clientData: clienteData,
         error
       });
       
@@ -168,22 +166,23 @@ class ClientService {
     }
   }
 
-  async update(id: number, cliente: Partial<Cliente>): Promise<boolean> {
+  async update(id: number, clienteData: Partial<Cliente>): Promise<boolean> {
     try {
       this.logger.info('Updating client', {
         component: 'ClientService',
         action: 'update',
         clientId: id,
-        updateData: cliente
+        updateData: clienteData
       });
 
-      const success = await this.ipcRenderer.invoke('clienti:update', id, cliente);
+      const success = await this.ipcRenderer.invoke('clienti:update', id, clienteData);
       
       if (!success) {
-        throw new AppError(
-          ErrorCode.NOT_FOUND,
-          `Cliente con ID ${id} non trovato per l'aggiornamento`
-        );
+        this.logger.warn(`Client with ID ${id} not found for update`, {
+          component: 'ClientService',
+          action: 'update'
+        });
+        return false;
       }
 
       this.logger.debug('Client updated successfully', {
@@ -192,19 +191,15 @@ class ClientService {
         clientId: id
       });
 
-      return success;
+      return true;
     } catch (error) {
       this.logger.error('Failed to update client', {
         component: 'ClientService',
         action: 'update',
         clientId: id,
-        updateData: cliente,
+        updateData: clienteData,
         error
       });
-      
-      if (error instanceof AppError) {
-        throw error;
-      }
       
       throw new AppError(
         ErrorCode.DB_QUERY,
@@ -225,10 +220,11 @@ class ClientService {
       const success = await this.ipcRenderer.invoke('clienti:delete', id);
       
       if (!success) {
-        throw new AppError(
-          ErrorCode.NOT_FOUND,
-          `Cliente con ID ${id} non trovato per l'eliminazione`
-        );
+        this.logger.warn(`Client with ID ${id} not found for deletion`, {
+          component: 'ClientService',
+          action: 'delete'
+        });
+        return false;
       }
 
       this.logger.debug('Client deleted successfully', {
@@ -237,7 +233,7 @@ class ClientService {
         clientId: id
       });
 
-      return success;
+      return true;
     } catch (error) {
       this.logger.error('Failed to delete client', {
         component: 'ClientService',
@@ -245,10 +241,6 @@ class ClientService {
         clientId: id,
         error
       });
-      
-      if (error instanceof AppError) {
-        throw error;
-      }
       
       throw new AppError(
         ErrorCode.DB_QUERY,
@@ -275,6 +267,16 @@ class ClientService {
         tempoVisita
       );
       
+      if (!success) {
+        this.logger.warn('Failed to assign collection to client', {
+          component: 'ClientService',
+          action: 'assignCollezione',
+          clientId: clienteId,
+          collezioneId: collezioneId
+        });
+        return false;
+      }
+
       this.logger.debug('Collection assigned successfully', {
         component: 'ClientService',
         action: 'assignCollezione',
@@ -282,7 +284,7 @@ class ClientService {
         collezioneId: collezioneId
       });
 
-      return success;
+      return true;
     } catch (error) {
       this.logger.error('Failed to assign collection', {
         component: 'ClientService',
@@ -315,6 +317,16 @@ class ClientService {
         collezioneId
       );
       
+      if (!success) {
+        this.logger.warn('Failed to remove collection from client', {
+          component: 'ClientService',
+          action: 'removeCollezione',
+          clientId: clienteId,
+          collezioneId: collezioneId
+        });
+        return false;
+      }
+
       this.logger.debug('Collection removed successfully', {
         component: 'ClientService',
         action: 'removeCollezione',
@@ -322,7 +334,7 @@ class ClientService {
         collezioneId: collezioneId
       });
 
-      return success;
+      return true;
     } catch (error) {
       this.logger.error('Failed to remove collection', {
         component: 'ClientService',
@@ -381,10 +393,3 @@ class ClientService {
 }
 
 export default new ClientService();
-
-/**
- * Commit Message:
- * feat: integrate error handling and logging in ClientService
- * 
- * Add comprehensive error handling and logging to all ClientService methods
- */
