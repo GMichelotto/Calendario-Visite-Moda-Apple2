@@ -1,9 +1,10 @@
+// src/types/database.ts
 export interface Cliente {
   id: number;
   ragione_sociale: string;
   collezioni_ids?: string;
-  collezioni?: string[];  // Aggiunto questo campo
-  collezioni_nomi?: string;  // Aggiunto per supportare la visualizzazione dei nomi
+  collezioni?: string[];
+  collezioni_nomi?: string;
   indirizzo?: string;
   cap?: string;
   citta?: string;
@@ -21,6 +22,7 @@ export interface Collezione {
   colore: string;
   data_apertura: string;
   data_chiusura: string;
+  note?: string;           // Aggiunta questa proprietà
   clienti_count?: number;
   eventi_count?: number;
 }
