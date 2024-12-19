@@ -146,7 +146,15 @@ class ClientService implements IClienteService {
       }
 
       const newClient = await this.getById(clientId);
-      
+      if (!newClient) {
+        this.logger.error('Created client could not be fetched', {
+          component: 'ClientService',
+          action: 'create',
+          clientId
+        });
+        return null;
+      }
+
       this.logger.debug('Client created successfully', {
         component: 'ClientService',
         action: 'create',
@@ -372,15 +380,14 @@ class ClientService implements IClienteService {
           action: 'importFromCSV',
           errors: result.errors
         });
-        return result;
+      } else {
+        this.logger.debug('CSV import completed successfully', {
+          component: 'ClientService',
+          action: 'importFromCSV'
+        });
       }
 
-      this.logger.debug('CSV import completed successfully', {
-        component: 'ClientService',
-        action: 'importFromCSV'
-      });
-
-      return { success: true, errors: [] };
+      return result;
     } catch (error) {
       this.logger.error('Failed to import CSV', {
         component: 'ClientService',
