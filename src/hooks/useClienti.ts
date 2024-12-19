@@ -4,14 +4,27 @@ import ClientService from '../services/database/ClientService';
 import { Cliente } from '../types/database';
 import { AppError } from '../types/errors';
 
-type StrictCreateClienteFn = (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
+type ClienteHookActions = {
+  createCliente: (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
+  updateCliente: (id: number, clienteData: Partial<Cliente>) => Promise<boolean>;
+  deleteCliente: (id: number) => Promise<boolean>;
+  refreshClienti: () => Promise<void>;
+};
+
+type ClienteHookState = {
+  clienti: Cliente[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+type ClienteHookReturn = ClienteHookState & ClienteHookActions;
 
 export function useClienti() {
   const [clienti, setClienti] = useState<Cliente[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClienti = useCallback(async () => {
+  const fetchClienti = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -24,14 +37,15 @@ export function useClienti() {
     }
   }, []);
 
-  const createCliente: StrictCreateClienteFn = useCallback(async (clienteData) => {
+  const createCliente = useCallback(async (clienteData: Omit<Cliente, 'id'>): Promise<Cliente | null> => {
     setError(null);
     try {
       const result = await ClientService.create(clienteData);
-      if (!result) return null;
-      
-      setClienti(prev => [...prev, result]);
-      return result;
+      if (result) {
+        setClienti(prev => [...prev, result]);
+        return result;
+      }
+      return null;
     } catch (e) {
       setError(e instanceof AppError ? e.message : 'Errore nella creazione del cliente');
       return null;
@@ -68,16 +82,18 @@ export function useClienti() {
     }
   }, []);
 
-  return {
+  const hookReturn = {
     clienti,
     isLoading,
     error,
     createCliente,
     updateCliente,
     deleteCliente,
-    refreshClienti: fetchClienti
-  } as const; // Forza TypeScript a inferire tipi letterali
+    refreshClienti: fetchClienti,
+  } satisfies ClienteHookReturn;
+
+  return hookReturn;
 }
 
-// Type per il return value dell'hook
-export type UseClientiReturn = ReturnType<typeof useClienti>;
+// Esporta il tipo per l'uso nei componenti
+export type UseClientiType = ReturnType<typeof useClienti>;
