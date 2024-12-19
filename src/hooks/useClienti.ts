@@ -4,7 +4,17 @@ import ClientService from '../services/database/ClientService';
 import { Cliente } from '../types/database';
 import { AppError } from '../types/errors';
 
-export function useClienti() {
+interface UseClientiReturn {
+  clienti: Cliente[];
+  isLoading: boolean;
+  error: string | null;
+  createCliente: (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
+  updateCliente: (id: number, clienteData: Partial<Cliente>) => Promise<boolean>;
+  deleteCliente: (id: number) => Promise<boolean>;
+  refreshClienti: () => Promise<void>;
+}
+
+export function useClienti(): UseClientiReturn {
   const [clienti, setClienti] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +38,9 @@ export function useClienti() {
       const newCliente = await ClientService.create(clienteData);
       if (newCliente) {
         setClienti(prev => [...prev, newCliente]);
+        return newCliente;
       }
-      return newCliente;
+      return null;
     } catch (e) {
       setError(e instanceof AppError ? e.message : 'Errore nella creazione del cliente');
       return null;
@@ -42,7 +53,7 @@ export function useClienti() {
       const success = await ClientService.update(id, clienteData);
       if (success) {
         setClienti(prev => prev.map(cliente => 
-          cliente.id === id ? { ...cliente, ...clienteData } : cliente
+          cliente.id === id ? { ...cliente, ...clienteData, id } : cliente
         ));
       }
       return success;
