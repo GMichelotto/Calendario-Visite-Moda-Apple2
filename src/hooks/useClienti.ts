@@ -4,14 +4,19 @@ import ClientService from '../services/database/ClientService';
 import { Cliente } from '../types/database';
 import { AppError } from '../types/errors';
 
+type CreateClienteFn = (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
+type UpdateClienteFn = (id: number, clienteData: Partial<Cliente>) => Promise<boolean>;
+type DeleteClienteFn = (id: number) => Promise<boolean>;
+type RefreshClientiFn = () => Promise<void>;
+
 interface UseClientiReturn {
   clienti: Cliente[];
   isLoading: boolean;
   error: string | null;
-  createCliente: (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
-  updateCliente: (id: number, clienteData: Partial<Cliente>) => Promise<boolean>;
-  deleteCliente: (id: number) => Promise<boolean>;
-  refreshClienti: () => Promise<void>;
+  createCliente: CreateClienteFn;
+  updateCliente: UpdateClienteFn;
+  deleteCliente: DeleteClienteFn;
+  refreshClienti: RefreshClientiFn;
 }
 
 export function useClienti(): UseClientiReturn {
@@ -19,7 +24,7 @@ export function useClienti(): UseClientiReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClienti = useCallback(async () => {
+  const fetchClienti = useCallback<RefreshClientiFn>(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -32,7 +37,7 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const createCliente = useCallback(async (clienteData: Omit<Cliente, 'id'>): Promise<Cliente | null> => {
+  const createCliente = useCallback<CreateClienteFn>(async (clienteData) => {
     setError(null);
     try {
       const newCliente = await ClientService.create(clienteData);
@@ -47,7 +52,7 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const updateCliente = useCallback(async (id: number, clienteData: Partial<Cliente>): Promise<boolean> => {
+  const updateCliente = useCallback<UpdateClienteFn>(async (id, clienteData) => {
     setError(null);
     try {
       const success = await ClientService.update(id, clienteData);
@@ -63,7 +68,7 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const deleteCliente = useCallback(async (id: number): Promise<boolean> => {
+  const deleteCliente = useCallback<DeleteClienteFn>(async (id) => {
     setError(null);
     try {
       const success = await ClientService.delete(id);
