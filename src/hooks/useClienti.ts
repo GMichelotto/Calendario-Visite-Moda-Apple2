@@ -3,23 +3,19 @@ import { useState, useCallback } from 'react';
 import ClientService from '../services/database/ClientService';
 import { Cliente } from '../types/database';
 import { AppError } from '../types/errors';
-
-interface UseClientiReturn {
-  clienti: Cliente[];
-  isLoading: boolean;
-  error: string | null;
-  createCliente: (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
-  updateCliente: (id: number, clienteData: Partial<Cliente>) => Promise<boolean>;
-  deleteCliente: (id: number) => Promise<boolean>;
-  refreshClienti: () => Promise<void>;
-}
+import { 
+  UseClientiReturn,
+  CreateClienteFn,
+  UpdateClienteFn,
+  DeleteClienteFn
+} from '../types/clientTypes';
 
 export function useClienti(): UseClientiReturn {
   const [clienti, setClienti] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClienti = useCallback(async () => {
+  const fetchClienti = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -32,27 +28,28 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const createCliente = useCallback(async (clienteData: Omit<Cliente, 'id'>): Promise<Cliente | null> => {
+  const createCliente: CreateClienteFn = useCallback(async (clienteData) => {
     setError(null);
     try {
       const newCliente = await ClientService.create(clienteData);
       if (newCliente) {
         setClienti(prev => [...prev, newCliente]);
+        return newCliente;
       }
-      return newCliente;
+      return null;
     } catch (e) {
       setError(e instanceof AppError ? e.message : 'Errore nella creazione del cliente');
       return null;
     }
   }, []);
 
-  const updateCliente = useCallback(async (id: number, clienteData: Partial<Cliente>): Promise<boolean> => {
+  const updateCliente: UpdateClienteFn = useCallback(async (id, clienteData) => {
     setError(null);
     try {
       const success = await ClientService.update(id, clienteData);
       if (success) {
         setClienti(prev => prev.map(cliente => 
-          cliente.id === id ? { ...cliente, ...clienteData } : cliente
+          cliente.id === id ? { ...cliente, ...clienteData, id } : cliente
         ));
       }
       return success;
@@ -62,7 +59,7 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const deleteCliente = useCallback(async (id: number): Promise<boolean> => {
+  const deleteCliente: DeleteClienteFn = useCallback(async (id) => {
     setError(null);
     try {
       const success = await ClientService.delete(id);
