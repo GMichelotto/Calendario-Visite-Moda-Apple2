@@ -2,7 +2,7 @@
 export interface Cliente {
   id: number;
   ragione_sociale: string;
-  collezioni_ids?: string;
+  collezioni_ids: string;
   collezioni?: string[];
   collezioni_nomi?: string;
   indirizzo?: string;
