@@ -3,19 +3,15 @@ import { useState, useCallback } from 'react';
 import ClientService from '../services/database/ClientService';
 import { Cliente } from '../types/database';
 import { AppError } from '../types/errors';
-import { 
-  UseClientiReturn,
-  CreateClienteFn,
-  UpdateClienteFn,
-  DeleteClienteFn
-} from '../types/clientTypes';
 
-export function useClienti(): UseClientiReturn {
+type StrictCreateClienteFn = (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
+
+export function useClienti() {
   const [clienti, setClienti] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClienti = useCallback(async (): Promise<void> => {
+  const fetchClienti = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -28,28 +24,27 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const createCliente: CreateClienteFn = useCallback(async (clienteData) => {
+  const createCliente: StrictCreateClienteFn = useCallback(async (clienteData) => {
     setError(null);
     try {
-      const newCliente = await ClientService.create(clienteData);
-      if (newCliente) {
-        setClienti(prev => [...prev, newCliente]);
-        return newCliente;
-      }
-      return null;
+      const result = await ClientService.create(clienteData);
+      if (!result) return null;
+      
+      setClienti(prev => [...prev, result]);
+      return result;
     } catch (e) {
       setError(e instanceof AppError ? e.message : 'Errore nella creazione del cliente');
       return null;
     }
   }, []);
 
-  const updateCliente: UpdateClienteFn = useCallback(async (id, clienteData) => {
+  const updateCliente = useCallback(async (id: number, clienteData: Partial<Cliente>): Promise<boolean> => {
     setError(null);
     try {
       const success = await ClientService.update(id, clienteData);
       if (success) {
         setClienti(prev => prev.map(cliente => 
-          cliente.id === id ? { ...cliente, ...clienteData, id } : cliente
+          cliente.id === id ? { ...cliente, ...clienteData } : cliente
         ));
       }
       return success;
@@ -59,7 +54,7 @@ export function useClienti(): UseClientiReturn {
     }
   }, []);
 
-  const deleteCliente: DeleteClienteFn = useCallback(async (id) => {
+  const deleteCliente = useCallback(async (id: number): Promise<boolean> => {
     setError(null);
     try {
       const success = await ClientService.delete(id);
@@ -81,5 +76,8 @@ export function useClienti(): UseClientiReturn {
     updateCliente,
     deleteCliente,
     refreshClienti: fetchClienti
-  };
+  } as const; // Forza TypeScript a inferire tipi letterali
 }
+
+// Type per il return value dell'hook
+export type UseClientiReturn = ReturnType<typeof useClienti>;
