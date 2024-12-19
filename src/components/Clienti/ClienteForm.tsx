@@ -73,7 +73,7 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
         email: cliente.email || '',
         sito_web: cliente.sito_web || '',
         collezioni_ids: cliente.collezioni_ids 
-          ? cliente.collezioni_ids.split(',').map(Number) 
+          ? cliente.collezioni_ids.split(',').map(Number).filter(id => !isNaN(id))
           : []
       });
     }
@@ -117,13 +117,15 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit({
+      const submitData = {
         ...formData,
         provincia: formData.provincia.toUpperCase(),
         cap: formData.cap.trim(),
         telefono: formData.telefono.trim(),
-        cellulare: formData.cellulare.trim()
-      });
+        cellulare: formData.cellulare.trim(),
+        collezioni_ids: formData.collezioni_ids.join(',')
+      };
+      onSubmit(submitData);
     }
   };
 
