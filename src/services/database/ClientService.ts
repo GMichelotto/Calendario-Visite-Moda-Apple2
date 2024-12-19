@@ -138,6 +138,10 @@ class ClientService implements IClienteService {
       const clientId = await this.ipcRenderer.invoke('clienti:create', clienteData);
       
       if (!clientId) {
+        this.logger.warn('Failed to create client - no ID returned', {
+          component: 'ClientService',
+          action: 'create'
+        });
         return null;
       }
 
@@ -362,20 +366,21 @@ class ClientService implements IClienteService {
 
       const result = await this.ipcRenderer.invoke('clienti:importCSV', csvContent);
       
-      if (result.errors.length > 0) {
+      if (result.errors && result.errors.length > 0) {
         this.logger.warn('CSV import completed with errors', {
           component: 'ClientService',
           action: 'importFromCSV',
           errors: result.errors
         });
-      } else {
-        this.logger.debug('CSV import completed successfully', {
-          component: 'ClientService',
-          action: 'importFromCSV'
-        });
+        return result;
       }
 
-      return result;
+      this.logger.debug('CSV import completed successfully', {
+        component: 'ClientService',
+        action: 'importFromCSV'
+      });
+
+      return { success: true, errors: [] };
     } catch (error) {
       this.logger.error('Failed to import CSV', {
         component: 'ClientService',
