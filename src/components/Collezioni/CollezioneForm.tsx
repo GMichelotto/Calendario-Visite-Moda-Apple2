@@ -7,7 +7,7 @@ import { Collezione } from '../../types/database';
 interface CollezioneFormProps {
   collezione: Collezione | null;
   onSubmit: (collezione: Collezione) => Promise<void>;
-  onCancel: () => void;
+  onCancel?: () => void;
   onDelete?: (id: number) => Promise<void>;
   isLoading?: boolean;
 }
