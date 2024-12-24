@@ -118,17 +118,18 @@ const EventModal: React.FC<EventModalProps> = ({
     const loadVisitDuration = async () => {
       if (formData.cliente_id && formData.collezione_id) {
         try {
-          const response = await window.electron.ipcRenderer.invoke(
-            'getClienteCollezioneDuration',
-            { 
-              cliente_id: formData.cliente_id, 
-              collezione_id: formData.collezione_id 
-            }
-          );
+          const validation = await window.electronAPI.eventi.validate({
+            cliente_id: formData.cliente_id,
+            collezione_id: formData.collezione_id,
+            data_inizio: formData.data_inizio,
+            data_fine: formData.data_fine
+          });
           
-          if (response.success && formData.data_inizio) {
+          if (validation.isValid && formData.data_inizio) {
+            // Usa una durata predefinita di 120 minuti se non specificato diversamente
+            const visitDuration = validation.duration || 120;
             const newEnd = moment(formData.data_inizio)
-              .add(response.data, 'minutes')
+              .add(visitDuration, 'minutes')
               .format('YYYY-MM-DDTHH:mm');
             setFormData(prev => ({ ...prev, data_fine: newEnd }));
           }
@@ -148,41 +149,36 @@ const EventModal: React.FC<EventModalProps> = ({
 
     setIsValidating(true);
     try {
-      const validation = await window.electron.ipcRenderer.invoke(
-        'eventi:validate',
-        { 
-          eventData: formData,
-          excludeEventId: event?.id 
-        }
-      );
+      const validation = await window.electronAPI.eventi.validate({
+        ...formData,
+        id: event?.id
+      });
 
-      const [clientWorkload, collectionAvailability] = await Promise.all([
-        window.electron.ipcRenderer.invoke(
-          'clienti:getWorkload',
-          {
-            cliente_id: formData.cliente_id,
-            start_date: moment(formData.data_inizio).format('YYYY-MM-DD'),
-            end_date: moment(formData.data_inizio).format('YYYY-MM-DD')
-          }
-        ),
-        window.electron.ipcRenderer.invoke(
-          'collezioni:getAvailability',
-          {
-            collezione_id: formData.collezione_id,
-            date: moment(formData.data_inizio).format('YYYY-MM-DD')
-          }
-        )
-      ]);
+      // Carica i dati aggiuntivi per il contesto
+      const clientData = await window.electronAPI.clienti.getById(parseInt(formData.cliente_id));
+      const collectionData = await window.electronAPI.collezioni.checkAvailability(
+        parseInt(formData.collezione_id),
+        new Date(formData.data_inizio),
+        new Date(formData.data_fine)
+      );
 
       setValidations({
         ...validation,
         context: {
-          clientWorkload,
-          collectionAvailability
+          clientWorkload: {
+            num_appuntamenti: clientData.appointments_count || 0,
+            durata_totale: clientData.total_duration || 0
+          },
+          collectionAvailability: collectionData
         }
       });
     } catch (error) {
       console.error('Validation error:', error);
+      setValidations(prev => ({
+        ...prev,
+        isValid: false,
+        errors: [...prev.errors, 'Errore durante la validazione. Riprova più tardi.']
+      }));
     } finally {
       setIsValidating(false);
     }
@@ -232,17 +228,147 @@ const EventModal: React.FC<EventModalProps> = ({
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        {/* Il resto del JSX rimane identico */}
+        <div className="modal-header">
+          <h2>
+            {event ? 'Modifica Evento' : 'Nuovo Evento'}
+          </h2>
+          <button onClick={onClose} className="close-button">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>
+              <User size={16} />
+              Cliente
+              <select
+                name="cliente_id"
+                value={formData.cliente_id}
+                onChange={handleChange}
+                required
+                disabled={isLoading || clientiLoading}
+              >
+                <option value="">Seleziona cliente</option>
+                {clienti.map(cliente => (
+                  <option key={cliente.id} value={cliente.id}>
+                    {cliente.ragione_sociale}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <CalendarIcon size={16} />
+              Collezione
+              <select
+                name="collezione_id"
+                value={formData.collezione_id}
+                onChange={handleChange}
+                required
+                disabled={isLoading || collezioniLoading}
+              >
+                <option value="">Seleziona collezione</option>
+                {collezioni.map(collezione => (
+                  <option key={collezione.id} value={collezione.id}>
+                    {collezione.nome}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <Clock size={16} />
+              Data e ora inizio
+              <input
+                type="datetime-local"
+                name="data_inizio"
+                value={formData.data_inizio}
+                onChange={handleChange}
+                required
+                disabled={isLoading}
+              />
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <Clock size={16} />
+              Data e ora fine
+              <input
+                type="datetime-local"
+                name="data_fine"
+                value={formData.data_fine}
+                onChange={handleChange}
+                required
+                disabled={isLoading}
+                readOnly
+              />
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <Info size={16} />
+              Note
+              <textarea
+                name="note"
+                value={formData.note}
+                onChange={handleChange}
+                disabled={isLoading}
+              />
+            </label>
+          </div>
+
+          {validations.errors.length > 0 && (
+            <div className="validation-errors">
+              {validations.errors.map((error, index) => (
+                <div key={index} className="validation-message error">
+                  <AlertTriangle size={16} />
+                  {error}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {validations.warnings.length > 0 && (
+            <div className="validation-warnings">
+              {validations.warnings.map((warning, index) => (
+                <div key={index} className="validation-message warning">
+                  <AlertCircle size={16} />
+                  {warning}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="modal-footer">
+            <button type="button" onClick={onClose} disabled={isLoading}>
+              Annulla
+            </button>
+            <button 
+              type="submit" 
+              disabled={isLoading || !validations.isValid || isValidating}
+              className={validations.isValid ? 'valid' : 'invalid'}
+            >
+              {isLoading || isValidating ? (
+                'Caricamento...'
+              ) : (
+                <>
+                  {validations.isValid ? <Check size={16} /> : <AlertTriangle size={16} />}
+                  {event ? 'Aggiorna' : 'Crea'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
 export default EventModal;
-
-/**
- * Commit Message:
- * fix: add CustomEvent interface for proper type checking
- * 
- * Add CustomEvent interface to fix TypeScript error about missing event properties
- */
