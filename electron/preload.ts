@@ -104,19 +104,13 @@ async function invokeIPC(channel: string, ...args: any[]): Promise<any> {
 
 // Espone l'API al processo di rendering
 contextBridge.exposeInMainWorld('electronAPI', {
-  clienti: {
-    getAll: () => invokeIPC('clienti:getAll'),
-    getAllWithCollezioni: () => invokeIPC('clienti:getAllWithCollezioni'),
-    getById: (id: number) => invokeIPC('clienti:getById', id),
-    create: (cliente: any) => invokeIPC('clienti:create', cliente),
-    update: (id: number, cliente: any) => invokeIPC('clienti:update', id, cliente),
-    delete: (id: number) => invokeIPC('clienti:delete', id),
-    assignCollezione: (clienteId: number, collezioneId: number) =>
-      invokeIPC('clienti:assignCollezione', clienteId, collezioneId),
-    removeCollezione: (clienteId: number, collezioneId: number) =>
-      invokeIPC('clienti:removeCollezione', clienteId, collezioneId),
-    importCSV: (content: string) => invokeIPC('clienti:importCSV', content)
-  },
+ clienti: {
+   getAll: () => invokeIPC('clienti:getAll'),
+   getById: (id: number) => invokeIPC('clienti:getById', id), // Add this line
+   create: (cliente: any) => invokeIPC('clienti:create', cliente),
+   update: (id: number, cliente: any) => invokeIPC('clienti:update', id, cliente),
+   delete: (id: number) => invokeIPC('clienti:delete', id),
+ },
   collezioni: {
     getAll: () => invokeIPC('collezioni:getAll'),
     getAllWithStats: () => invokeIPC('collezioni:getAllWithStats'),
