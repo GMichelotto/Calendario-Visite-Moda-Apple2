@@ -5,7 +5,6 @@ import type { IpcRendererEvent } from 'electron';
 
 // Definizione dei canali IPC permessi
 const validChannels = [
-  // Canali esistenti
   'clienti:getAll',
   'clienti:getAllWithCollezioni',
   'clienti:getById',
@@ -33,22 +32,10 @@ const validChannels = [
   'eventi:delete',
   'eventi:validate',
   'eventi:getByCliente',
-  'eventi:getByCollezione',
-
-  // Nuovi canali per le migrazioni
-  'database:getCurrentVersion',
-  'database:migrate',
-  'database:rollback'
+  'eventi:getByCollezione'
 ] as const;
 
 type ValidChannel = typeof validChannels[number];
-
-// Interfaccia per le operazioni del database
-interface DatabaseOperations {
-  getCurrentVersion: () => Promise<number>;
-  migrate: () => Promise<number>;
-  rollback: (targetVersion?: number) => Promise<number>;
-}
 
 // Interfaccia per i client operations
 interface ClientiOperations {
@@ -90,7 +77,6 @@ interface EventiOperations {
 
 // Interfaccia globale per l'API electron
 interface ElectronAPI {
-  database: DatabaseOperations;
   clienti: ClientiOperations;
   collezioni: CollezioniOperations;
   eventi: EventiOperations;
@@ -111,11 +97,6 @@ async function invokeIPC(channel: string, ...args: any[]): Promise<any> {
 
 // Espone l'API al processo di rendering
 contextBridge.exposeInMainWorld('electronAPI', {
-  database: {
-    getCurrentVersion: () => invokeIPC('database:getCurrentVersion'),
-    migrate: () => invokeIPC('database:migrate'),
-    rollback: (targetVersion?: number) => invokeIPC('database:rollback', targetVersion)
-  },
   clienti: {
     getAll: () => invokeIPC('clienti:getAll'),
     getAllWithCollezioni: () => invokeIPC('clienti:getAllWithCollezioni'),
