@@ -2,6 +2,11 @@
 
 import { contextBridge, ipcRenderer } from 'electron';
 import type { IpcRendererEvent } from 'electron';
+import type {
+  ValidationResponse,
+  EventValidationRequest,
+  CustomEvent
+} from '../src/types/database';
 
 // Interfaces
 interface ValidationResponse {
@@ -79,7 +84,7 @@ interface EventiOperations {
   create: (evento: Omit<EventoResponse, 'id'>) => Promise<EventoResponse>;
   update: (id: number, evento: Partial<EventoResponse>) => Promise<boolean>;
   delete: (id: number) => Promise<boolean>;
-  validate: (evento: any) => Promise<ValidationResponse>;
+  validate: (evento: EventValidationRequest) => Promise<ValidationResponse>;
   getByCliente: (clienteId: number) => Promise<EventoResponse[]>;
   getByCollezione: (collezioneId: number) => Promise<EventoResponse[]>;
 }
