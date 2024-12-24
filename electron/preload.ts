@@ -8,7 +8,8 @@ import type {
   Collezione,
   Evento,
   ElectronAPI,
-  APIResponse
+  APIResponse,
+  SlotAvailability
 } from './types';
 
 const validChannels = [
@@ -55,33 +56,45 @@ async function invokeIPC(channel: string, ...args: any[]): Promise<any> {
   throw new Error(`Canale IPC non autorizzato: ${channel}`);
 }
 
+const clientiAPI: ElectronAPI['clienti'] = {
+  getAll: () => invokeIPC('clienti:getAll'),
+  getById: (id: number) => invokeIPC('clienti:getById', id),
+  create: (cliente: Omit<Cliente, 'id'>) => invokeIPC('clienti:create', cliente),
+  update: (id: number, cliente: Partial<Cliente>) => invokeIPC('clienti:update', id, cliente),
+  delete: (id: number) => invokeIPC('clienti:delete', id),
+  assignCollezione: (clienteId: number, collezioneId: number) => invokeIPC('clienti:assignCollezione', clienteId, collezioneId),
+  removeCollezione: (clienteId: number, collezioneId: number) => invokeIPC('clienti:removeCollezione', clienteId, collezioneId),
+  importCSV: (content: string) => invokeIPC('clienti:importCSV', content)
+};
+
+const collezioniAPI: ElectronAPI['collezioni'] = {
+  getAll: () => invokeIPC('collezioni:getAll'),
+  getAllWithStats: () => invokeIPC('collezioni:getAllWithStats'),
+  getById: (id: number) => invokeIPC('collezioni:getById', id),
+  create: (collezione: Omit<Collezione, 'id'>) => invokeIPC('collezioni:create', collezione),
+  update: (id: number, collezione: Partial<Collezione>) => invokeIPC('collezioni:update', id, collezione),
+  delete: (id: number) => invokeIPC('collezioni:delete', id),
+  checkAvailability: (id: number, start: Date, end: Date) =>
+    invokeIPC('collezioni:checkAvailability', id, start, end) as Promise<SlotAvailability[]>,
+  getClienti: (id: number) => invokeIPC('collezioni:getClienti', id),
+  importCSV: (content: string) => invokeIPC('collezioni:importCSV', content)
+};
+
+const eventiAPI: ElectronAPI['eventi'] = {
+  getAll: () => invokeIPC('eventi:getAll'),
+  getByDateRange: (start: Date, end: Date) => invokeIPC('eventi:getByDateRange', start, end),
+  create: (evento: Omit<Evento, 'id'>) => invokeIPC('eventi:create', evento),
+  update: (id: number, evento: Partial<Evento>) => invokeIPC('eventi:update', id, evento),
+  delete: (id: number) => invokeIPC('eventi:delete', id),
+  validate: (evento: EventValidationRequest) => invokeIPC('eventi:validate', evento),
+  getByCliente: (clienteId: number) => invokeIPC('eventi:getByCliente', clienteId),
+  getByCollezione: (collezioneId: number) => invokeIPC('eventi:getByCollezione', collezioneId)
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
-  clienti: {
-    getAll: () => invokeIPC('clienti:getAll'),
-    getById: (id: number) => invokeIPC('clienti:getById', id),
-    create: (cliente: Omit<Cliente, 'id'>) => invokeIPC('clienti:create', cliente),
-    update: (id: number, cliente: Partial<Cliente>) => invokeIPC('clienti:update', id, cliente),
-    delete: (id: number) => invokeIPC('clienti:delete', id)
-  },
-  collezioni: {
-    getAll: () => invokeIPC('collezioni:getAll'),
-    getById: (id: number) => invokeIPC('collezioni:getById', id),
-    create: (collezione: Omit<Collezione, 'id'>) => invokeIPC('collezioni:create', collezione),
-    update: (id: number, collezione: Partial<Collezione>) => invokeIPC('collezioni:update', id, collezione),
-    delete: (id: number) => invokeIPC('collezioni:delete', id),
-    checkAvailability: (id: number, start: Date, end: Date) =>
-      invokeIPC('collezioni:checkAvailability', id, start, end)
-  },
-  eventi: {
-    getAll: () => invokeIPC('eventi:getAll'),
-    getByDateRange: (start: Date, end: Date) => invokeIPC('eventi:getByDateRange', start, end),
-    create: (evento: Omit<Evento, 'id'>) => invokeIPC('eventi:create', evento),
-    update: (id: number, evento: Partial<Evento>) => invokeIPC('eventi:update', id, evento),
-    delete: (id: number) => invokeIPC('eventi:delete', id),
-    validate: (evento: EventValidationRequest) => invokeIPC('eventi:validate', evento),
-    getByCliente: (clienteId: number) => invokeIPC('eventi:getByCliente', clienteId),
-    getByCollezione: (collezioneId: number) => invokeIPC('eventi:getByCollezione', collezioneId)
-  }
+  clienti: clientiAPI,
+  collezioni: collezioniAPI,
+  eventi: eventiAPI
 } as ElectronAPI);
 
 declare global {
