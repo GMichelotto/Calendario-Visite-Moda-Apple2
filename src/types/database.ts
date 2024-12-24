@@ -1,54 +1,40 @@
 // src/types/database.ts
-export interface Cliente {
-  id: number;
-  ragione_sociale: string;
-  collezioni_ids: string;
-  collezioni?: string[];
-  collezioni_nomi?: string;
-  indirizzo?: string;
-  cap?: string;
-  citta?: string;
-  provincia?: string;
-  regione?: string;
-  telefono?: string;
-  cellulare?: string;
-  email?: string;
-  sito_web?: string;
-}
-
-export interface Collezione {
-  id: number;
-  nome: string;
-  colore: string;
-  data_apertura: string;
-  data_chiusura: string;
-  note?: string;           // Aggiunta questa proprietà
-  clienti_count?: number;
-  eventi_count?: number;
-}
-
-export interface Evento {
-  id: number;
-  cliente_id: number;
-  collezione_id: number;
-  data_inizio: string;
-  data_fine: string;
-  note?: string;
-  cliente_nome?: string;
-  collezione_nome?: string;
-}
-
-export interface APIResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
 
 export interface ValidationResponse {
-  success: boolean;
-  data: {
-    isValid: boolean;
-    errors?: string[];
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  duration?: number;
+  checks: {
+    timeConstraints: boolean;
+    overlap: boolean;
+    clientAvailability: boolean;
+    collectionPeriod: boolean;
+    duration: boolean;
   };
-  error?: string;
+}
+
+export interface EventValidationRequest {
+  cliente_id: string;
+  collezione_id: string;
+  data_inizio: string;
+  data_fine: string;
+  id?: number;
+}
+
+export interface CustomEvent {
+  id: number;
+  cliente_id: string;
+  collezione_id: string;
+  start: Date;
+  end: Date;
+  note?: string;
+}
+
+export interface EventFormData {
+  cliente_id: string;
+  collezione_id: string;
+  data_inizio: string;
+  data_fine: string;
+  note: string;
 }
