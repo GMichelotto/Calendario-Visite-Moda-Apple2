@@ -12,6 +12,28 @@ import {
 } from 'lucide-react';
 import { useClienti, useCollezioni } from '../../hooks/useDatabase';
 
+interface ValidationResponse {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  duration?: number;
+  checks: {
+    timeConstraints: boolean;
+    overlap: boolean;
+    clientAvailability: boolean;
+    collectionPeriod: boolean;
+    duration: boolean;
+  };
+}
+
+interface EventValidationRequest {
+  cliente_id: string;
+  collezione_id: string;
+  data_inizio: string;
+  data_fine: string;
+  id?: number;
+}
+
 interface CustomEvent {
   id: number;
   cliente_id: string;
@@ -123,10 +145,9 @@ const EventModal: React.FC<EventModalProps> = ({
             collezione_id: formData.collezione_id,
             data_inizio: formData.data_inizio,
             data_fine: formData.data_fine
-          });
+          } as EventValidationRequest) as ValidationResponse;
           
           if (validation.isValid && formData.data_inizio) {
-            // Usa una durata predefinita di 120 minuti se non specificato diversamente
             const visitDuration = validation.duration || 120;
             const newEnd = moment(formData.data_inizio)
               .add(visitDuration, 'minutes')
@@ -152,15 +173,16 @@ const EventModal: React.FC<EventModalProps> = ({
       const validation = await window.electronAPI.eventi.validate({
         ...formData,
         id: event?.id
-      });
+      } as EventValidationRequest) as ValidationResponse;
 
-      // Carica i dati aggiuntivi per il contesto
-      const clientData = await window.electronAPI.clienti.getById(parseInt(formData.cliente_id));
-      const collectionData = await window.electronAPI.collezioni.checkAvailability(
-        parseInt(formData.collezione_id),
-        new Date(formData.data_inizio),
-        new Date(formData.data_fine)
-      );
+      const [clientData, collectionData] = await Promise.all([
+        window.electronAPI.clienti.getById(parseInt(formData.cliente_id)),
+        window.electronAPI.collezioni.checkAvailability(
+          parseInt(formData.collezione_id),
+          new Date(formData.data_inizio),
+          new Date(formData.data_fine)
+        )
+      ]);
 
       setValidations({
         ...validation,
