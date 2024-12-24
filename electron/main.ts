@@ -1,6 +1,6 @@
 // electron/main.ts
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import BetterSqlite3, { Database } from 'better-sqlite3';
 import path from 'path';
 import isDev from 'electron-is-dev';
@@ -8,7 +8,6 @@ import electronLog from 'electron-log';
 import { setupClientiHandlers } from './handlers/clientiHandler';
 import { setupCollezioniHandlers } from './handlers/collezioniHandler';
 import { setupEventiHandlers } from './handlers/eventiHandler';
-import { MigrationRunner } from '../src/database/migration-runner';
 
 let mainWindow: BrowserWindow | null = null;
 let db: Database | null = null;
@@ -32,55 +31,18 @@ async function initDatabase() {
     // Abilita le foreign keys
     db.pragma('foreign_keys = ON');
 
-    // Inizializza e esegue le migrazioni
-    const migrationRunner = new MigrationRunner(db);
-    await migrationRunner.initialize();
-    
-    const currentVersion = await migrationRunner.getCurrentVersion();
-    console.log(`Versione corrente del database: ${currentVersion}`);
-    
-    await migrationRunner.migrate();
-    console.log('Migrazioni del database completate');
-
-    // Inizializza gli handler dopo le migrazioni
-    setupDatabaseHandlers();
+    // Inizializza gli handler
+    if (db) {
+      setupClientiHandlers(db);
+      setupCollezioniHandlers(db);
+      setupEventiHandlers(db);
+    }
 
     return true;
   } catch (error) {
     console.error('Errore durante l\'inizializzazione del database:', error);
     throw error;
   }
-}
-
-function setupDatabaseHandlers() {
-  if (!db) {
-    throw new Error('Database non inizializzato');
-  }
-
-  setupClientiHandlers(db);
-  setupCollezioniHandlers(db);
-  setupEventiHandlers(db);
-
-  // Handler per le operazioni di migrazione
-  ipcMain.handle('database:getCurrentVersion', async () => {
-    if (!db) return 0;
-    const migrationRunner = new MigrationRunner(db);
-    return await migrationRunner.getCurrentVersion();
-  });
-
-  ipcMain.handle('database:migrate', async () => {
-    if (!db) throw new Error('Database non inizializzato');
-    const migrationRunner = new MigrationRunner(db);
-    await migrationRunner.migrate();
-    return await migrationRunner.getCurrentVersion();
-  });
-
-  ipcMain.handle('database:rollback', async (_, targetVersion?: number) => {
-    if (!db) throw new Error('Database non inizializzato');
-    const migrationRunner = new MigrationRunner(db);
-    await migrationRunner.rollback(targetVersion);
-    return await migrationRunner.getCurrentVersion();
-  });
 }
 
 function createWindow() {
