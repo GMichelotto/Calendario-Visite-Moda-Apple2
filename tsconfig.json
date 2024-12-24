@@ -17,16 +17,19 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*"]
+      "*": ["node_modules/*"],
+      "@shared/*": ["shared/*"]
     },
     "types": ["node", "electron"],
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "rootDir": "."
   },
   "include": [
     "src/**/*",
-    "electron/**/*"
+    "electron/**/*",
+    "shared/**/*"
   ],
   "exclude": [
     "node_modules",
