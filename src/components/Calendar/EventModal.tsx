@@ -15,7 +15,8 @@ import type {
   ValidationResponse,
   EventValidationRequest,
   CustomEvent,
-  EventFormData
+  EventFormData,
+  APIResponse
 } from '../../types/database';
 
 interface EventModalProps {
@@ -144,14 +145,14 @@ const EventModal: React.FC<EventModalProps> = ({
         id: event?.id
       });
 
-      const [clientData, collectionData] = await Promise.all([
-        window.electronAPI.clienti.getById(parseInt(formData.cliente_id)),
-        window.electronAPI.collezioni.checkAvailability(
-          parseInt(formData.collezione_id),
-          new Date(formData.data_inizio),
-          new Date(formData.data_fine)
-        )
-      ]);
+      const clientResponse = await window.electronAPI.clienti.getById(parseInt(formData.cliente_id));
+      const clientData = clientResponse.data;
+
+      const collectionData = await window.electronAPI.collezioni.checkAvailability(
+        parseInt(formData.collezione_id),
+        new Date(formData.data_inizio),
+        new Date(formData.data_fine)
+      );
 
       setValidations({
         ...validation,
@@ -350,16 +351,4 @@ const EventModal: React.FC<EventModalProps> = ({
                 'Caricamento...'
               ) : (
                 <>
-                  {validations.isValid ? <Check size={16} /> : <AlertTriangle size={16} />}
-                  {event ? 'Aggiorna' : 'Crea'}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-export default EventModal;
+                  {validations.isValid ? <Check size={16} /> : <Alert
