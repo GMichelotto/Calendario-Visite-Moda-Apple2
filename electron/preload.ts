@@ -7,7 +7,7 @@ import type {
   ClienteResponse,
   CollezioneResponse,
   EventoResponse
-} from '../shared/types';
+} from '@shared/types';  // <- Modificato questo import
 
 // Definizione dei canali IPC permessi
 const validChannels = [
