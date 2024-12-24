@@ -57,3 +57,11 @@ export interface EventoResponse {
     note?: string;
     [key: string]: any;
 }
+
+export interface ClientiOperations {
+ getAll: () => Promise<APIResponse<Cliente[]>>;
+ getById: (id: number) => Promise<APIResponse<Cliente>>;
+ create: (data: Omit<Cliente, "id">) => Promise<APIResponse<Cliente>>;
+ update: (id: number, data: Partial<Cliente>) => Promise<APIResponse<Cliente>>;
+ delete: (id: number) => Promise<APIResponse<void>>;
+}
