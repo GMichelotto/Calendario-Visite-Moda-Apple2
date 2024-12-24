@@ -7,9 +7,8 @@ import type {
   ClienteResponse,
   CollezioneResponse,
   EventoResponse
-} from '../shared/types';  // Percorso relativo invece dell'alias
+} from './types';  // Import locale
 
-// ... resto del file rimane uguale ...
 // Definizione dei canali IPC permessi
 const validChannels = [
   'clienti:getAll',
