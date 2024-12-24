@@ -1,56 +1,49 @@
-// electron/preload.ts
-
 import { contextBridge, ipcRenderer } from 'electron';
 import type { IpcRendererEvent } from 'electron';
 import type {
   ValidationResponse,
   EventValidationRequest,
-  CustomEvent
-} from '../src/types/database';
+  CustomEvent,
+  ClienteResponse,
+  CollezioneResponse,
+  EventoResponse
+} from '../shared/types';
 
-// Interfaces
-interface ValidationResponse {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  duration?: number;
-  checks: {
-    timeConstraints: boolean;
-    overlap: boolean;
-    clientAvailability: boolean;
-    collectionPeriod: boolean;
-    duration: boolean;
-  };
-}
+// Definizione dei canali IPC permessi
+const validChannels = [
+  'clienti:getAll',
+  'clienti:getAllWithCollezioni',
+  'clienti:getById',
+  'clienti:create',
+  'clienti:update',
+  'clienti:delete',
+  'clienti:assignCollezione',
+  'clienti:removeCollezione',
+  'clienti:importCSV',
+  
+  'collezioni:getAll',
+  'collezioni:getAllWithStats',
+  'collezioni:getById',
+  'collezioni:create',
+  'collezioni:update',
+  'collezioni:delete',
+  'collezioni:getClienti',
+  'collezioni:checkAvailability',
+  'collezioni:importCSV',
+  
+  'eventi:getAll',
+  'eventi:getByDateRange',
+  'eventi:create',
+  'eventi:update',
+  'eventi:delete',
+  'eventi:validate',
+  'eventi:getByCliente',
+  'eventi:getByCollezione'
+] as const;
 
-interface ClienteResponse {
-  id: number;
-  ragione_sociale: string;
-  appointments_count?: number;
-  total_duration?: number;
-  [key: string]: any;
-}
+type ValidChannel = typeof validChannels[number];
 
-interface CollezioneResponse {
-  id: number;
-  nome: string;
-  colore: string;
-  data_inizio: string;
-  data_fine: string;
-  [key: string]: any;
-}
-
-interface EventoResponse {
-  id: number;
-  cliente_id: number;
-  collezione_id: number;
-  data_inizio: string;
-  data_fine: string;
-  note?: string;
-  [key: string]: any;
-}
-
-// Definizione delle operazioni per ciascuna entità
+// Operations interfaces
 interface ClientiOperations {
   getAll: () => Promise<ClienteResponse[]>;
   getAllWithCollezioni: () => Promise<ClienteResponse[]>;
@@ -88,40 +81,6 @@ interface EventiOperations {
   getByCliente: (clienteId: number) => Promise<EventoResponse[]>;
   getByCollezione: (collezioneId: number) => Promise<EventoResponse[]>;
 }
-
-// Definizione dei canali IPC permessi
-const validChannels = [
-  'clienti:getAll',
-  'clienti:getAllWithCollezioni',
-  'clienti:getById',
-  'clienti:create',
-  'clienti:update',
-  'clienti:delete',
-  'clienti:assignCollezione',
-  'clienti:removeCollezione',
-  'clienti:importCSV',
-  
-  'collezioni:getAll',
-  'collezioni:getAllWithStats',
-  'collezioni:getById',
-  'collezioni:create',
-  'collezioni:update',
-  'collezioni:delete',
-  'collezioni:getClienti',
-  'collezioni:checkAvailability',
-  'collezioni:importCSV',
-  
-  'eventi:getAll',
-  'eventi:getByDateRange',
-  'eventi:create',
-  'eventi:update',
-  'eventi:delete',
-  'eventi:validate',
-  'eventi:getByCliente',
-  'eventi:getByCollezione'
-] as const;
-
-type ValidChannel = typeof validChannels[number];
 
 // Interface globale per l'API electron
 interface ElectronAPI {
@@ -176,7 +135,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     create: (evento: any) => invokeIPC('eventi:create', evento),
     update: (id: number, evento: any) => invokeIPC('eventi:update', id, evento),
     delete: (id: number) => invokeIPC('eventi:delete', id),
-    validate: (evento: any) => invokeIPC('eventi:validate', evento),
+    validate: (evento: EventValidationRequest) => invokeIPC('eventi:validate', evento),
     getByCliente: (clienteId: number) => invokeIPC('eventi:getByCliente', clienteId),
     getByCollezione: (collezioneId: number) => invokeIPC('eventi:getByCollezione', collezioneId)
   }
