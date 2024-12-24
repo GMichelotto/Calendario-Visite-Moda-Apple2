@@ -3,6 +3,87 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { IpcRendererEvent } from 'electron';
 
+// Interfaces
+interface ValidationResponse {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  duration?: number;
+  checks: {
+    timeConstraints: boolean;
+    overlap: boolean;
+    clientAvailability: boolean;
+    collectionPeriod: boolean;
+    duration: boolean;
+  };
+}
+
+interface ClienteResponse {
+  id: number;
+  ragione_sociale: string;
+  appointments_count?: number;
+  total_duration?: number;
+  [key: string]: any;
+}
+
+interface CollezioneResponse {
+  id: number;
+  nome: string;
+  colore: string;
+  data_inizio: string;
+  data_fine: string;
+  [key: string]: any;
+}
+
+interface EventoResponse {
+  id: number;
+  cliente_id: number;
+  collezione_id: number;
+  data_inizio: string;
+  data_fine: string;
+  note?: string;
+  [key: string]: any;
+}
+
+// Definizione delle operazioni per ciascuna entità
+interface ClientiOperations {
+  getAll: () => Promise<ClienteResponse[]>;
+  getAllWithCollezioni: () => Promise<ClienteResponse[]>;
+  getById: (id: number) => Promise<ClienteResponse>;
+  create: (cliente: Omit<ClienteResponse, 'id'>) => Promise<ClienteResponse>;
+  update: (id: number, cliente: Partial<ClienteResponse>) => Promise<boolean>;
+  delete: (id: number) => Promise<boolean>;
+  assignCollezione: (clienteId: number, collezioneId: number) => Promise<boolean>;
+  removeCollezione: (clienteId: number, collezioneId: number) => Promise<boolean>;
+  importCSV: (content: string) => Promise<{ success: boolean; errors: string[] }>;
+}
+
+interface CollezioniOperations {
+  getAll: () => Promise<CollezioneResponse[]>;
+  getAllWithStats: () => Promise<CollezioneResponse[]>;
+  getById: (id: number) => Promise<CollezioneResponse>;
+  create: (collezione: Omit<CollezioneResponse, 'id'>) => Promise<CollezioneResponse>;
+  update: (id: number, collezione: Partial<CollezioneResponse>) => Promise<boolean>;
+  delete: (id: number) => Promise<boolean>;
+  getClienti: (id: number) => Promise<ClienteResponse[]>;
+  checkAvailability: (id: number, start: Date, end: Date) => Promise<{
+    slot_start: string;
+    status: string;
+  }[]>;
+  importCSV: (content: string) => Promise<{ success: boolean; errors: string[] }>;
+}
+
+interface EventiOperations {
+  getAll: () => Promise<EventoResponse[]>;
+  getByDateRange: (start: Date, end: Date) => Promise<EventoResponse[]>;
+  create: (evento: Omit<EventoResponse, 'id'>) => Promise<EventoResponse>;
+  update: (id: number, evento: Partial<EventoResponse>) => Promise<boolean>;
+  delete: (id: number) => Promise<boolean>;
+  validate: (evento: any) => Promise<ValidationResponse>;
+  getByCliente: (clienteId: number) => Promise<EventoResponse[]>;
+  getByCollezione: (collezioneId: number) => Promise<EventoResponse[]>;
+}
+
 // Definizione dei canali IPC permessi
 const validChannels = [
   'clienti:getAll',
@@ -37,45 +118,7 @@ const validChannels = [
 
 type ValidChannel = typeof validChannels[number];
 
-// Interfaccia per i client operations
-interface ClientiOperations {
-  getAll: () => Promise<any[]>;
-  getAllWithCollezioni: () => Promise<any[]>;
-  getById: (id: number) => Promise<any>;
-  create: (cliente: any) => Promise<any>;
-  update: (id: number, cliente: any) => Promise<boolean>;
-  delete: (id: number) => Promise<boolean>;
-  assignCollezione: (clienteId: number, collezioneId: number) => Promise<boolean>;
-  removeCollezione: (clienteId: number, collezioneId: number) => Promise<boolean>;
-  importCSV: (content: string) => Promise<{ success: boolean; errors: string[] }>;
-}
-
-// Interfaccia per le operazioni sulle collezioni
-interface CollezioniOperations {
-  getAll: () => Promise<any[]>;
-  getAllWithStats: () => Promise<any[]>;
-  getById: (id: number) => Promise<any>;
-  create: (collezione: any) => Promise<any>;
-  update: (id: number, collezione: any) => Promise<boolean>;
-  delete: (id: number) => Promise<boolean>;
-  getClienti: (id: number) => Promise<any[]>;
-  checkAvailability: (id: number, start: Date, end: Date) => Promise<boolean>;
-  importCSV: (content: string) => Promise<{ success: boolean; errors: string[] }>;
-}
-
-// Interfaccia per le operazioni sugli eventi
-interface EventiOperations {
-  getAll: () => Promise<any[]>;
-  getByDateRange: (start: Date, end: Date) => Promise<any[]>;
-  create: (evento: any) => Promise<any>;
-  update: (id: number, evento: any) => Promise<boolean>;
-  delete: (id: number) => Promise<boolean>;
-  validate: (evento: any) => Promise<{ isValid: boolean; errors: string[] }>;
-  getByCliente: (clienteId: number) => Promise<any[]>;
-  getByCollezione: (collezioneId: number) => Promise<any[]>;
-}
-
-// Interfaccia globale per l'API electron
+// Interface globale per l'API electron
 interface ElectronAPI {
   clienti: ClientiOperations;
   collezioni: CollezioniOperations;
