@@ -1,4 +1,4 @@
-// src/types/database.ts
+export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'initialize';
 
 export interface APIResponse<T> {
   data: T;
@@ -76,31 +76,52 @@ export interface EventFormData {
   note: string;
 }
 
+export interface SlotAvailability {
+  slot_start: string;
+  status: string;
+}
+
+export interface ImportResult {
+  success: boolean;
+  errors: string[];
+}
+
 export interface ClientiOperations {
   getAll: () => Promise<APIResponse<Cliente[]>>;
   getById: (id: number) => Promise<APIResponse<Cliente>>;
   create: (data: Omit<Cliente, "id">) => Promise<APIResponse<Cliente>>;
-  update: (id: number, data: Cliente) => Promise<APIResponse<Cliente>>;
+  update: (id: number, data: Partial<Cliente>) => Promise<APIResponse<Cliente>>;
   delete: (id: number) => Promise<APIResponse<void>>;
+  assignCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
+  removeCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
+  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
 }
 
 export interface CollezioniOperations {
   getAll: () => Promise<APIResponse<Collezione[]>>;
+  getAllWithStats: () => Promise<APIResponse<Collezione[]>>;
   getById: (id: number) => Promise<APIResponse<Collezione>>;
   create: (data: Omit<Collezione, "id">) => Promise<APIResponse<Collezione>>;
-  update: (id: number, data: Collezione) => Promise<APIResponse<Collezione>>;
+  update: (id: number, data: Partial<Collezione>) => Promise<APIResponse<Collezione>>;
   delete: (id: number) => Promise<APIResponse<void>>;
-  checkAvailability: (id: number, start: Date, end: Date) => Promise<{
-    slot_start: string;
-    status: string;
-  }[]>;
+  checkAvailability: (id: number, start: Date, end: Date) => Promise<SlotAvailability[]>;
+  getClienti: (id: number) => Promise<APIResponse<Cliente[]>>;
+  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
 }
 
 export interface EventiOperations {
   getAll: () => Promise<APIResponse<Evento[]>>;
   getByDateRange: (start: Date, end: Date) => Promise<APIResponse<Evento[]>>;
   create: (data: Omit<Evento, "id">) => Promise<APIResponse<Evento>>;
-  update: (id: number, data: Evento) => Promise<APIResponse<Evento>>;
+  update: (id: number, data: Partial<Evento>) => Promise<APIResponse<Evento>>;
   delete: (id: number) => Promise<APIResponse<void>>;
   validate: (evento: EventValidationRequest) => Promise<ValidationResponse>;
+  getByCliente: (clienteId: number) => Promise<APIResponse<Evento[]>>;
+  getByCollezione: (collezioneId: number) => Promise<APIResponse<Evento[]>>;
+}
+
+export interface ElectronAPI {
+  clienti: ClientiOperations;
+  collezioni: CollezioniOperations;
+  eventi: EventiOperations;
 }
