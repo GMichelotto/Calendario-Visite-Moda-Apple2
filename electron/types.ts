@@ -123,4 +123,3 @@ export interface ElectronAPI {
   collezioni: CollezioniOperations;
   eventi: EventiOperations;
 }
-}
