@@ -123,9 +123,4 @@ export interface ElectronAPI {
   collezioni: CollezioniOperations;
   eventi: EventiOperations;
 }
-
-declare global {
-  interface Window {
-    electronAPI: ElectronAPI;
-  }
 }
