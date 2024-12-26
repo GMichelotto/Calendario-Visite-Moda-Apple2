@@ -60,11 +60,14 @@ async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
 }
 
 const clientiAPI: ClientiOperations = {
-  getAll: () => invokeIPC<APIResponse<Cliente[]>>("clienti:getAll"),
-  getById: (id: number) => invokeIPC<APIResponse<Cliente>>("clienti:getById", id), // Aggiunto
-  create: (data) => invokeIPC<APIResponse<Cliente>>("clienti:create", data),
-  update: (id, data) => invokeIPC<APIResponse<Cliente>>("clienti:update", id, data),
-  delete: (id) => invokeIPC<APIResponse<void>>("clienti:delete", id),
+  getAll: () => invokeIPC<APIResponse<Cliente[]>>('clienti:getAll'),
+  getById: (id) => invokeIPC<APIResponse<Cliente>>('clienti:getById', id),
+  create: (data) => invokeIPC<APIResponse<Cliente>>('clienti:create', data),
+  update: (id, data) => invokeIPC<APIResponse<Cliente>>('clienti:update', id, data),
+  delete: (id) => invokeIPC<APIResponse<void>>('clienti:delete', id),
+  assignCollezione: (clienteId, collezioneId) => invokeIPC<APIResponse<void>>('clienti:assignCollezione', clienteId, collezioneId),
+  removeCollezione: (clienteId, collezioneId) => invokeIPC<APIResponse<void>>('clienti:removeCollezione', clienteId, collezioneId),
+  importCSV: (content) => invokeIPC<APIResponse<ImportResult>>('clienti:importCSV', content)
 };
 
 contextBridge.exposeInMainWorld('electronAPI', {
