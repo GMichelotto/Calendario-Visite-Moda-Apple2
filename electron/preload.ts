@@ -1,20 +1,23 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { IpcRendererEvent } from 'electron';
 import type {
-  ValidationResponse,
-  EventValidationRequest,
-  CustomEvent,
+  APIResponse,
   Cliente,
   Collezione,
   Evento,
-  ElectronAPI,
-  APIResponse,
-  SlotAvailability
+  CustomEvent,
+  ValidationResponse,
+  EventValidationRequest,
+  SlotAvailability,
+  ImportResult,
+  ClientiOperations,
+  CollezioniOperations,
+  EventiOperations,
+  ElectronAPI
 } from './types';
 
 const validChannels = [
   'clienti:getAll',
-  'clienti:getAllWithCollezioni',
   'clienti:getById',
   'clienti:create',
   'clienti:update',
@@ -49,46 +52,45 @@ function isValidChannel(channel: string): channel is ValidChannel {
   return validChannels.includes(channel as ValidChannel);
 }
 
-async function invokeIPC(channel: string, ...args: any[]): Promise<any> {
-  if (isValidChannel(channel)) {
-    return await ipcRenderer.invoke(channel, ...args);
+async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
+  if (!isValidChannel(channel)) {
+    throw new Error(`Canale IPC non autorizzato: ${channel}`);
   }
-  throw new Error(`Canale IPC non autorizzato: ${channel}`);
+  return ipcRenderer.invoke(channel, ...args);
 }
 
-const clientiAPI: ElectronAPI['clienti'] = {
-  getAll: () => invokeIPC('clienti:getAll'),
-  getById: (id: number) => invokeIPC('clienti:getById', id),
-  create: (cliente: Omit<Cliente, 'id'>) => invokeIPC('clienti:create', cliente),
-  update: (id: number, cliente: Partial<Cliente>) => invokeIPC('clienti:update', id, cliente),
-  delete: (id: number) => invokeIPC('clienti:delete', id),
-  assignCollezione: (clienteId: number, collezioneId: number) => invokeIPC('clienti:assignCollezione', clienteId, collezioneId),
-  removeCollezione: (clienteId: number, collezioneId: number) => invokeIPC('clienti:removeCollezione', clienteId, collezioneId),
-  importCSV: (content: string) => invokeIPC('clienti:importCSV', content)
+const clientiAPI: ClientiOperations = {
+  getAll: () => invokeIPC<APIResponse<Cliente[]>>('clienti:getAll'),
+  getById: (id) => invokeIPC<APIResponse<Cliente>>('clienti:getById', id),
+  create: (data) => invokeIPC<APIResponse<Cliente>>('clienti:create', data),
+  update: (id, data) => invokeIPC<APIResponse<Cliente>>('clienti:update', id, data),
+  delete: (id) => invokeIPC<APIResponse<void>>('clienti:delete', id),
+  assignCollezione: (clienteId, collezioneId) => invokeIPC<APIResponse<void>>('clienti:assignCollezione', clienteId, collezioneId),
+  removeCollezione: (clienteId, collezioneId) => invokeIPC<APIResponse<void>>('clienti:removeCollezione', clienteId, collezioneId),
+  importCSV: (content) => invokeIPC<APIResponse<ImportResult>>('clienti:importCSV', content)
 };
 
-const collezioniAPI: ElectronAPI['collezioni'] = {
-  getAll: () => invokeIPC('collezioni:getAll'),
-  getAllWithStats: () => invokeIPC('collezioni:getAllWithStats'),
-  getById: (id: number) => invokeIPC('collezioni:getById', id),
-  create: (collezione: Omit<Collezione, 'id'>) => invokeIPC('collezioni:create', collezione),
-  update: (id: number, collezione: Partial<Collezione>) => invokeIPC('collezioni:update', id, collezione),
-  delete: (id: number) => invokeIPC('collezioni:delete', id),
-  checkAvailability: (id: number, start: Date, end: Date) =>
-    invokeIPC('collezioni:checkAvailability', id, start, end) as Promise<SlotAvailability[]>,
-  getClienti: (id: number) => invokeIPC('collezioni:getClienti', id),
-  importCSV: (content: string) => invokeIPC('collezioni:importCSV', content)
+const collezioniAPI: CollezioniOperations = {
+  getAll: () => invokeIPC<APIResponse<Collezione[]>>('collezioni:getAll'),
+  getAllWithStats: () => invokeIPC<APIResponse<Collezione[]>>('collezioni:getAllWithStats'),
+  getById: (id) => invokeIPC<APIResponse<Collezione>>('collezioni:getById', id),
+  create: (data) => invokeIPC<APIResponse<Collezione>>('collezioni:create', data),
+  update: (id, data) => invokeIPC<APIResponse<Collezione>>('collezioni:update', id, data),
+  delete: (id) => invokeIPC<APIResponse<void>>('collezioni:delete', id),
+  checkAvailability: (id, start, end) => invokeIPC<SlotAvailability[]>('collezioni:checkAvailability', id, start, end),
+  getClienti: (id) => invokeIPC<APIResponse<Cliente[]>>('collezioni:getClienti', id),
+  importCSV: (content) => invokeIPC<APIResponse<ImportResult>>('collezioni:importCSV', content)
 };
 
-const eventiAPI: ElectronAPI['eventi'] = {
-  getAll: () => invokeIPC('eventi:getAll'),
-  getByDateRange: (start: Date, end: Date) => invokeIPC('eventi:getByDateRange', start, end),
-  create: (evento: Omit<Evento, 'id'>) => invokeIPC('eventi:create', evento),
-  update: (id: number, evento: Partial<Evento>) => invokeIPC('eventi:update', id, evento),
-  delete: (id: number) => invokeIPC('eventi:delete', id),
-  validate: (evento: EventValidationRequest) => invokeIPC('eventi:validate', evento),
-  getByCliente: (clienteId: number) => invokeIPC('eventi:getByCliente', clienteId),
-  getByCollezione: (collezioneId: number) => invokeIPC('eventi:getByCollezione', collezioneId)
+const eventiAPI: EventiOperations = {
+  getAll: () => invokeIPC<APIResponse<Evento[]>>('eventi:getAll'),
+  getByDateRange: (start, end) => invokeIPC<APIResponse<Evento[]>>('eventi:getByDateRange', start, end),
+  create: (data) => invokeIPC<APIResponse<Evento>>('eventi:create', data),
+  update: (id, data) => invokeIPC<APIResponse<Evento>>('eventi:update', id, data),
+  delete: (id) => invokeIPC<APIResponse<void>>('eventi:delete', id),
+  validate: (evento) => invokeIPC<ValidationResponse>('eventi:validate', evento),
+  getByCliente: (clienteId) => invokeIPC<APIResponse<Evento[]>>('eventi:getByCliente', clienteId),
+  getByCollezione: (collezioneId) => invokeIPC<APIResponse<Evento[]>>('eventi:getByCollezione', collezioneId)
 };
 
 contextBridge.exposeInMainWorld('electronAPI', {
