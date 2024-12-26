@@ -1,5 +1,3 @@
-import { IpcMainInvokeEvent } from 'electron';
-
 export interface APIResponse<T> {
   data: T;
   message?: string;
@@ -86,17 +84,6 @@ export interface ImportResult {
   errors: string[];
 }
 
-export type DatabaseOperation = {
-  operation: 'initialize' | 'backup' | 'restore';
-  payload?: any;
-};
-
-export interface DatabaseError {
-  code: string;
-  message: string;
-  details?: any;
-}
-
 export interface ClientiOperations {
   getAll: () => Promise<APIResponse<Cliente[]>>;
   getById: (id: number) => Promise<APIResponse<Cliente>>;
@@ -135,4 +122,10 @@ export interface ElectronAPI {
   clienti: ClientiOperations;
   collezioni: CollezioniOperations;
   eventi: EventiOperations;
+}
+
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
 }
