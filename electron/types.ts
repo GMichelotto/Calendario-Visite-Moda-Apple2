@@ -1,13 +1,11 @@
-// electron/types.ts
+import { IpcMainInvokeEvent } from 'electron';
 
-// Base API Types
 export interface APIResponse<T> {
   data: T;
   message?: string;
   error?: string;
 }
 
-// Entity Types
 export interface Cliente {
   id: number;
   ragione_sociale: string;
@@ -39,7 +37,6 @@ export interface Evento {
   note?: string;
 }
 
-// Validation Types
 export interface ValidationResponse {
   isValid: boolean;
   errors: string[];
@@ -62,7 +59,6 @@ export interface EventValidationRequest {
   id?: number;
 }
 
-// Calendar Event Types
 export interface CustomEvent {
   id: number;
   cliente_id: string;
@@ -85,7 +81,22 @@ export interface SlotAvailability {
   status: string;
 }
 
-// API Operations Interfaces
+export interface ImportResult {
+  success: boolean;
+  errors: string[];
+}
+
+export type DatabaseOperation = {
+  operation: 'initialize' | 'backup' | 'restore';
+  payload?: any;
+};
+
+export interface DatabaseError {
+  code: string;
+  message: string;
+  details?: any;
+}
+
 export interface ClientiOperations {
   getAll: () => Promise<APIResponse<Cliente[]>>;
   getById: (id: number) => Promise<APIResponse<Cliente>>;
@@ -94,7 +105,7 @@ export interface ClientiOperations {
   delete: (id: number) => Promise<APIResponse<void>>;
   assignCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
   removeCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
-  importCSV: (content: string) => Promise<APIResponse<{ success: boolean; errors: string[] }>>;
+  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
 }
 
 export interface CollezioniOperations {
@@ -106,7 +117,7 @@ export interface CollezioniOperations {
   delete: (id: number) => Promise<APIResponse<void>>;
   checkAvailability: (id: number, start: Date, end: Date) => Promise<SlotAvailability[]>;
   getClienti: (id: number) => Promise<APIResponse<Cliente[]>>;
-  importCSV: (content: string) => Promise<APIResponse<{ success: boolean; errors: string[] }>>;
+  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
 }
 
 export interface EventiOperations {
@@ -120,7 +131,6 @@ export interface EventiOperations {
   getByCollezione: (collezioneId: number) => Promise<APIResponse<Evento[]>>;
 }
 
-// Main ElectronAPI Interface
 export interface ElectronAPI {
   clienti: ClientiOperations;
   collezioni: CollezioniOperations;
