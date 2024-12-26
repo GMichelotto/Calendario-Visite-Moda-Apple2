@@ -1,131 +1,90 @@
-export interface APIResponse<T> {
-  data: T;
-  message?: string;
-  error?: string;
+import type { 
+  APIResponse,
+  Cliente,
+  Collezione,
+  Evento,
+  ValidationResponse,
+  EventValidationRequest,
+  CustomEvent,
+  EventFormData,
+  SlotAvailability,
+  ImportResult,
+  ClientiOperations,
+  CollezioniOperations,
+  EventiOperations,
+  ElectronAPI
+} from '../../electron/types';
+
+export type {
+  APIResponse,
+  Cliente,
+  Collezione,
+  Evento,
+  ValidationResponse,
+  EventValidationRequest,
+  CustomEvent,
+  EventFormData,
+  SlotAvailability,
+  ImportResult,
+  ClientiOperations,
+  CollezioniOperations,
+  EventiOperations,
+  ElectronAPI
+};
+
+export interface UseClienteResult {
+  cliente: Cliente | null;
+  isLoading: boolean;
+  error: string | null;
+  update: (data: Partial<Cliente>) => Promise<APIResponse<Cliente>>;
+  delete: () => Promise<APIResponse<void>>;
 }
 
-export interface Cliente {
-  id: number;
-  ragione_sociale: string;
-  indirizzo?: string;
-  cap?: string;
-  citta?: string;
-  provincia?: string;
-  telefono?: string;
-  email?: string;
-  appointments_count?: number;
-  total_duration?: number;
-}
-
-export interface Collezione {
-  id: number;
-  nome: string;
-  colore: string;
-  data_inizio: string;
-  data_fine: string;
-  note?: string;
-}
-
-export interface Evento {
-  id: number;
-  cliente_id: number;
-  collezione_id: number;
-  data_inizio: string;
-  data_fine: string;
-  note?: string;
-}
-
-export interface ValidationResponse {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  duration?: number;
-  checks: {
-    timeConstraints: boolean;
-    overlap: boolean;
-    clientAvailability: boolean;
-    collectionPeriod: boolean;
-    duration: boolean;
-  };
-}
-
-export interface EventValidationRequest {
-  cliente_id: string;
-  collezione_id: string;
-  data_inizio: string;
-  data_fine: string;
-  id?: number;
-}
-
-export interface CustomEvent {
-  id: number;
-  cliente_id: string;
-  collezione_id: string;
-  start: Date;
-  end: Date;
-  note?: string;
-}
-
-export interface EventFormData {
-  cliente_id: string;
-  collezione_id: string;
-  data_inizio: string;
-  data_fine: string;
-  note: string;
-}
-
-export interface SlotAvailability {
-  slot_start: string;
-  status: string;
-}
-
-export interface ImportResult {
-  success: boolean;
-  errors: string[];
-}
-
-export interface ClientiOperations {
-  getAll: () => Promise<APIResponse<Cliente[]>>;
-  getById: (id: number) => Promise<APIResponse<Cliente>>;
-  create: (data: Omit<Cliente, "id">) => Promise<APIResponse<Cliente>>;
+export interface UseClientiResult {
+  clienti: Cliente[];
+  isLoading: boolean;
+  error: string | null;
+  create: (data: Omit<Cliente, 'id'>) => Promise<APIResponse<Cliente>>;
   update: (id: number, data: Partial<Cliente>) => Promise<APIResponse<Cliente>>;
   delete: (id: number) => Promise<APIResponse<void>>;
-  assignCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
-  removeCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
-  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
+  refresh: () => Promise<void>;
 }
 
-export interface CollezioniOperations {
-  getAll: () => Promise<APIResponse<Collezione[]>>;
-  getAllWithStats: () => Promise<APIResponse<Collezione[]>>;
-  getById: (id: number) => Promise<APIResponse<Collezione>>;
-  create: (data: Omit<Collezione, "id">) => Promise<APIResponse<Collezione>>;
+export interface UseCollezioneResult {
+  collezione: Collezione | null;
+  isLoading: boolean;
+  error: string | null;
+  update: (data: Partial<Collezione>) => Promise<APIResponse<Collezione>>;
+  delete: () => Promise<APIResponse<void>>;
+}
+
+export interface UseCollezioniResult {
+  collezioni: Collezione[];
+  isLoading: boolean;
+  error: string | null;
+  create: (data: Omit<Collezione, 'id'>) => Promise<APIResponse<Collezione>>;
   update: (id: number, data: Partial<Collezione>) => Promise<APIResponse<Collezione>>;
   delete: (id: number) => Promise<APIResponse<void>>;
-  checkAvailability: (id: number, start: Date, end: Date) => Promise<SlotAvailability[]>;
-  getClienti: (id: number) => Promise<APIResponse<Cliente[]>>;
-  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
+  refresh: () => Promise<void>;
 }
 
-export interface EventiOperations {
-  getAll: () => Promise<APIResponse<Evento[]>>;
-  getByDateRange: (start: Date, end: Date) => Promise<APIResponse<Evento[]>>;
-  create: (data: Omit<Evento, "id">) => Promise<APIResponse<Evento>>;
+export interface UseEventoResult {
+  evento: Evento | null;
+  isLoading: boolean;
+  error: string | null;
+  update: (data: Partial<Evento>) => Promise<APIResponse<Evento>>;
+  delete: () => Promise<APIResponse<void>>;
+  validate: (data: EventValidationRequest) => Promise<ValidationResponse>;
+}
+
+export interface UseEventiResult {
+  eventi: Evento[];
+  isLoading: boolean;
+  error: string | null;
+  create: (data: Omit<Evento, 'id'>) => Promise<APIResponse<Evento>>;
   update: (id: number, data: Partial<Evento>) => Promise<APIResponse<Evento>>;
   delete: (id: number) => Promise<APIResponse<void>>;
-  validate: (evento: EventValidationRequest) => Promise<ValidationResponse>;
-  getByCliente: (clienteId: number) => Promise<APIResponse<Evento[]>>;
-  getByCollezione: (collezioneId: number) => Promise<APIResponse<Evento[]>>;
-}
-
-export interface ElectronAPI {
-  clienti: ClientiOperations;
-  collezioni: CollezioniOperations;
-  eventi: EventiOperations;
-}
-
-declare global {
-  interface Window {
-    electronAPI: ElectronAPI;
-  }
+  refresh: () => Promise<void>;
+  validate: (data: EventValidationRequest) => Promise<ValidationResponse>;
+  getByDateRange: (start: Date, end: Date) => Promise<APIResponse<Evento[]>>;
 }
