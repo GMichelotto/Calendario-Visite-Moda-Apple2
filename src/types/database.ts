@@ -1,5 +1,3 @@
-export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'initialize';
-
 export interface APIResponse<T> {
   data: T;
   message?: string;
@@ -124,4 +122,10 @@ export interface ElectronAPI {
   clienti: ClientiOperations;
   collezioni: CollezioniOperations;
   eventi: EventiOperations;
+}
+
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
 }
