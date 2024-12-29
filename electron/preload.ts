@@ -8,8 +8,9 @@ import {
   ValidationResponse, 
   ImportResult, 
   SlotAvailability,
-  ExportCalendarResult,
-  DashboardStats
+  ExportResult,
+  DashboardStats,
+  EventValidationRequest
 } from './types';
 
 async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
@@ -39,7 +40,7 @@ const api: ElectronAPI = {
       invokeIPC<APIResponse<void>>('clienti:removeCollezione', clienteId, collezioneId),
     importCSV: (content: string) => 
       invokeIPC<APIResponse<ImportResult>>('clienti:importCSV', content),
-    exportCSV: () => invokeIPC<APIResponse<ExportCalendarResult>>('clienti:exportCSV')
+    exportCSV: () => invokeIPC<APIResponse<ExportResult>>('clienti:exportCSV')
   },
 
   collezioni: {
@@ -56,7 +57,7 @@ const api: ElectronAPI = {
     getClienti: (id: number) => invokeIPC<APIResponse<Cliente[]>>('collezioni:getClienti', id),
     importCSV: (content: string) => 
       invokeIPC<APIResponse<ImportResult>>('collezioni:importCSV', content),
-    exportCSV: () => invokeIPC<APIResponse<ExportCalendarResult>>('collezioni:exportCSV'),
+    exportCSV: () => invokeIPC<APIResponse<ExportResult>>('collezioni:exportCSV'),
     getDashboardStats: (id: number) => 
       invokeIPC<APIResponse<DashboardStats>>('collezioni:getDashboardStats', id)
   },
@@ -75,12 +76,12 @@ const api: ElectronAPI = {
     update: (id: number, data: Partial<Evento>) => 
       invokeIPC<APIResponse<Evento>>('eventi:update', id, data),
     delete: (id: number) => invokeIPC<APIResponse<void>>('eventi:delete', id),
-    validate: (evento: Partial<Evento> & { id?: number }) => 
+    validate: (evento: EventValidationRequest) => 
       invokeIPC<ValidationResponse>('eventi:validate', evento),
-    validateBulk: (eventi: (Partial<Evento> & { id?: number })[]) => 
+    validateBulk: (eventi: EventValidationRequest[]) => 
       invokeIPC<{ [key: string]: ValidationResponse }>('eventi:validateBulk', eventi),
     exportToCalendar: (start: Date, end: Date) => 
-      invokeIPC<APIResponse<ExportCalendarResult>>('eventi:exportToCalendar', start, end),
+      invokeIPC<APIResponse<ExportResult>>('eventi:exportToCalendar', start, end),
     importFromCalendar: (content: string) => 
       invokeIPC<APIResponse<ImportResult>>('eventi:importFromCalendar', content)
   }
