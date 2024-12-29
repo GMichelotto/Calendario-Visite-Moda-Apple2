@@ -13,7 +13,7 @@ import {
   ExportResult,
   DashboardStats,
   EventValidationRequest
-} from '@shared/types';
+} from '../shared/types';
 
 async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
   return ipcRenderer.invoke(channel, ...args);
