@@ -14,50 +14,74 @@ export interface Cliente {
   sito_web?: string;
   note?: string;
   collezioni?: string[];
-}
-
-export interface Collezione {
-  id?: number;
-  nome: string;
-  data_inizio: string;
-  data_fine: string;
-  colore: string;
-  note?: string;
-}
-
-export interface Evento {
-  id?: number;
-  cliente_id: number;
-  collezione_id: number;
-  data_inizio: string;
-  data_fine: string;
-  note?: string;
+  // Campi aggiuntivi dal vecchio file
+  appointments_count?: number;
+  total_duration?: number;
 }
 
 export interface APIResponse<T> {
   success: boolean;
   data?: T;
+  message?: string;
   error?: string;
-  errors?: string[];
-}
-
-export interface ImportResult {
-  rowsImported: number;
   errors?: string[];
 }
 
 export interface ValidationResponse {
   isValid: boolean;
   errors: string[];
+  warnings: string[];  // Aggiunto dal vecchio file
+  duration?: number;   // Aggiunto dal vecchio file
+  checks?: {          // Aggiunto dal vecchio file
+    timeConstraints: boolean;
+    overlap: boolean;
+    clientAvailability: boolean;
+    collectionPeriod: boolean;
+    duration: boolean;
+  };
 }
 
 export interface EventValidationRequest {
-  id?: number;
-  cliente_id: number;
-  collezione_id: number;
+  cliente_id: string;  // Cambiato da number a string come nel vecchio file
+  collezione_id: string;  // Cambiato da number a string come nel vecchio file
   data_inizio: string;
   data_fine: string;
   note?: string;
+  id?: number;
+}
+
+export interface CollezioneResponse {  // Aggiunto dal vecchio file
+  id: number;
+  nome: string;
+  colore: string;
+  data_inizio: string;
+  data_fine: string;
+}
+
+export interface Collezione extends CollezioneResponse {
+  note?: string;
+}
+
+export interface CustomEvent {  // Aggiunto dal vecchio file
+  id: number;
+  cliente_id: string;
+  collezione_id: string;
+  start: Date;
+  end: Date;
+  note?: string;
+}
+
+export interface EventFormData {  // Aggiunto dal vecchio file
+  cliente_id: string;
+  collezione_id: string;
+  data_inizio: string;
+  data_fine: string;
+  note: string;
+}
+
+export interface ImportResult {
+  rowsImported: number;
+  errors?: string[];
 }
 
 export interface SlotAvailability {
@@ -141,10 +165,8 @@ export interface ElectronAPI {
   eventi: EventiOperations;
 }
 
-// Evitiamo la doppia dichiarazione di Window
 export {};
 
-// Estendiamo Window una sola volta
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
