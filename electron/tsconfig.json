@@ -4,25 +4,18 @@
     "module": "commonjs",
     "sourceMap": true,
     "outDir": "../build/electron",
-    "rootDir": "..",
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "..",
-    "composite": true,
-    "declaration": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["../shared/*"]
     }
   },
-  "references": [
-    { "path": "../shared/tsconfig.json" }
-  ],
   "include": [
-    "./**/*",
+    ".",
     "../shared/**/*"
   ],
   "exclude": [
