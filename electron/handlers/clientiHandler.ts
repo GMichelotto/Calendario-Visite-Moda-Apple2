@@ -2,7 +2,8 @@
 
 import { ipcMain } from 'electron';
 import type { Database } from 'better-sqlite3';
-import moment from 'moment';
+
+interface IpcMainInvokeEvent {}
 
 interface Cliente {
   id?: number;
@@ -25,9 +26,86 @@ interface ClienteDb extends Omit<Cliente, 'collezioni'> {
   collezioni: string;
 }
 
-export function setupClientiHandlers(db: Database) {
+interface APIResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: string[];
+}
+
+function getClientById(db: Database, id: number): APIResponse<Cliente> {
+  try {
+    const cliente = db.prepare(`
+      SELECT 
+        c.*,
+        GROUP_CONCAT(col.nome) as collezioni
+      FROM Clienti c
+      LEFT JOIN ClientiCollezioni cc ON c.id = cc.cliente_id
+      LEFT JOIN Collezioni col ON cc.collezione_id = col.id
+      WHERE c.id = ?
+      GROUP BY c.id
+    `).get(id) as ClienteDb | undefined;
+
+    if (!cliente) {
+      return { success: false, error: 'Cliente non trovato' };
+    }
+
+    return {
+      success: true,
+      data: {
+        ...cliente,
+        collezioni: cliente.collezioni ? cliente.collezioni.split(',') : []
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Errore nel recupero del cliente: ${(error as Error).message}`
+    };
+  }
+}
+
+function validateCliente(cliente: Omit<Cliente, 'id'>): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  // Validazione ragione sociale
+  if (!cliente.ragione_sociale || cliente.ragione_sociale.trim().length === 0) {
+    errors.push('La ragione sociale è obbligatoria');
+  }
+
+  // Validazione email
+  if (cliente.email && !cliente.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    errors.push('Formato email non valido');
+  }
+
+  // Validazione CAP
+  if (cliente.cap && !cliente.cap.match(/^\d{5}$/)) {
+    errors.push('Formato CAP non valido (5 cifre)');
+  }
+
+  // Validazione telefono
+  if (cliente.telefono && !cliente.telefono.match(/^[\d\s+\-()]+$/)) {
+    errors.push('Formato telefono non valido');
+  }
+
+  // Validazione cellulare
+  if (cliente.cellulare && !cliente.cellulare.match(/^[\d\s+\-()]+$/)) {
+    errors.push('Formato cellulare non valido');
+  }
+
+  // Validazione sito web
+  if (cliente.sito_web && !cliente.sito_web.match(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/)) {
+    errors.push('Formato sito web non valido');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+export function setupClientiHandlers(db: Database): void {
   // GET ALL
-  ipcMain.handle('clienti:getAll', async () => {
+  ipcMain.handle('clienti:getAll', (event: IpcMainInvokeEvent) => {
     try {
       const result = db.prepare('SELECT * FROM Clienti').all() as Cliente[];
       return { success: true, data: result };
@@ -40,7 +118,7 @@ export function setupClientiHandlers(db: Database) {
   });
 
   // GET ALL WITH COLLECTIONS
-  ipcMain.handle('clienti:getAllWithCollezioni', async () => {
+  ipcMain.handle('clienti:getAllWithCollezioni', (event: IpcMainInvokeEvent) => {
     try {
       const result = db.prepare(`
         SELECT 
@@ -67,41 +145,22 @@ export function setupClientiHandlers(db: Database) {
   });
 
   // GET BY ID
-  ipcMain.handle('clienti:getById', async (_, id: number) => {
-    try {
-      const cliente = db.prepare(`
-        SELECT 
-          c.*,
-          GROUP_CONCAT(col.nome) as collezioni
-        FROM Clienti c
-        LEFT JOIN ClientiCollezioni cc ON c.id = cc.cliente_id
-        LEFT JOIN Collezioni col ON cc.collezione_id = col.id
-        WHERE c.id = ?
-        GROUP BY c.id
-      `).get(id) as ClienteDb | undefined;
-
-      if (!cliente) {
-        return { success: false, error: 'Cliente non trovato' };
-      }
-
-      return {
-        success: true,
-        data: {
-          ...cliente,
-          collezioni: cliente.collezioni ? cliente.collezioni.split(',') : []
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Errore nel recupero del cliente: ${(error as Error).message}`
-      };
-    }
+  ipcMain.handle('clienti:getById', (event: IpcMainInvokeEvent, id: number) => {
+    return getClientById(db, id);
   });
 
   // CREATE
-  ipcMain.handle('clienti:create', async (_, clienteData: Omit<Cliente, 'id'>) => {
+  ipcMain.handle('clienti:create', (event: IpcMainInvokeEvent, clienteData: Omit<Cliente, 'id'>) => {
     try {
+      const validation = validateCliente(clienteData);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: 'Validazione fallita',
+          errors: validation.errors
+        };
+      }
+
       const result = db.prepare(`
         INSERT INTO Clienti (
           ragione_sociale, indirizzo, cap, citta, provincia, 
@@ -122,8 +181,7 @@ export function setupClientiHandlers(db: Database) {
       ]);
 
       if (result.changes > 0) {
-        const newCliente = await ipcMain.handle('clienti:getById', null, result.lastInsertRowid);
-        return newCliente;
+        return getClientById(db, result.lastInsertRowid as number);
       }
 
       return {
@@ -139,8 +197,27 @@ export function setupClientiHandlers(db: Database) {
   });
 
   // UPDATE
-  ipcMain.handle('clienti:update', async (_, id: number, clienteData: Partial<Cliente>) => {
+  ipcMain.handle('clienti:update', (event: IpcMainInvokeEvent, id: number, clienteData: Partial<Cliente>) => {
     try {
+      const currentCliente = getClientById(db, id);
+      if (!currentCliente.success) {
+        return currentCliente;
+      }
+
+      const clienteToValidate = {
+        ...currentCliente.data,
+        ...clienteData
+      };
+
+      const validation = validateCliente(clienteToValidate as Omit<Cliente, 'id'>);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: 'Validazione fallita',
+          errors: validation.errors
+        };
+      }
+
       const updateFields = [];
       const updateValues = [];
       
@@ -167,8 +244,7 @@ export function setupClientiHandlers(db: Database) {
       `).run(updateValues);
 
       if (result.changes > 0) {
-        const updatedCliente = await ipcMain.handle('clienti:getById', null, id);
-        return updatedCliente;
+        return getClientById(db, id);
       }
 
       return {
@@ -184,12 +260,9 @@ export function setupClientiHandlers(db: Database) {
   });
 
   // DELETE
-  ipcMain.handle('clienti:delete', async (_, id: number) => {
+  ipcMain.handle('clienti:delete', (event: IpcMainInvokeEvent, id: number) => {
     try {
-      // Prima elimina le associazioni con le collezioni
       db.prepare('DELETE FROM ClientiCollezioni WHERE cliente_id = ?').run(id);
-      
-      // Poi elimina il cliente
       const result = db.prepare('DELETE FROM Clienti WHERE id = ?').run(id);
 
       if (result.changes > 0) {
@@ -209,7 +282,7 @@ export function setupClientiHandlers(db: Database) {
   });
 
   // IMPORT CSV
-  ipcMain.handle('clienti:importCSV', async (_, csvContent: string) => {
+  ipcMain.handle('clienti:importCSV', (event: IpcMainInvokeEvent, csvContent: string) => {
     const errors: string[] = [];
     const lines = csvContent.split('\n').map(line => line.trim());
     
@@ -249,40 +322,6 @@ export function setupClientiHandlers(db: Database) {
       return { 
         success: false, 
         errors: [...errors, `Errore transazione: ${(error as Error).message}`] 
-      };
-    }
-  });
-
-  // ASSIGN COLLECTION
-  ipcMain.handle('clienti:assignCollezione', async (_, clienteId: number, collezioneId: number) => {
-    try {
-      const result = db.prepare(`
-        INSERT INTO ClientiCollezioni (cliente_id, collezione_id)
-        VALUES (?, ?)
-      `).run(clienteId, collezioneId);
-
-      return { success: result.changes > 0 };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Errore nell'assegnazione della collezione: ${(error as Error).message}`
-      };
-    }
-  });
-
-  // REMOVE COLLECTION
-  ipcMain.handle('clienti:removeCollezione', async (_, clienteId: number, collezioneId: number) => {
-    try {
-      const result = db.prepare(`
-        DELETE FROM ClientiCollezioni 
-        WHERE cliente_id = ? AND collezione_id = ?
-      `).run(clienteId, collezioneId);
-
-      return { success: result.changes > 0 };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Errore nella rimozione della collezione: ${(error as Error).message}`
       };
     }
   });
