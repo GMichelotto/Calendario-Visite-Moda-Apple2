@@ -37,7 +37,16 @@ export interface ExportResult {
   mimeType: string;
 }
 
+export interface DatabaseOperations {
+  operation: (operation: string, ...args: any[]) => Promise<any>;
+  initialize: () => Promise<void>;
+  backup: (path: string) => Promise<void>;
+  restore: (path: string) => Promise<void>;
+}
+
 export interface ElectronAPI {
+  database: DatabaseOperations;
+  
   clienti: {
     getAll: () => Promise<APIResponse<Cliente[]>>;
     getAllWithCollezioni: () => Promise<APIResponse<Cliente[]>>;
@@ -85,18 +94,6 @@ export interface ElectronAPI {
     }>;
     exportToCalendar: (start: Date, end: Date) => Promise<APIResponse<ExportResult>>;
     importFromCalendar: (content: string) => Promise<APIResponse<ImportResult>>;
-  };
-
-  utils: {
-    checkDatabaseConnection: () => Promise<APIResponse<boolean>>;
-    backupDatabase: () => Promise<APIResponse<string>>;
-    restoreDatabase: (path: string) => Promise<APIResponse<void>>;
-    getApplicationVersion: () => Promise<string>;
-    checkForUpdates: () => Promise<APIResponse<{
-      available: boolean;
-      version?: string;
-      notes?: string;
-    }>>;
   };
 }
 
