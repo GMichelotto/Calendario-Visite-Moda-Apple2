@@ -1,17 +1,19 @@
+// electron/preload.ts
+
 import { contextBridge, ipcRenderer } from 'electron';
-import { 
-  ElectronAPI, 
-  APIResponse, 
-  Cliente, 
-  Collezione, 
-  Evento, 
-  ValidationResponse, 
-  ImportResult, 
+import {
+  ElectronAPI,
+  APIResponse,
+  Cliente,
+  Collezione,
+  Evento,
+  ValidationResponse,
+  ImportResult,
   SlotAvailability,
   ExportResult,
   DashboardStats,
   EventValidationRequest
-} from './types';
+} from '@shared/types';
 
 async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
   return ipcRenderer.invoke(channel, ...args);
