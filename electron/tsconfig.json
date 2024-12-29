@@ -11,15 +11,19 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": "..",
+    "composite": true,
+    "declaration": true,
     "paths": {
       "@/*": ["src/*"],
       "@shared/*": ["shared/*"]
     }
   },
+  "references": [
+    { "path": "../shared/tsconfig.json" }
+  ],
   "include": [
-    ".",
-    "../shared/**/*",
-    "../src/types/**/*"
+    "./**/*",
+    "../shared/**/*"
   ],
   "exclude": [
     "node_modules",
