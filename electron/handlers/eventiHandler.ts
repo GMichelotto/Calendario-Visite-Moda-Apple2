@@ -94,7 +94,7 @@ function validateCrossCollection(db: Database, evento: Evento): string[] {
   return errors;
 }
 
-async function validateEvento(db: Database, evento: Evento): Promise<ValidationResponse> {
+function validateEvento(db: Database, evento: Evento): ValidationResponse {
   const errors: string[] = [];
   const startTime = moment(evento.data_inizio);
   const endTime = moment(evento.data_fine);
@@ -174,7 +174,8 @@ async function validateEvento(db: Database, evento: Evento): Promise<ValidationR
     isValid: errors.length === 0,
     errors
   };
-async function getEventById(db: Database, id: number): Promise<APIResponse<EventoWithDetails>> {
+}
+function getEventById(db: Database, id: number): APIResponse<EventoWithDetails> {
   try {
     const result = db.prepare(`
       SELECT 
@@ -201,9 +202,9 @@ async function getEventById(db: Database, id: number): Promise<APIResponse<Event
   }
 }
 
-export function setupEventiHandlers(db: Database) {
+export function setupEventiHandlers(db: Database): void {
   // GET ALL
-  ipcMain.handle('eventi:getAll', async (event: IpcMainInvokeEvent) => {
+  ipcMain.handle('eventi:getAll', (event: IpcMainInvokeEvent) => {
     try {
       const result = db.prepare(`
         SELECT 
@@ -226,12 +227,12 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // GET BY ID
-  ipcMain.handle('eventi:getById', async (event: IpcMainInvokeEvent, id: number) => {
-    return await getEventById(db, id);
+  ipcMain.handle('eventi:getById', (event: IpcMainInvokeEvent, id: number) => {
+    return getEventById(db, id);
   });
 
   // GET BY DATE RANGE
-  ipcMain.handle('eventi:getByDateRange', async (event: IpcMainInvokeEvent, start: string, end: string) => {
+  ipcMain.handle('eventi:getByDateRange', (event: IpcMainInvokeEvent, start: string, end: string) => {
     try {
       const result = db.prepare(`
         SELECT 
@@ -255,7 +256,7 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // GET BY CLIENTE
-  ipcMain.handle('eventi:getByCliente', async (event: IpcMainInvokeEvent, clienteId: number) => {
+  ipcMain.handle('eventi:getByCliente', (event: IpcMainInvokeEvent, clienteId: number) => {
     try {
       const result = db.prepare(`
         SELECT 
@@ -279,7 +280,7 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // GET BY COLLEZIONE
-  ipcMain.handle('eventi:getByCollezione', async (event: IpcMainInvokeEvent, collezioneId: number) => {
+  ipcMain.handle('eventi:getByCollezione', (event: IpcMainInvokeEvent, collezioneId: number) => {
     try {
       const result = db.prepare(`
         SELECT 
@@ -303,14 +304,14 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // VALIDATE
-  ipcMain.handle('eventi:validate', async (event: IpcMainInvokeEvent, evento: Evento) => {
-    return await validateEvento(db, evento);
+  ipcMain.handle('eventi:validate', (event: IpcMainInvokeEvent, evento: Evento) => {
+    return validateEvento(db, evento);
   });
 
   // CREATE
-  ipcMain.handle('eventi:create', async (event: IpcMainInvokeEvent, evento: Omit<Evento, 'id'>) => {
+  ipcMain.handle('eventi:create', (event: IpcMainInvokeEvent, evento: Omit<Evento, 'id'>) => {
     try {
-      const validation = await validateEvento(db, evento as Evento);
+      const validation = validateEvento(db, evento as Evento);
       if (!validation.isValid) {
         return {
           success: false,
@@ -333,7 +334,7 @@ export function setupEventiHandlers(db: Database) {
       ]);
 
       if (result.changes > 0) {
-        return await getEventById(db, result.lastInsertRowid as number);
+        return getEventById(db, result.lastInsertRowid as number);
       }
 
       return {
@@ -349,9 +350,9 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // UPDATE
-  ipcMain.handle('eventi:update', async (event: IpcMainInvokeEvent, id: number, eventoData: Partial<Evento>) => {
+  ipcMain.handle('eventi:update', (event: IpcMainInvokeEvent, id: number, eventoData: Partial<Evento>) => {
     try {
-      const currentEvento = await getEventById(db, id);
+      const currentEvento = getEventById(db, id);
       if (!currentEvento.success) {
         return currentEvento;
       }
@@ -361,7 +362,7 @@ export function setupEventiHandlers(db: Database) {
         ...eventoData
       };
 
-      const validation = await validateEvento(db, eventoToValidate as Evento);
+      const validation = validateEvento(db, eventoToValidate as Evento);
       if (!validation.isValid) {
         return {
           success: false,
@@ -396,7 +397,7 @@ export function setupEventiHandlers(db: Database) {
       `).run(updateValues);
 
       if (result.changes > 0) {
-        return await getEventById(db, id);
+        return getEventById(db, id);
       }
 
       return {
@@ -412,7 +413,7 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // DELETE
-  ipcMain.handle('eventi:delete', async (event: IpcMainInvokeEvent, id: number) => {
+  ipcMain.handle('eventi:delete', (event: IpcMainInvokeEvent, id: number) => {
     try {
       const result = db.prepare('DELETE FROM Eventi WHERE id = ?').run(id);
 
@@ -433,15 +434,14 @@ export function setupEventiHandlers(db: Database) {
   });
 
   // VALIDATE BULK
-  ipcMain.handle('eventi:validateBulk', async (event: IpcMainInvokeEvent, eventi: Evento[]) => {
+  ipcMain.handle('eventi:validateBulk', (event: IpcMainInvokeEvent, eventi: Evento[]) => {
     const results: { [key: string]: ValidationResponse } = {};
     
     for (const evento of eventi) {
-      const validation = await validateEvento(db, evento);
+      const validation = validateEvento(db, evento);
       results[evento.id ? evento.id.toString() : 'new'] = validation;
     }
 
     return results;
   });
-}
 }
