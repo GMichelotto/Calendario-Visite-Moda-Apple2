@@ -31,10 +31,17 @@ export interface SlotAvailability {
   }[];
 }
 
-export interface ExportResult {
+export interface ExportCalendarResult {
   content: string;
   filename: string;
   mimeType: string;
+}
+
+export interface DashboardStats {
+  totalClienti: number;
+  totaleAppuntamenti: number;
+  disponibilita: number;
+  slotDisponibili: number;
 }
 
 export interface DatabaseOperations {
@@ -44,57 +51,53 @@ export interface DatabaseOperations {
   restore: (path: string) => Promise<void>;
 }
 
+export interface ClientiOperations {
+  getAll: () => Promise<APIResponse<Cliente[]>>;
+  getAllWithCollezioni: () => Promise<APIResponse<Cliente[]>>;
+  getById: (id: number) => Promise<APIResponse<Cliente>>;
+  create: (data: Omit<Cliente, 'id'>) => Promise<APIResponse<Cliente>>;
+  update: (id: number, data: Partial<Cliente>) => Promise<APIResponse<Cliente>>;
+  delete: (id: number) => Promise<APIResponse<void>>;
+  assignCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
+  removeCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
+  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
+  exportCSV: () => Promise<APIResponse<ExportCalendarResult>>;
+}
+
+export interface CollezioniOperations {
+  getAll: () => Promise<APIResponse<Collezione[]>>;
+  getAllWithStats: () => Promise<APIResponse<Collezione[]>>;
+  getById: (id: number) => Promise<APIResponse<Collezione>>;
+  create: (data: Omit<Collezione, 'id'>) => Promise<APIResponse<Collezione>>;
+  update: (id: number, data: Partial<Collezione>) => Promise<APIResponse<Collezione>>;
+  delete: (id: number) => Promise<APIResponse<void>>;
+  checkAvailability: (id: number, start: Date, end: Date) => Promise<APIResponse<SlotAvailability[]>>;
+  getClienti: (id: number) => Promise<APIResponse<Cliente[]>>;
+  importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
+  exportCSV: () => Promise<APIResponse<ExportCalendarResult>>;
+  getDashboardStats: (id: number) => Promise<APIResponse<DashboardStats>>;
+}
+
+export interface EventiOperations {
+  getAll: () => Promise<APIResponse<Evento[]>>;
+  getById: (id: number) => Promise<APIResponse<Evento>>;
+  getByDateRange: (start: Date, end: Date) => Promise<APIResponse<Evento[]>>;
+  getByCliente: (clienteId: number) => Promise<APIResponse<Evento[]>>;
+  getByCollezione: (collezioneId: number) => Promise<APIResponse<Evento[]>>;
+  create: (data: Omit<Evento, 'id'>) => Promise<APIResponse<Evento>>;
+  update: (id: number, data: Partial<Evento>) => Promise<APIResponse<Evento>>;
+  delete: (id: number) => Promise<APIResponse<void>>;
+  validate: (evento: Partial<Evento> & { id?: number }) => Promise<ValidationResponse>;
+  validateBulk: (eventi: (Partial<Evento> & { id?: number })[]) => Promise<{ [key: string]: ValidationResponse }>;
+  exportToCalendar: (start: Date, end: Date) => Promise<APIResponse<ExportCalendarResult>>;
+  importFromCalendar: (content: string) => Promise<APIResponse<ImportResult>>;
+}
+
 export interface ElectronAPI {
   database: DatabaseOperations;
-  
-  clienti: {
-    getAll: () => Promise<APIResponse<Cliente[]>>;
-    getAllWithCollezioni: () => Promise<APIResponse<Cliente[]>>;
-    getById: (id: number) => Promise<APIResponse<Cliente>>;
-    create: (data: Omit<Cliente, 'id'>) => Promise<APIResponse<Cliente>>;
-    update: (id: number, data: Partial<Cliente>) => Promise<APIResponse<Cliente>>;
-    delete: (id: number) => Promise<APIResponse<void>>;
-    assignCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
-    removeCollezione: (clienteId: number, collezioneId: number) => Promise<APIResponse<void>>;
-    importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
-    exportCSV: () => Promise<APIResponse<ExportResult>>;
-  };
-
-  collezioni: {
-    getAll: () => Promise<APIResponse<Collezione[]>>;
-    getAllWithStats: () => Promise<APIResponse<Collezione[]>>;
-    getById: (id: number) => Promise<APIResponse<Collezione>>;
-    create: (data: Omit<Collezione, 'id'>) => Promise<APIResponse<Collezione>>;
-    update: (id: number, data: Partial<Collezione>) => Promise<APIResponse<Collezione>>;
-    delete: (id: number) => Promise<APIResponse<void>>;
-    checkAvailability: (id: number, start: Date, end: Date) => Promise<APIResponse<SlotAvailability[]>>;
-    getClienti: (id: number) => Promise<APIResponse<Cliente[]>>;
-    importCSV: (content: string) => Promise<APIResponse<ImportResult>>;
-    exportCSV: () => Promise<APIResponse<ExportResult>>;
-    getDashboardStats: (id: number) => Promise<APIResponse<{
-      totalClienti: number;
-      totaleAppuntamenti: number;
-      disponibilita: number;
-      slotDisponibili: number;
-    }>>;
-  };
-
-  eventi: {
-    getAll: () => Promise<APIResponse<Evento[]>>;
-    getById: (id: number) => Promise<APIResponse<Evento>>;
-    getByDateRange: (start: Date, end: Date) => Promise<APIResponse<Evento[]>>;
-    getByCliente: (clienteId: number) => Promise<APIResponse<Evento[]>>;
-    getByCollezione: (collezioneId: number) => Promise<APIResponse<Evento[]>>;
-    create: (data: Omit<Evento, 'id'>) => Promise<APIResponse<Evento>>;
-    update: (id: number, data: Partial<Evento>) => Promise<APIResponse<Evento>>;
-    delete: (id: number) => Promise<APIResponse<void>>;
-    validate: (evento: Partial<Evento> & { id?: number }) => Promise<ValidationResponse>;
-    validateBulk: (eventi: (Partial<Evento> & { id?: number })[]) => Promise<{
-      [key: string]: ValidationResponse;
-    }>;
-    exportToCalendar: (start: Date, end: Date) => Promise<APIResponse<ExportResult>>;
-    importFromCalendar: (content: string) => Promise<APIResponse<ImportResult>>;
-  };
+  clienti: ClientiOperations;
+  collezioni: CollezioniOperations;
+  eventi: EventiOperations;
 }
 
 declare global {
