@@ -12,12 +12,14 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": "..",
     "paths": {
+      "@/*": ["src/*"],
       "@shared/*": ["shared/*"]
     }
   },
   "include": [
     ".",
-    "../shared"
+    "../shared/**/*",
+    "../src/types/**/*"
   ],
   "exclude": [
     "node_modules",
