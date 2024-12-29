@@ -4,15 +4,20 @@
     "module": "commonjs",
     "sourceMap": true,
     "outDir": "../build/electron",
-    "rootDir": ".",
+    "rootDir": "..",
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "..",
+    "paths": {
+      "@shared/*": ["shared/*"]
+    }
   },
   "include": [
-    "."
+    ".",
+    "../shared"
   ],
   "exclude": [
     "node_modules",
