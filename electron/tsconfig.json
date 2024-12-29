@@ -3,22 +3,22 @@
     "target": "ES2020",
     "module": "commonjs",
     "sourceMap": true,
-    "outDir": "../build",
-    "rootDir": "..",
+    "outDir": "../build/electron",
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "resolveJsonModule": true
   },
   "include": [
-    "../shared/**/*",
-    "./**/*"
+    ".",
+    "../shared/types/index.ts"
   ],
   "exclude": [
     "node_modules",
     "../build",
-    "../dist",
-    "../src/**/*"
+    "../dist"
   ]
 }
