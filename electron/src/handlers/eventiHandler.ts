@@ -7,7 +7,7 @@ import {
   ValidationResponse,
   EventValidationRequest,
   Collezione
-} from '@types/index';
+} from '../../../types';
 
 interface IpcMainInvokeEvent {}
 
@@ -15,6 +15,8 @@ interface EventoWithDetails extends Evento {
   cliente_nome: string;
   collezione_nome: string;
   collezione_colore: string;
+  data_inizio: string;
+  data_fine: string;
 }
 
 function validateCrossCollection(db: Database, evento: Evento): string[] {
@@ -117,7 +119,7 @@ function validateEvento(db: Database, evento: Evento): ValidationResponse {
     WHERE id = ?
   `).get(evento.collezione_id) as Collezione;
 
-  if (collezione) {
+if (collezione) {
     const collectionStart = moment(collezione.data_inizio, 'YYYY-MM-DD');
     const collectionEnd = moment(collezione.data_fine, 'YYYY-MM-DD').endOf('day');
 
@@ -132,7 +134,7 @@ function validateEvento(db: Database, evento: Evento): ValidationResponse {
     checks.collectionPeriod = false;
   }
 
-// Verifica sovrapposizioni nella stessa collezione
+  // Verifica sovrapposizioni nella stessa collezione
   const overlaps = db.prepare(`
     SELECT COUNT(*) as count
     FROM Eventi
@@ -187,7 +189,7 @@ function getEventById(db: Database, id: number): APIResponse<EventoWithDetails> 
       JOIN Clienti c ON e.cliente_id = c.id
       JOIN Collezioni col ON e.collezione_id = col.id
       WHERE e.id = ?
-    `).get(id) as EventoWithDetails;
+    `).get(id) as EventoWithDetails | undefined;
 
     if (!result) {
       return { success: false, error: 'Evento non trovato' };
