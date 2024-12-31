@@ -1,36 +1,16 @@
-// electron/src/handlers/clientiHandler.ts
-
 import { ipcMain } from 'electron';
 import type { Database } from 'better-sqlite3';
+import { 
+  Cliente, 
+  APIResponse, 
+  ImportResult 
+} from '@types/index';
 
 interface IpcMainInvokeEvent {}
-
-interface Cliente {
-  id?: number;
-  ragione_sociale: string;
-  indirizzo?: string;
-  cap?: string;
-  citta?: string;
-  provincia?: string;
-  regione?: string;
-  telefono?: string;
-  cellulare?: string;
-  email?: string;
-  sito_web?: string;
-  note?: string;
-  collezioni?: string[];
-}
 
 interface ClienteDb extends Omit<Cliente, 'collezioni'> {
   id: number;
   collezioni: string;
-}
-
-interface APIResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  errors?: string[];
 }
 
 function getClientById(db: Database, id: number): APIResponse<Cliente> {
@@ -65,44 +45,6 @@ function getClientById(db: Database, id: number): APIResponse<Cliente> {
   }
 }
 
-function validateCliente(cliente: Omit<Cliente, 'id'>): { isValid: boolean; errors: string[] } {
-  const errors: string[] = [];
-
-  // Validazione ragione sociale
-  if (!cliente.ragione_sociale || cliente.ragione_sociale.trim().length === 0) {
-    errors.push('La ragione sociale è obbligatoria');
-  }
-
-  // Validazione email
-  if (cliente.email && !cliente.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    errors.push('Formato email non valido');
-  }
-
-  // Validazione CAP
-  if (cliente.cap && !cliente.cap.match(/^\d{5}$/)) {
-    errors.push('Formato CAP non valido (5 cifre)');
-  }
-
-  // Validazione telefono
-  if (cliente.telefono && !cliente.telefono.match(/^[\d\s+\-()]+$/)) {
-    errors.push('Formato telefono non valido');
-  }
-
-  // Validazione cellulare
-  if (cliente.cellulare && !cliente.cellulare.match(/^[\d\s+\-()]+$/)) {
-    errors.push('Formato cellulare non valido');
-  }
-
-  // Validazione sito web
-  if (cliente.sito_web && !cliente.sito_web.match(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/)) {
-    errors.push('Formato sito web non valido');
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-}
 export function setupClientiHandlers(db: Database): void {
   // GET ALL
   ipcMain.handle('clienti:getAll', (event: IpcMainInvokeEvent) => {
@@ -152,15 +94,6 @@ export function setupClientiHandlers(db: Database): void {
   // CREATE
   ipcMain.handle('clienti:create', (event: IpcMainInvokeEvent, clienteData: Omit<Cliente, 'id'>) => {
     try {
-      const validation = validateCliente(clienteData);
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: 'Validazione fallita',
-          errors: validation.errors
-        };
-      }
-
       const result = db.prepare(`
         INSERT INTO Clienti (
           ragione_sociale, indirizzo, cap, citta, provincia, 
@@ -202,20 +135,6 @@ export function setupClientiHandlers(db: Database): void {
       const currentCliente = getClientById(db, id);
       if (!currentCliente.success) {
         return currentCliente;
-      }
-
-      const clienteToValidate = {
-        ...currentCliente.data,
-        ...clienteData
-      };
-
-      const validation = validateCliente(clienteToValidate as Omit<Cliente, 'id'>);
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: 'Validazione fallita',
-          errors: validation.errors
-        };
       }
 
       const updateFields = [];
@@ -322,6 +241,40 @@ export function setupClientiHandlers(db: Database): void {
       return { 
         success: false, 
         errors: [...errors, `Errore transazione: ${(error as Error).message}`] 
+      };
+    }
+  });
+
+  // ASSIGN COLLECTION
+  ipcMain.handle('clienti:assignCollezione', (event: IpcMainInvokeEvent, clienteId: number, collezioneId: number) => {
+    try {
+      const result = db.prepare(`
+        INSERT INTO ClientiCollezioni (cliente_id, collezione_id)
+        VALUES (?, ?)
+      `).run(clienteId, collezioneId);
+
+      return { success: result.changes > 0 };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Errore nell'assegnazione della collezione: ${(error as Error).message}`
+      };
+    }
+  });
+
+  // REMOVE COLLECTION
+  ipcMain.handle('clienti:removeCollezione', (event: IpcMainInvokeEvent, clienteId: number, collezioneId: number) => {
+    try {
+      const result = db.prepare(`
+        DELETE FROM ClientiCollezioni 
+        WHERE cliente_id = ? AND collezione_id = ?
+      `).run(clienteId, collezioneId);
+
+      return { success: result.changes > 0 };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Errore nella rimozione della collezione: ${(error as Error).message}`
       };
     }
   });
