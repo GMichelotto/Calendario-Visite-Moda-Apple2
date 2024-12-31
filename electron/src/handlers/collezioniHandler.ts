@@ -6,11 +6,23 @@ import {
   ImportResult, 
   DashboardStats, 
   SlotAvailability 
-} from '@types/index';
+} from '../../../types';
 
 interface IpcMainInvokeEvent {}
 
 interface CollezioneStats extends Collezione {
+  clienti_associati: number;
+  appuntamenti_totali: number;
+  disponibilita: number;
+}
+
+interface CollezioneWithMetrics {
+  id: number;
+  nome: string;
+  colore: string;
+  data_inizio: string;
+  data_fine: string;
+  note?: string;
   clienti_associati: number;
   appuntamenti_totali: number;
   disponibilita: number;
@@ -69,7 +81,7 @@ export function setupCollezioniHandlers(db: Database): void {
         LEFT JOIN ClientiCollezioni cc ON c.id = cc.collezione_id
         LEFT JOIN Eventi e ON c.id = e.collezione_id
         GROUP BY c.id
-      `).all() as CollezioneStats[];
+      `).all() as CollezioneWithMetrics[];
 
       return { success: true, data: result };
     } catch (error) {
@@ -212,11 +224,11 @@ export function setupCollezioniHandlers(db: Database): void {
         start: new Date(startDate),
         end: new Date(endDate),
         isAvailable: conflicts.length === 0,
-        conflicts: conflicts.map(c => ({
-          clienteId: c.cliente_id,
-          clienteName: c.cliente_nome,
-          collezioneId: c.collezione_id,
-          collezioneName: c.collezione_nome
+        conflicts: conflicts.map(conflict => ({
+          clienteId: (conflict as any).cliente_id,
+          clienteName: (conflict as any).cliente_nome,
+          collezioneId: (conflict as any).collezione_id,
+          collezioneName: (conflict as any).collezione_nome
         }))
       }];
 
