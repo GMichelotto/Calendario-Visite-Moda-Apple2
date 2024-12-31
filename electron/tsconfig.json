@@ -4,17 +4,20 @@
     "module": "commonjs",
     "sourceMap": true,
     "outDir": "../build/electron",
+    "rootDir": "src",
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "resolveJsonModule": true
+    "baseUrl": "src",
+    "paths": {
+      "@types/*": ["../types/*"]
+    }
   },
   "include": [
-    ".",
-    "../shared/types/index.ts"
+    "src/**/*",
+    "types/**/*"
   ],
   "exclude": [
     "node_modules",
