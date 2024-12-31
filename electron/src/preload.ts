@@ -11,7 +11,7 @@ import {
   ExportResult,
   DashboardStats,
   EventValidationRequest
-} from '../types';
+} from '@types/index';
 
 async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
   return ipcRenderer.invoke(channel, ...args);
