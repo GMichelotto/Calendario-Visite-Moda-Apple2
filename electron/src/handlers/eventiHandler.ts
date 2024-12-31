@@ -1,43 +1,20 @@
-// electron/handlers/eventiHandler.ts
-
 import { ipcMain } from 'electron';
 import type { Database } from 'better-sqlite3';
 import moment from 'moment';
+import { 
+  Evento,
+  APIResponse,
+  ValidationResponse,
+  EventValidationRequest,
+  Collezione
+} from '@types/index';
 
 interface IpcMainInvokeEvent {}
-
-interface Evento {
-  id?: number;
-  cliente_id: number;
-  collezione_id: number;
-  data_inizio: string;
-  data_fine: string;
-  note?: string;
-}
 
 interface EventoWithDetails extends Evento {
   cliente_nome: string;
   collezione_nome: string;
   collezione_colore: string;
-}
-
-interface Collezione {
-  id: number;
-  data_inizio: string;
-  data_fine: string;
-  nome: string;
-}
-
-interface ValidationResponse {
-  isValid: boolean;
-  errors: string[];
-}
-
-interface APIResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  errors?: string[];
 }
 
 function validateCrossCollection(db: Database, evento: Evento): string[] {
@@ -98,26 +75,39 @@ function validateEvento(db: Database, evento: Evento): ValidationResponse {
   const errors: string[] = [];
   const startTime = moment(evento.data_inizio);
   const endTime = moment(evento.data_fine);
+  const warnings: string[] = [];
+  const checks = {
+    timeConstraints: true,
+    overlap: true,
+    clientAvailability: true,
+    collectionPeriod: true,
+    duration: true
+  };
 
   // Validazione orari lavorativi
   if (startTime.hours() < 9 || endTime.hours() >= 18 || 
       (startTime.hours() >= 13 && startTime.hours() < 14) ||
       (endTime.hours() > 13 && endTime.hours() <= 14)) {
     errors.push('Gli appuntamenti devono essere tra le 9:00-13:00 o 14:00-18:00');
+    checks.timeConstraints = false;
   }
 
   // Validazione giorni lavorativi
   if (startTime.day() === 0 || startTime.day() === 6) {
     errors.push('Gli appuntamenti non possono essere nei weekend');
+    checks.timeConstraints = false;
   }
 
   // Validazione durata minima/massima
   const durata = moment.duration(endTime.diff(startTime));
   if (durata.asMinutes() < 30) {
     errors.push('L\'appuntamento deve durare almeno 30 minuti');
+    checks.duration = false;
   }
   if (durata.asHours() > 4) {
     errors.push('L\'appuntamento non può durare più di 4 ore');
+    checks.duration = false;
+    warnings.push('La durata dell\'appuntamento è particolarmente lunga');
   }
 
   // Verifica periodo collezione
@@ -135,12 +125,14 @@ function validateEvento(db: Database, evento: Evento): ValidationResponse {
       errors.push(`L'appuntamento deve essere nel periodo della collezione: ${
         collectionStart.format('DD/MM/YYYY')} - ${collectionEnd.format('DD/MM/YYYY')
       }`);
+      checks.collectionPeriod = false;
     }
   } else {
     errors.push('Collezione non trovata');
+    checks.collectionPeriod = false;
   }
 
-  // Verifica sovrapposizioni nella stessa collezione
+// Verifica sovrapposizioni nella stessa collezione
   const overlaps = db.prepare(`
     SELECT COUNT(*) as count
     FROM Eventi
@@ -164,17 +156,25 @@ function validateEvento(db: Database, evento: Evento): ValidationResponse {
 
   if (overlaps.count > 0) {
     errors.push('L\'appuntamento si sovrappone con altri esistenti nella stessa collezione');
+    checks.overlap = false;
   }
 
   // Validazione cross-collezione
   const crossCollectionErrors = validateCrossCollection(db, evento);
-  errors.push(...crossCollectionErrors);
+  if (crossCollectionErrors.length > 0) {
+    errors.push(...crossCollectionErrors);
+    checks.clientAvailability = false;
+  }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    warnings,
+    duration: durata.asMinutes(),
+    checks
   };
 }
+
 function getEventById(db: Database, id: number): APIResponse<EventoWithDetails> {
   try {
     const result = db.prepare(`
@@ -232,7 +232,8 @@ export function setupEventiHandlers(db: Database): void {
   });
 
   // GET BY DATE RANGE
-  ipcMain.handle('eventi:getByDateRange', (event: IpcMainInvokeEvent, start: string, end: string) => {
+  ipcMain.handle('eventi:getByDateRange', 
+    (event: IpcMainInvokeEvent, start: string, end: string) => {
     try {
       const result = db.prepare(`
         SELECT 
@@ -304,8 +305,13 @@ export function setupEventiHandlers(db: Database): void {
   });
 
   // VALIDATE
-  ipcMain.handle('eventi:validate', (event: IpcMainInvokeEvent, evento: Evento) => {
-    return validateEvento(db, evento);
+  ipcMain.handle('eventi:validate', (event: IpcMainInvokeEvent, evento: EventValidationRequest) => {
+    const eventoToValidate: Evento = {
+      ...evento,
+      cliente_id: parseInt(evento.cliente_id),
+      collezione_id: parseInt(evento.collezione_id)
+    };
+    return validateEvento(db, eventoToValidate);
   });
 
   // CREATE
@@ -350,7 +356,8 @@ export function setupEventiHandlers(db: Database): void {
   });
 
   // UPDATE
-  ipcMain.handle('eventi:update', (event: IpcMainInvokeEvent, id: number, eventoData: Partial<Evento>) => {
+  ipcMain.handle('eventi:update', 
+    (event: IpcMainInvokeEvent, id: number, eventoData: Partial<Evento>) => {
     try {
       const currentEvento = getEventById(db, id);
       if (!currentEvento.success) {
@@ -434,11 +441,16 @@ export function setupEventiHandlers(db: Database): void {
   });
 
   // VALIDATE BULK
-  ipcMain.handle('eventi:validateBulk', (event: IpcMainInvokeEvent, eventi: Evento[]) => {
+  ipcMain.handle('eventi:validateBulk', (event: IpcMainInvokeEvent, eventi: EventValidationRequest[]) => {
     const results: { [key: string]: ValidationResponse } = {};
     
     for (const evento of eventi) {
-      const validation = validateEvento(db, evento);
+      const eventoToValidate: Evento = {
+        ...evento,
+        cliente_id: parseInt(evento.cliente_id),
+        collezione_id: parseInt(evento.collezione_id)
+      };
+      const validation = validateEvento(db, eventoToValidate);
       results[evento.id ? evento.id.toString() : 'new'] = validation;
     }
 
