@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar } from './components/Calendar';
 import { ClientiPage } from './components/Clienti';  // Usa l'import dal barrel file
 import CollezioniPage from './components/Collezioni/CollezioniPage';
-import { ElectronAPI } from './types/electron';
+import { ElectronAPI } from './types';  // Aggiornato per usare il barrel file
 import './App.css';
 
 // Extend the Window interface to include our electronAPI
