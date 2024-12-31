@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import {
+import { 
   ElectronAPI,
-  APIResponse,
-  Cliente,
-  Collezione,
+  APIResponse, 
+  Cliente, 
+  Collezione, 
   Evento,
   ValidationResponse,
   ImportResult,
@@ -11,7 +11,7 @@ import {
   ExportResult,
   DashboardStats,
   EventValidationRequest
-} from '@types/index';
+} from '../types';
 
 async function invokeIPC<T>(channel: string, ...args: any[]): Promise<T> {
   return ipcRenderer.invoke(channel, ...args);
@@ -87,5 +87,8 @@ const api: ElectronAPI = {
   }
 };
 
+// Espone l'API al processo di rendering
 contextBridge.exposeInMainWorld('electronAPI', api);
+
+// Espone la variabile isDev
 contextBridge.exposeInMainWorld('isDev', process.env.NODE_ENV === 'development');
