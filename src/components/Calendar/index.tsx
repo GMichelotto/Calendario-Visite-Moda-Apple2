@@ -7,7 +7,7 @@ import { useEventi, useCollezioni } from '../../hooks/useDatabase';
 import CalendarHeader from './CalendarHeader';
 import CalendarEventComponent from './CalendarEvent';
 import EventModal from './EventModal';
-import './Calendar.css';
+import './calendar-override.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 
