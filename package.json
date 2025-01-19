@@ -21,14 +21,17 @@
     "predist": "npm run build",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@emotion/react": "11.11.3",
-    "@emotion/styled": "11.11.0",
-    "@mui/icons-material": "5.15.6",
-    "@mui/material": "5.15.6",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-slot": "^1.0.2",
     "better-sqlite3": "9.3.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
     "electron-is-dev": "2.0.0",
     "electron-log": "5.0.3",
     "electron-store": "8.1.0",
@@ -37,26 +40,34 @@
     "jspdf-autotable": "3.8.1",
     "lucide-react": "0.263.1",
     "moment": "2.30.1",
+    "papaparse": "^5.4.1",
     "react": "18.2.0",
     "react-big-calendar": "1.8.6",
     "react-color": "2.19.3",
     "react-dom": "18.2.0",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "recharts": "^2.10.4",
+    "tailwind-merge": "^2.2.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
     "@types/better-sqlite3": "7.6.9",
     "@types/electron": "1.6.10",
     "@types/node": "20.11.16",
+    "@types/papaparse": "^5.3.14",
     "@types/react": "18.2.51",
     "@types/react-big-calendar": "1.8.8",
-    "@types/react-dom": "18.2.18",
     "@types/react-color": "^3.0.11",
+    "@types/react-dom": "18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "autoprefixer": "10.4.17",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
     "electron": "28.1.4",
     "electron-builder": "24.9.1",
+    "eslint": "^8.56.0",
     "postcss": "8.4.33",
     "postcss-cli": "11.0.0",
     "tailwindcss": "3.4.1",
@@ -83,6 +94,13 @@
         "to": "assets"
       }
     ],
+    "extraMetadata": {
+      "main": "build/electron/main.js"
+    },
+    "protocols": {
+      "name": "fashion-calendar-protocol",
+      "schemes": ["fashion-calendar"]
+    },
     "mac": {
       "category": "public.app-category.business",
       "target": [
@@ -104,7 +122,8 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "publisherName": "Fashion Calendar App"
     },
     "dmg": {
       "sign": false
