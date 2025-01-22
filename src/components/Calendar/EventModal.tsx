@@ -147,23 +147,26 @@ const EventModal: React.FC<EventModalProps> = ({
       });
 
       const clientResponse: APIResponse<Cliente> = await window.electronAPI.clienti.getById(parseInt(formData.cliente_id));
-
+      
       const collectionData = await window.electronAPI.collezioni.checkAvailability(
         parseInt(formData.collezione_id),
         new Date(formData.data_inizio),
         new Date(formData.data_fine)
       );
 
-     setValidations({
-  ...validation,
-  context: {
-    clientWorkload: {
-      num_appuntamenti: clientResponse.data?.appointments_count || 0,
-      durata_totale: clientResponse.data?.total_duration || 0
-    },
-    collectionAvailability: collectionData.data || []
-  }
-});
+      setValidations({
+        ...validation,
+        context: {
+          clientWorkload: {
+            num_appuntamenti: clientResponse.data?.appointments_count || 0,
+            durata_totale: clientResponse.data?.total_duration || 0
+          },
+          collectionAvailability: collectionData.data?.map(slot => ({
+            slot_start: moment(slot.start).format('HH:mm'),
+            status: slot.isAvailable ? 'available' : 'unavailable'
+          })) || []
+        }
+      });
     } catch (error) {
       console.error('Validation error:', error);
       setValidations(prev => ({
