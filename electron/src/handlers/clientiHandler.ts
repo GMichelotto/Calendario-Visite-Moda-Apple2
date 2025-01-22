@@ -4,7 +4,7 @@ import {
   Cliente, 
   APIResponse, 
   ImportResult 
-} from '../types';
+} from "types/index";
 
 interface IpcMainInvokeEvent {}
 
