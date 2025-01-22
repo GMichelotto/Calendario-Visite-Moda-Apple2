@@ -4,7 +4,7 @@ import {
   Cliente, 
   APIResponse, 
   ImportResult 
-} from "types";
+} from '@electron-types/index';
 
 interface IpcMainInvokeEvent {}
 
