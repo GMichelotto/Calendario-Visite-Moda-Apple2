@@ -6,7 +6,7 @@ import {
   ImportResult, 
   DashboardStats, 
   SlotAvailability 
-} from '@shared/types';
+} from '../../types';
 
 interface IpcMainInvokeEvent {}
 
