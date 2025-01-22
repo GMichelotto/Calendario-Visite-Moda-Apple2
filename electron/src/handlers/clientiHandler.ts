@@ -4,7 +4,7 @@ import {
   Cliente, 
   APIResponse, 
   ImportResult 
-} from '@electron-types/index';
+} from '../../types';  // Percorso relativo diretto alla cartella types di electron
 
 interface IpcMainInvokeEvent {}
 
