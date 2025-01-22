@@ -154,16 +154,16 @@ const EventModal: React.FC<EventModalProps> = ({
         new Date(formData.data_fine)
       );
 
-      setValidations({
-        ...validation,
-        context: {
-  clientWorkload: {
-    num_appuntamenti: clientResponse.data?.appointments_count || 0,
-    durata_totale: clientResponse.data?.total_duration || 0
-  },
-  collectionAvailability: collectionData
-}
-      });
+     setValidations({
+  ...validation,
+  context: {
+    clientWorkload: {
+      num_appuntamenti: clientResponse.data?.appointments_count || 0,
+      durata_totale: clientResponse.data?.total_duration || 0
+    },
+    collectionAvailability: collectionData.data || []
+  }
+});
     } catch (error) {
       console.error('Validation error:', error);
       setValidations(prev => ({
