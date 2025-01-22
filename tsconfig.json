@@ -18,11 +18,16 @@
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"],
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["shared/types/*"],
+      "@electron-types/*": ["electron/types/*"],
+      "@src-types/*": ["src/services/types/*"]
     },
     "types": ["node", "electron"],
     "typeRoots": [
-      "./node_modules/@types"
+      "./node_modules/@types",
+      "./electron/types",
+      "./shared/types",
+      "./src/services/types"
     ],
     "rootDir": "."
   },
