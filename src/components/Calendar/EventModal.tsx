@@ -18,7 +18,7 @@ import type {
   EventFormData,
   APIResponse,
   Cliente
-} from '../../types/database';
+} from '../../../electron/types';
 
 interface EventModalProps {
   isOpen: boolean;
