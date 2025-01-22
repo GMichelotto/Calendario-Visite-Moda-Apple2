@@ -7,7 +7,7 @@ import {
   ValidationResponse,
   EventValidationRequest,
   Collezione
-} from '@shared/types';
+} from '../../types';
 
 interface IpcMainInvokeEvent {}
 
