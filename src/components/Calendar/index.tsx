@@ -16,12 +16,12 @@ const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(BigCalendar);
 
 interface CalendarEvent extends Event {
-  id: string;
+  id: number;
   title: string;
   start: Date;
   end: Date;
-  cliente_id: string;
-  collezione_id: string;
+  cliente_id: number;
+  collezione_id: number;
   cliente_nome: string;
   collezione_nome: string;
   note?: string;
@@ -36,7 +36,7 @@ interface ValidationResult {
 
 interface EventValidation {
   eventData: Partial<CalendarEvent>;
-  excludeEventId?: string | null;
+  excludeEventId?: number | null;
 }
 
 interface Message {
@@ -76,12 +76,12 @@ const CalendarComponent: React.FC = () => {
 
   const calendarEvents = useMemo(() => {
     return eventi.map(evento => ({
-      id: evento.id,
+      id: Number(evento.id),
       title: `${evento.cliente_nome} - ${evento.collezione_nome}`,
       start: new Date(evento.data_inizio),
       end: new Date(evento.data_fine),
-      cliente_id: evento.cliente_id,
-      collezione_id: evento.collezione_id,
+      cliente_id: Number(evento.cliente_id),
+      collezione_id: Number(evento.collezione_id),
       cliente_nome: evento.cliente_nome,
       collezione_nome: evento.collezione_nome,
       note: evento.note,
@@ -91,7 +91,7 @@ const CalendarComponent: React.FC = () => {
 
   const validateEvent = useCallback(async (
     eventData: Partial<CalendarEvent>,
-    excludeEventId: string | null = null
+    excludeEventId: number | null = null
   ): Promise<boolean> => {
     try {
       const validation: ValidationResult = await window.electronAPI.database.operation(
@@ -256,7 +256,7 @@ const CalendarComponent: React.FC = () => {
     }
   }, [showMessage]);
 
-  const handleDeleteEvent = useCallback(async (eventId: string) => {
+  const handleDeleteEvent = useCallback(async (eventId: number) => {
     if (!window.confirm('Sei sicuro di voler eliminare questo evento?')) {
       return;
     }
