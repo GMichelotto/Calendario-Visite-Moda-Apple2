@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Calendar as BigCalendar, momentLocalizer, View, SlotInfo, EventProps } from 'react-big-calendar';
+import { Calendar as BigCalendar, momentLocalizer, View, SlotInfo, Event } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'moment/locale/it';
@@ -15,7 +15,7 @@ moment.locale('it');
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(BigCalendar);
 
-interface CalendarEvent extends EventProps {
+interface CalendarEvent extends Event {
   id: string;
   title: string;
   start: Date;
@@ -74,7 +74,7 @@ const CalendarComponent: React.FC = () => {
     setTimeout(() => setMessage(null), 3000);
   }, []);
 
-  const calendarEvents = useMemo<CalendarEvent[]>(() => {
+  const calendarEvents = useMemo(() => {
     return eventi.map(evento => ({
       id: evento.id,
       title: `${evento.cliente_nome} - ${evento.collezione_nome}`,
@@ -86,7 +86,7 @@ const CalendarComponent: React.FC = () => {
       collezione_nome: evento.collezione_nome,
       note: evento.note,
       color: collezioni.find(c => c.id === evento.collezione_id)?.colore || '#4A90E2'
-    }));
+    })) as CalendarEvent[];
   }, [eventi, collezioni]);
 
   const validateEvent = useCallback(async (
