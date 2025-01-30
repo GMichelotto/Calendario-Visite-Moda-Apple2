@@ -35,6 +35,8 @@ interface CalendarEvent extends Event {
   color: string;
 }
 
+type ViewType = View;
+
 interface DragAndDropCalendarProps {
   localizer: typeof localizer;
   events: CalendarEvent[];
@@ -66,8 +68,8 @@ interface DragAndDropCalendarProps {
   };
   min: Date;
   max: Date;
-  defaultView: View;
-  views: View[];
+  defaultView: ViewType; // Modificato
+  views: ViewType[]; // Modificato
   step: number;
   timeslots: number;
 }
@@ -105,7 +107,7 @@ interface EventDetails extends CalendarEvent {
 }
 
 const CalendarComponent: React.FC = () => {
-  const [view, setView] = useState<View>('week');
+  const [view, setView] = useState<ViewType>('week'); // Modificato
   const [date, setDate] = useState<Date>(new Date());
   const { eventi, isLoading, error, updateEvento, createEvento, deleteEvento } = useEventi();
   const { collezioni } = useCollezioni();
@@ -380,10 +382,10 @@ const CalendarComponent: React.FC = () => {
           agenda: 'Agenda',
           showMore: (total) => `+ Altri ${total}`,
         }}
-        min={new Date().setHours(8, 0, 0, 0)}
-        max={new Date().setHours(19, 0, 0, 0)}
+        min={new Date(new Date().setHours(8, 0, 0, 0))} // Corretto
+        max={new Date(new Date().setHours(19, 0, 0, 0))} // Corretto
         defaultView="week"
-        views={['month', 'week', 'day']}
+         views={['month', 'week', 'day', 'work_week']} // Aggiunta view mancante
         step={30}
         timeslots={2}
       />
