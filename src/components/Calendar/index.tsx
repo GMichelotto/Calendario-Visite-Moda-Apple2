@@ -9,6 +9,7 @@ import {
   EventProps,
 } from 'react-big-calendar';
 import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
+import moment from 'moment'; // Importa moment esplicitamente
 import { format, getHours, getDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useEventi, useCollezioni } from '../../hooks/useDatabase';
