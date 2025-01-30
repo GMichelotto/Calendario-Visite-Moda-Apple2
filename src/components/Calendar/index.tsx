@@ -35,7 +35,7 @@ interface CalendarEvent extends Event {
   color: string;
 }
 
-type ViewType = View;
+type ViewType = 'month' | 'week' | 'work_week' | 'day' | 'agenda';
 
 interface DragAndDropCalendarProps {
   localizer: typeof localizer;
@@ -107,7 +107,7 @@ interface EventDetails extends CalendarEvent {
 }
 
 const CalendarComponent: React.FC = () => {
-  const [view, setView] = useState<ViewType>('week'); // Modificato
+  const [view, setView] = useState<ViewType>('month'); // Modificato
   const [date, setDate] = useState<Date>(new Date());
   const { eventi, isLoading, error, updateEvento, createEvento, deleteEvento } = useEventi();
   const { collezioni } = useCollezioni();
