@@ -4,10 +4,9 @@ import {
   momentLocalizer, 
   View, 
   SlotInfo, 
-  Event, 
-  EventInteractionArgs 
+  Event
 } from 'react-big-calendar';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'moment/locale/it';
 import { useEventi, useCollezioni } from '../../hooks/useDatabase';
