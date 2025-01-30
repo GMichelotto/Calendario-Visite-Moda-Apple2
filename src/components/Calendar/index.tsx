@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Calendar as BigCalendar, momentLocalizer, View, SlotInfo, Event } from 'react-big-calendar';
+import { 
+  Calendar as BigCalendar, 
+  momentLocalizer, 
+  View, 
+  SlotInfo, 
+  Event, 
+  EventInteractionArgs 
+} from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'moment/locale/it';
@@ -118,11 +125,7 @@ const CalendarComponent: React.FC = () => {
     }
   }, [showMessage]);
 
-  const moveEvent = useCallback(async ({ event, start, end }: {
-    event: CalendarEvent;
-    start: Date;
-    end: Date;
-  }) => {
+  const moveEvent = useCallback(async ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
     try {
       const eventData = {
         ...event,
@@ -143,11 +146,7 @@ const CalendarComponent: React.FC = () => {
     }
   }, [updateEvento, validateEvent, showMessage]);
 
-  const resizeEvent = useCallback(async ({ event, start, end }: {
-    event: CalendarEvent;
-    start: Date;
-    end: Date;
-  }) => {
+  const resizeEvent = useCallback(async ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
     try {
       const eventData = {
         ...event,
