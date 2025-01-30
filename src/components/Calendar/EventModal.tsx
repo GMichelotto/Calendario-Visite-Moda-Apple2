@@ -155,7 +155,16 @@ const EventModal: React.FC<EventModalProps> = ({
       );
 
       setValidations({
-        ...validation,
+        isValid: validation.isValid,
+        errors: validation.errors,
+        warnings: validation.warnings,
+        checks: {
+          timeConstraints: validation.checks?.timeConstraints ?? null,
+          overlap: validation.checks?.overlap ?? null,
+          clientAvailability: validation.checks?.clientAvailability ?? null,
+          collectionPeriod: validation.checks?.collectionPeriod ?? null,
+          duration: validation.checks?.duration ?? null
+        },
         context: {
           clientWorkload: {
             num_appuntamenti: clientResponse.data?.appointments_count || 0,
