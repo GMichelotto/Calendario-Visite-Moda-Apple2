@@ -4,11 +4,13 @@ import {
   momentLocalizer, 
   View, 
   SlotInfo, 
-  Event
+  Event,
+  ToolbarProps,
+  EventProps,
 } from 'react-big-calendar';
 import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
-import moment from 'moment';
-import 'moment/locale/it';
+import { format, getHours, getDay } from 'date-fns';
+import { it } from 'date-fns/locale';
 import { useEventi, useCollezioni } from '../../hooks/useDatabase';
 import CalendarHeader from './CalendarHeader';
 import CalendarEventComponent from './CalendarEvent';
@@ -17,8 +19,7 @@ import './calendar-override.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 
-moment.locale('it');
-const localizer = momentLocalizer(moment);
+const localizer = momentLocalizer(moment); // Rimane momentLocalizer per compatibilità con react-big-calendar
 
 interface CalendarEvent extends Event {
   id: number;
@@ -34,7 +35,7 @@ interface CalendarEvent extends Event {
 }
 
 interface DragAndDropCalendarProps {
-  localizer: any;
+  localizer: typeof localizer;
   events: CalendarEvent[];
   view: View;
   date: Date;
@@ -47,9 +48,21 @@ interface DragAndDropCalendarProps {
   selectable: boolean;
   resizable: boolean;
   popup: boolean;
-  components: any;
-  eventPropGetter: any;
-  messages: any;
+  components: {
+    toolbar: React.ComponentType<ToolbarProps>;
+    event: React.ComponentType<EventProps<CalendarEvent>>;
+  };
+  eventPropGetter: (event: CalendarEvent) => { style: React.CSSProperties };
+  messages: {
+    today: string;
+    previous: string;
+    next: string;
+    month: string;
+    week: string;
+    day: string;
+    agenda: string;
+    showMore: (total: number) => string;
+  };
   min: Date;
   max: Date;
   defaultView: View;
@@ -117,7 +130,7 @@ const CalendarComponent: React.FC = () => {
       cliente_nome: evento.cliente_nome,
       collezione_nome: evento.collezione_nome,
       note: evento.note,
-      color: collezioni.find(c => c.id === evento.collezione_id)?.colore || '#4A90E2'
+      color: collezioni.find(c => c.id === evento.collezione_id)?.colore || '#4A90E2',
     })) as CalendarEvent[];
   }, [eventi, collezioni]);
 
@@ -157,7 +170,7 @@ const CalendarComponent: React.FC = () => {
         data_inizio: start,
         data_fine: end,
         cliente_id: event.cliente_id,
-        collezione_id: event.collezione_id
+        collezione_id: event.collezione_id,
       };
 
       const isValid = await validateEvent(eventData, event.id);
@@ -178,7 +191,7 @@ const CalendarComponent: React.FC = () => {
         data_inizio: start,
         data_fine: end,
         cliente_id: event.cliente_id,
-        collezione_id: event.collezione_id
+        collezione_id: event.collezione_id,
       };
 
       const isValid = await validateEvent(eventData, event.id);
@@ -195,9 +208,9 @@ const CalendarComponent: React.FC = () => {
   const handleSelectSlot = useCallback(async (slotInfo: SlotInfo) => {
     setValidationResults(null);
     
-    const startHour = moment(slotInfo.start).hours();
-    const endHour = moment(slotInfo.end).hours();
-    const startDay = moment(slotInfo.start).day();
+    const startHour = getHours(slotInfo.start);
+    const endHour = getHours(slotInfo.end);
+    const startDay = getDay(slotInfo.start);
     
     if (startHour < 9 || endHour >= 18 || startDay === 0 || startDay === 6) {
       showMessage('Seleziona un orario valido (Lun-Ven, 9:00-18:00)', 'error');
@@ -267,8 +280,8 @@ const CalendarComponent: React.FC = () => {
         'getClienteWorkload',
         { 
           cliente_id: event.cliente_id,
-          start_date: moment(event.start).format('YYYY-MM-DD'),
-          end_date: moment(event.start).format('YYYY-MM-DD')
+          start_date: format(event.start, 'yyyy-MM-dd'),
+          end_date: format(event.start, 'yyyy-MM-dd'),
         }
       );
 
@@ -297,9 +310,16 @@ const CalendarComponent: React.FC = () => {
   const eventStyleGetter = useCallback((event: CalendarEvent) => ({
     style: {
       backgroundColor: event.color,
-      borderColor: event.color
-    }
+      borderColor: event.color,
+    },
   }), []);
+
+  const messageStyles = {
+    error: 'bg-red-100 text-red-800',
+    success: 'bg-green-100 text-green-800',
+    warning: 'bg-yellow-100 text-yellow-800',
+    info: 'bg-blue-100 text-blue-800',
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center p-8 text-gray-600">Caricamento calendario...</div>;
@@ -312,13 +332,7 @@ const CalendarComponent: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {message && (
-        <div className={`
-          fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300
-          ${message.type === 'error' ? 'bg-red-100 text-red-800' :
-            message.type === 'success' ? 'bg-green-100 text-green-800' :
-            message.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-blue-100 text-blue-800'}
-        `}>
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 ${messageStyles[message.type]}`}>
           {message.text}
         </div>
       )}
@@ -329,7 +343,7 @@ const CalendarComponent: React.FC = () => {
         view={view}
         date={date}
         onNavigate={setDate}
-        onView={setView as any}
+        onView={setView}
         onEventDrop={moveEvent}
         onEventResize={resizeEvent}
         onSelectSlot={handleSelectSlot}
@@ -338,7 +352,7 @@ const CalendarComponent: React.FC = () => {
         resizable
         popup
         components={{
-          toolbar: (props) => (
+          toolbar: (props: ToolbarProps) => (
             <CalendarHeader
               {...props}
               view={view}
@@ -365,8 +379,8 @@ const CalendarComponent: React.FC = () => {
           agenda: 'Agenda',
           showMore: (total) => `+ Altri ${total}`,
         }}
-        min={moment().hour(8).minute(0).toDate()}
-        max={moment().hour(19).minute(0).toDate()}
+        min={new Date().setHours(8, 0, 0, 0)}
+        max={new Date().setHours(19, 0, 0, 0)}
         defaultView="week"
         views={['month', 'week', 'day']}
         step={30}
