@@ -4,7 +4,7 @@ import { AlertTriangle, Clock, User, Calendar as CalendarIcon } from 'lucide-rea
 
 interface CalendarEventProps {
   event: {
-    id: string;
+    id: number;
     title: string;
     start: Date;
     end: Date;
@@ -13,7 +13,7 @@ interface CalendarEventProps {
     collezione_nome: string;
     note?: string;
   };
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 interface Warning {
