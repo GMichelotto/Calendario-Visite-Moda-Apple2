@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
+import { View } from 'react-big-calendar';
 import moment from 'moment';
-import { ChevronLeft, ChevronRight, Filter, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { useCollezioni } from '../../hooks/useDatabase';
-
-type ViewType = 'month' | 'week' | 'day';
 
 interface Collezione {
   id: string;
@@ -12,19 +11,21 @@ interface Collezione {
 }
 
 interface CalendarHeaderProps {
-  view: ViewType;
+  view: View;
   date: Date;
-  onViewChange: (view: ViewType) => void;
+  onViewChange: (view: View) => void;
   onNavigate: (date: Date) => void;
   onFilterChange: (collezioniIds: string[]) => void;
   selectedCollezioni?: string[];
-  views?: ViewType[];
+  views?: View[];
 }
 
-const viewNames: Record<ViewType, string> = {
+const viewNames: Record<View, string> = {
   month: 'Mese',
   week: 'Settimana',
   day: 'Giorno',
+  agenda: 'Agenda',
+  work_week: 'Settimana Lavorativa'
 };
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({ 
@@ -74,6 +75,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       case 'month':
         return start.format('MMMM YYYY');
       case 'week':
+      case 'work_week':
         end = moment(date).endOf('week');
         return `${start.format('D')} - ${end.format('D')} ${start.format('MMMM YYYY')}`;
       case 'day':
@@ -118,7 +120,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
         <div className="flex items-center gap-4">
           <div className="flex rounded-lg border border-gray-300 p-0.5 bg-gray-50">
-            {views.map(v => (
+            {views.map((v: View) => (
               <button
                 key={v}
                 onClick={() => onViewChange(v)}
