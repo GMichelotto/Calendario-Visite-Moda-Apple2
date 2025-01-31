@@ -9,7 +9,7 @@ import {
   EventProps,
 } from 'react-big-calendar';
 import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
-import moment from 'moment'; // Importa moment esplicitamente
+import moment from 'moment';
 import { format, getHours, getDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useEventi, useCollezioni } from '../../hooks/useDatabase';
@@ -20,7 +20,7 @@ import './calendar-override.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 
-const localizer = momentLocalizer(moment); // Rimane momentLocalizer per compatibilità con react-big-calendar
+const localizer = momentLocalizer(moment);
 
 interface CalendarEvent extends Event {
   id: number;
@@ -34,8 +34,6 @@ interface CalendarEvent extends Event {
   note?: string;
   color: string;
 }
-
-type ViewType = 'month' | 'week' | 'work_week' | 'day' | 'agenda';
 
 interface DragAndDropCalendarProps {
   localizer: typeof localizer;
@@ -68,8 +66,8 @@ interface DragAndDropCalendarProps {
   };
   min: Date;
   max: Date;
-  defaultView: ViewType; // Modificato
-  views: ViewType[]; // Modificato
+  defaultView: View;
+  views: View[];
   step: number;
   timeslots: number;
 }
@@ -107,7 +105,7 @@ interface EventDetails extends CalendarEvent {
 }
 
 const CalendarComponent: React.FC = () => {
-  const [view, setView] = useState<ViewType>('month'); // Modificato
+  const [view, setView] = useState<View>('week');
   const [date, setDate] = useState<Date>(new Date());
   const { eventi, isLoading, error, updateEvento, createEvento, deleteEvento } = useEventi();
   const { collezioni } = useCollezioni();
@@ -346,7 +344,7 @@ const CalendarComponent: React.FC = () => {
         view={view}
         date={date}
         onNavigate={setDate}
-        onView={setView}
+        onView={setView as any}
         onEventDrop={moveEvent}
         onEventResize={resizeEvent}
         onSelectSlot={handleSelectSlot}
@@ -358,7 +356,7 @@ const CalendarComponent: React.FC = () => {
           toolbar: (props: ToolbarProps) => (
             <CalendarHeader
               {...props}
-              view={view}
+              view={view as View}
               date={date}
               onViewChange={setView}
               onNavigate={setDate}
@@ -382,10 +380,10 @@ const CalendarComponent: React.FC = () => {
           agenda: 'Agenda',
           showMore: (total) => `+ Altri ${total}`,
         }}
-        min={new Date(new Date().setHours(8, 0, 0, 0))} // Corretto
-        max={new Date(new Date().setHours(19, 0, 0, 0))} // Corretto
+        min={new Date(new Date().setHours(8, 0, 0, 0))}
+        max={new Date(new Date().setHours(19, 0, 0, 0))}
         defaultView="week"
-         views={['month', 'week', 'day', 'work_week']} // Aggiunta view mancante
+        views={['month', 'week', 'day', 'work_week']}
         step={30}
         timeslots={2}
       />
