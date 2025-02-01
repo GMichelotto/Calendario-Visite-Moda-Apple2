@@ -151,8 +151,8 @@ const CalendarComponent: React.FC = () => {
     try {
       const eventData = {
         ...event,
-        data_inizio: start,
-        data_fine: end,
+        start, // Usa il nome corretto della proprietà
+        end, // Usa il nome corretto della proprietà
         cliente_id: event.cliente_id,
         collezione_id: event.collezione_id,
       };
@@ -172,8 +172,8 @@ const CalendarComponent: React.FC = () => {
     try {
       const eventData = {
         ...event,
-        data_inizio: start,
-        data_fine: end,
+        start, // Usa il nome corretto della proprietà
+        end, // Usa il nome corretto della proprietà
         cliente_id: event.cliente_id,
         collezione_id: event.collezione_id,
       };
@@ -232,8 +232,8 @@ const CalendarComponent: React.FC = () => {
         ...formData,
         cliente_id: Number(formData.cliente_id), // Converti cliente_id da string a number
         collezione_id: Number(formData.collezione_id), // Converti collezione_id da string a number
-        data_inizio: new Date(formData.data_inizio), // Converti data_inizio da string a Date
-        data_fine: new Date(formData.data_fine), // Converti data_fine da string a Date
+        start: new Date(formData.data_inizio), // Converti data_inizio da string a Date
+        end: new Date(formData.data_fine), // Converti data_fine da string a Date
       };
 
       const isValid = await validateEvent(
