@@ -1,4 +1,3 @@
-// shared/types/calendar.ts
 import { View } from 'react-big-calendar';
 
 export interface CalendarEvent {
@@ -30,6 +29,16 @@ export interface ValidationResult {
   warnings?: string[];
 }
 
+export interface Message {
+  text: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+}
+
+export interface ModalDates {
+  start: Date;
+  end: Date;
+}
+
 export interface EventWorkload {
   total_events: number;
   total_duration: number;
@@ -39,12 +48,8 @@ export interface EventDetails extends CalendarEvent {
   workload: EventWorkload;
 }
 
-export interface Message {
-  text: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-}
-
-export interface ModalDates {
-  start: Date;
-  end: Date;
+export interface Collezione {
+  id: string;
+  nome: string;
+  colore: string;
 }
