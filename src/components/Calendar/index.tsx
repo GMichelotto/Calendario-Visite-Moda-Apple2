@@ -74,6 +74,10 @@ interface EventFormData {
   [key: string]: any;
 }
 
+interface CustomEvent extends Omit<EventDetails, 'cliente_id'> {
+  cliente_id: string;
+}
+
 const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
 
 const CalendarComponent: React.FC = () => {
@@ -81,7 +85,7 @@ const CalendarComponent: React.FC = () => {
   const [date, setDate] = useState<Date>(new Date());
   const { eventi, isLoading, error, updateEvento, createEvento, deleteEvento } = useEventi();
   const { collezioni } = useCollezioni();
-  const [selectedEvent, setSelectedEvent] = useState<EventDetails | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalInitialDates, setModalInitialDates] = useState<ModalDates | null>(null);
   const [validationResults, setValidationResults] = useState<ValidationResult | null>(null);
@@ -226,16 +230,8 @@ const CalendarComponent: React.FC = () => {
     }
   }, [showMessage]);
 
-  const handleSaveEvent = useCallback(async (formData: EventFormData) => {
+  const handleSaveEvent = useCallback(async (eventData: Partial<CalendarEvent>) => {
     try {
-      const eventData: Partial<CalendarEvent> = {
-        ...formData,
-        cliente_id: Number(formData.cliente_id), // Converti cliente_id da string a number
-        collezione_id: Number(formData.collezione_id), // Converti collezione_id da string a number
-        start: new Date(formData.data_inizio), // Converti data_inizio da string a Date
-        end: new Date(formData.data_fine), // Converti data_fine da string a Date
-      };
-
       const isValid = await validateEvent(
         eventData,
         selectedEvent?.id || null
