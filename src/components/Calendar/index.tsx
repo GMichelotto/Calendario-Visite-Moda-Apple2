@@ -24,8 +24,7 @@ import {
   Message,
   ModalDates,
   EventWorkload,
-  EventDetails,
-  EventFormData // Importa EventFormData dal file corretto
+  EventDetails
 } from '@shared/types/calendar';
 
 const localizer = momentLocalizer(moment);
@@ -65,6 +64,14 @@ interface DragAndDropCalendarProps {
   views: View[];
   step: number;
   timeslots: number;
+}
+
+interface EventFormData {
+  cliente_id: string;
+  collezione_id: string;
+  data_inizio: string;
+  data_fine: string;
+  [key: string]: any;
 }
 
 const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
