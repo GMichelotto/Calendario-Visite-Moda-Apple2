@@ -1,4 +1,5 @@
 // shared/types/index.ts
+export * from './calendar';
 
 export interface Cliente {
   id?: number;
