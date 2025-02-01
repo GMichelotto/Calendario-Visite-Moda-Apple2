@@ -151,8 +151,8 @@ const CalendarComponent: React.FC = () => {
     try {
       const eventData = {
         ...event,
-        start, // Usa il nome corretto della proprietà
-        end, // Usa il nome corretto della proprietà
+        start: new Date(start), // Converti start in Date
+        end: new Date(end), // Converti end in Date
         cliente_id: event.cliente_id,
         collezione_id: event.collezione_id,
       };
@@ -172,8 +172,8 @@ const CalendarComponent: React.FC = () => {
     try {
       const eventData = {
         ...event,
-        start, // Usa il nome corretto della proprietà
-        end, // Usa il nome corretto della proprietà
+        start: new Date(start), // Converti start in Date
+        end: new Date(end), // Converti end in Date
         cliente_id: event.cliente_id,
         collezione_id: event.collezione_id,
       };
