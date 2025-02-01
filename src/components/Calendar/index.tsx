@@ -277,7 +277,11 @@ const CalendarComponent: React.FC = () => {
         }
       );
 
-      setSelectedEvent({ ...eventDetails, workload });
+      setSelectedEvent({ 
+        ...eventDetails, 
+        cliente_id: eventDetails.cliente_id.toString(), // Converti cliente_id da number a string
+        workload 
+      });
       setShowModal(true);
     } catch (error) {
       showMessage('Errore nel caricamento dei dettagli evento', 'error');
