@@ -66,6 +66,14 @@ interface DragAndDropCalendarProps {
   timeslots: number;
 }
 
+interface EventFormData {
+  cliente_id: string;
+  collezione_id: string;
+  data_inizio: Date;
+  data_fine: Date;
+  [key: string]: any;
+}
+
 const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
 
 const CalendarComponent: React.FC = () => {
@@ -218,8 +226,14 @@ const CalendarComponent: React.FC = () => {
     }
   }, [showMessage]);
 
-  const handleSaveEvent = useCallback(async (eventData: Partial<CalendarEvent>) => {
+  const handleSaveEvent = useCallback(async (formData: EventFormData) => {
     try {
+      const eventData: Partial<CalendarEvent> = {
+        ...formData,
+        cliente_id: Number(formData.cliente_id), // Converti cliente_id da string a number
+        collezione_id: Number(formData.collezione_id), // Converti collezione_id da string a number
+      };
+
       const isValid = await validateEvent(
         eventData,
         selectedEvent?.id || null
