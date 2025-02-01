@@ -1,24 +1,11 @@
 import React, { useState } from 'react';
 import moment from 'moment';
 import { AlertTriangle, Clock, User, Calendar as CalendarIcon } from 'lucide-react';
+import { CalendarEvent as ICalendarEvent, Warning } from '@shared/types/calendar';
 
 interface CalendarEventProps {
-  event: {
-    id: number;
-    title: string;
-    start: Date;
-    end: Date;
-    color: string;
-    cliente_nome: string;
-    collezione_nome: string;
-    note?: string;
-  };
+  event: ICalendarEvent;
   onDelete: (id: number) => void;
-}
-
-interface Warning {
-  message: string;
-  type: 'info' | 'warning' | 'urgent';
 }
 
 const CalendarEvent: React.FC<CalendarEventProps> = ({ event, onDelete }) => {
