@@ -4,7 +4,6 @@ import {
   momentLocalizer, 
   View, 
   SlotInfo,
-  Event,
   ToolbarProps,
   EventProps,
 } from 'react-big-calendar';
@@ -111,7 +110,7 @@ const CalendarComponent: React.FC = () => {
     setFilteredEvents(newFilteredEvents);
   }, [calendarEvents, selectedCollezioni]);
 
-const validateEvent = useCallback(async (
+  const validateEvent = useCallback(async (
     eventData: Partial<CalendarEvent>,
     excludeEventId: number | null = null
   ): Promise<boolean> => {
@@ -338,6 +337,7 @@ const validateEvent = useCallback(async (
               onNavigate={setDate}
               onFilterChange={setSelectedCollezioni}
               selectedCollezioni={selectedCollezioni}
+              views={['month', 'week', 'day', 'work_week']} // Passa un array di View
             />
           ),
           event: (props) => (
@@ -361,7 +361,7 @@ const validateEvent = useCallback(async (
         min={new Date(new Date().setHours(8, 0, 0, 0))}
         max={new Date(new Date().setHours(19, 0, 0, 0))}
         defaultView="week"
-        views={['month', 'week', 'day', 'work_week']}
+        views={['month', 'week', 'day', 'work_week']} // Passa un array di View
         step={30}
         timeslots={2}
       />
