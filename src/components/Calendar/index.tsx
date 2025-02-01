@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   Calendar as BigCalendar, 
   momentLocalizer, 
@@ -11,7 +11,6 @@ import {
 import withDragAndDrop, { EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import { format, getHours, getDay } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { useEventi, useCollezioni } from '../../hooks/useDatabase';
 import CalendarHeader from './CalendarHeader';
 import CalendarEventComponent from './CalendarEvent';
@@ -72,8 +71,6 @@ interface DragAndDropCalendarProps {
   timeslots: number;
 }
 
-const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
-
 interface ValidationResult {
   isValid: boolean;
   error?: string;
@@ -114,6 +111,8 @@ const CalendarComponent: React.FC = () => {
   const [modalInitialDates, setModalInitialDates] = useState<ModalDates | null>(null);
   const [validationResults, setValidationResults] = useState<ValidationResult | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
+  const [selectedCollezioni, setSelectedCollezioni] = useState<number[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
 
   const showMessage = useCallback((text: string, type: Message['type'] = 'info') => {
     setMessage({ text, type });
@@ -134,6 +133,17 @@ const CalendarComponent: React.FC = () => {
       color: collezioni.find(c => c.id === evento.collezione_id)?.colore || '#4A90E2',
     })) as CalendarEvent[];
   }, [eventi, collezioni]);
+
+  useEffect(() => {
+    const newFilteredEvents = selectedCollezioni.length === 0 
+      ? calendarEvents
+      : calendarEvents.filter(event => selectedCollezioni.includes(event.collezione_id));
+    setFilteredEvents(newFilteredEvents);
+  }, [calendarEvents, selectedCollezioni]);
+
+  const handleFilterChange = (collezioniIds: string[]) => {
+    setSelectedCollezioni(collezioniIds.map(Number));
+  };
 
   const validateEvent = useCallback(async (
     eventData: Partial<CalendarEvent>,
@@ -340,11 +350,11 @@ const CalendarComponent: React.FC = () => {
 
       <DnDCalendar
         localizer={localizer}
-        events={calendarEvents}
+        events={filteredEvents}
         view={view}
         date={date}
         onNavigate={setDate}
-        onView={setView as any}
+        onView={setView}
         onEventDrop={moveEvent}
         onEventResize={resizeEvent}
         onSelectSlot={handleSelectSlot}
@@ -356,10 +366,12 @@ const CalendarComponent: React.FC = () => {
           toolbar: (props: ToolbarProps) => (
             <CalendarHeader
               {...props}
-              view={view as View}
+              view={view}
               date={date}
-              onViewChange={setView}
+              onViewChange={(newView: View) => setView(newView)}
               onNavigate={setDate}
+              onFilterChange={handleFilterChange}
+              selectedCollezioni={selectedCollezioni.map(String)}
             />
           ),
           event: (props) => (
@@ -411,3 +423,4 @@ const CalendarComponent: React.FC = () => {
 
 export { CalendarComponent as Calendar };
 export default CalendarComponent;
+const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
