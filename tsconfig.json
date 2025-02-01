@@ -18,7 +18,7 @@
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"],
-      "@shared/*": ["shared/types/*"],
+      "@shared/*": ["shared/*"],
       "@electron-types/*": ["electron/types/*"],
       "@src-types/*": ["src/services/types/*"]
     },
