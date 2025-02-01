@@ -3,12 +3,7 @@ import { View } from 'react-big-calendar';
 import moment from 'moment';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { useCollezioni } from '../../hooks/useDatabase';
-
-interface Collezione {
-  id: string;
-  nome: string;
-  colore: string;
-}
+import { Collezione } from '@shared/types/calendar';
 
 interface CalendarHeaderProps {
   view: View;
@@ -16,7 +11,7 @@ interface CalendarHeaderProps {
   onViewChange: (view: View) => void;
   onNavigate: (date: Date) => void;
   onFilterChange: (collezioniIds: string[]) => void;
-  selectedCollezioni?: string[];
+  selectedCollezioni: string[];
   views?: View[];
 }
 
@@ -35,7 +30,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onNavigate,
   onFilterChange,
   selectedCollezioni = [],
-  views = ['month', 'week', 'day']
+  views = ['month', 'week', 'day', 'work_week']
 }) => {
   const { collezioni } = useCollezioni();
   const [showFilters, setShowFilters] = useState<boolean>(false);
@@ -45,15 +40,39 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     
     switch (action) {
       case 'PREV':
-        newDate.subtract(1, view);
+        switch (view) {
+          case 'month':
+            newDate.subtract(1, 'month');
+            break;
+          case 'week':
+          case 'work_week':
+            newDate.subtract(1, 'week');
+            break;
+          case 'day':
+            newDate.subtract(1, 'day');
+            break;
+          default:
+            newDate.subtract(1, 'day');
+        }
         break;
       case 'NEXT':
-        newDate.add(1, view);
+        switch (view) {
+          case 'month':
+            newDate.add(1, 'month');
+            break;
+          case 'week':
+          case 'work_week':
+            newDate.add(1, 'week');
+            break;
+          case 'day':
+            newDate.add(1, 'day');
+            break;
+          default:
+            newDate.add(1, 'day');
+        }
         break;
       case 'TODAY':
         return onNavigate(new Date());
-      default:
-        break;
     }
     
     onNavigate(newDate.toDate());
@@ -83,6 +102,14 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       default:
         return start.format('MMMM YYYY');
     }
+  };
+
+  const handleSelectAll = () => {
+    onFilterChange(collezioni.map(c => c.id.toString()));
+  };
+
+  const handleClearFilters = () => {
+    onFilterChange([]);
   };
 
   return (
@@ -120,7 +147,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
         <div className="flex items-center gap-4">
           <div className="flex rounded-lg border border-gray-300 p-0.5 bg-gray-50">
-            {views.map((v: View) => (
+            {views.map((v) => (
               <button
                 key={v}
                 onClick={() => onViewChange(v)}
@@ -164,14 +191,14 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             <h3 className="font-medium text-gray-900">Filtra per collezione</h3>
             <div className="flex gap-2">
               <button 
-                onClick={() => onFilterChange([])}
+                onClick={handleClearFilters}
                 className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
                 disabled={selectedCollezioni.length === 0}
               >
                 Rimuovi filtri
               </button>
               <button 
-                onClick={() => onFilterChange(collezioni.map(c => c.id))}
+                onClick={handleSelectAll}
                 className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
                 disabled={selectedCollezioni.length === collezioni.length}
               >
@@ -187,14 +214,14 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 className={`
                   flex items-center gap-2 p-2 rounded-md border cursor-pointer
                   hover:bg-white transition-colors
-                  ${selectedCollezioni.includes(collezione.id) ? 'bg-white shadow-sm' : ''}
+                  ${selectedCollezioni.includes(collezione.id.toString()) ? 'bg-white shadow-sm' : ''}
                 `}
                 style={{ borderColor: collezione.colore }}
               >
                 <input
                   type="checkbox"
-                  checked={selectedCollezioni.includes(collezione.id)}
-                  onChange={() => handleCollezioneToggle(collezione.id)}
+                  checked={selectedCollezioni.includes(collezione.id.toString())}
+                  onChange={() => handleCollezioneToggle(collezione.id.toString())}
                   className="rounded text-blue-500 focus:ring-blue-500"
                 />
                 <span 
