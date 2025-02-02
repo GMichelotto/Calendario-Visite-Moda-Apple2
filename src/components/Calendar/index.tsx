@@ -114,8 +114,7 @@ const CalendarComponent: React.FC = () => {
         );
     setFilteredEvents(newFilteredEvents);
   }, [calendarEvents, selectedCollezioni]);
-
-  const validateEvent = useCallback(async (
+const validateEvent = useCallback(async (
     eventData: EventValidationRequest,
     excludeEventId?: number
   ): Promise<boolean> => {
@@ -148,11 +147,14 @@ const CalendarComponent: React.FC = () => {
 
   const moveEvent = useCallback(async ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
     try {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      
       const eventData: EventValidationRequest = {
         cliente_id: event.cliente_id.toString(),
         collezione_id: event.collezione_id.toString(),
-        data_inizio: format(start, 'yyyy-MM-dd\'T\'HH:mm:ss'),
-        data_fine: format(end, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        data_inizio: format(startDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        data_fine: format(endDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
         note: event.note
       };
 
@@ -173,11 +175,14 @@ const CalendarComponent: React.FC = () => {
 
   const resizeEvent = useCallback(async ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
     try {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      
       const eventData: EventValidationRequest = {
         cliente_id: event.cliente_id.toString(),
         collezione_id: event.collezione_id.toString(),
-        data_inizio: format(start, 'yyyy-MM-dd\'T\'HH:mm:ss'),
-        data_fine: format(end, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        data_inizio: format(startDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        data_fine: format(endDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
         note: event.note
       };
 
@@ -305,8 +310,7 @@ const CalendarComponent: React.FC = () => {
       console.error('Delete event error:', error);
     }
   }, [deleteEvento, showMessage]);
-
-  const eventStyleGetter = useCallback((event: CalendarEvent) => ({
+const eventStyleGetter = useCallback((event: CalendarEvent) => ({
     style: {
       backgroundColor: event.color,
       borderColor: event.color,
