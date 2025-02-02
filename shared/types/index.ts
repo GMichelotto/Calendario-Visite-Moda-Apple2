@@ -31,14 +31,24 @@ export interface APIResponse<T> {
 export interface ValidationResponse {
   isValid: boolean;
   errors: string[];
-  warnings: string[];  // Aggiunto dal vecchio file
-  duration?: number;   // Aggiunto dal vecchio file
-  checks?: {          // Aggiunto dal vecchio file
-    timeConstraints: boolean;
-    overlap: boolean;
-    clientAvailability: boolean;
-    collectionPeriod: boolean;
-    duration: boolean;
+  warnings: string[];
+  duration?: number;
+  checks: {
+    timeConstraints: boolean | null;
+    overlap: boolean | null;
+    clientAvailability: boolean | null;
+    collectionPeriod: boolean | null;
+    duration: boolean | null;
+  };
+  context?: {
+    clientWorkload?: {
+      num_appuntamenti: number;
+      durata_totale: number;
+    };
+    collectionAvailability?: {
+      slot_start: string;
+      status: string;
+    }[];
   };
 }
 
