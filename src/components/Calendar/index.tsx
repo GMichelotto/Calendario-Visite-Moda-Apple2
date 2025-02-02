@@ -31,7 +31,7 @@ import {
   EventValidationRequest,
   CustomEvent,
   EventFormData
-} from '../../../electron/types';
+} from '@electron/types';
 
 const localizer = momentLocalizer(moment);
 
