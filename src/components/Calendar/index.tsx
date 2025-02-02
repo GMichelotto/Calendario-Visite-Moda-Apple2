@@ -20,7 +20,8 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import {
   CalendarEvent,
   EventValidation,
-  ValidationResult as ValidationResults, // Importa ValidationResults
+  ValidationResult,
+  ValidationResults, // Importa ValidationResults
   Message,
   ModalDates,
   EventWorkload,
@@ -231,16 +232,8 @@ const CalendarComponent: React.FC = () => {
     }
   }, [showMessage]);
 
-  const handleSaveEvent = useCallback(async (formData: EventFormData) => {
+  const handleSaveEvent = useCallback(async (eventData: Partial<CalendarEvent>) => {
     try {
-      const eventData: Partial<CalendarEvent> = {
-        ...formData,
-        cliente_id: Number(formData.cliente_id), // Converti cliente_id da string a number
-        collezione_id: Number(formData.collezione_id), // Converti collezione_id da string a number
-        start: new Date(formData.data_inizio), // Converti data_inizio da string a Date
-        end: new Date(formData.data_fine), // Converti data_fine da string a Date
-      };
-
       const isValid = await validateEvent(
         eventData,
         selectedEvent?.id || null
