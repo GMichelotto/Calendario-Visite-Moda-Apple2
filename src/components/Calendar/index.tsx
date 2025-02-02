@@ -18,13 +18,14 @@ import EventModal from './EventModal';
 import './calendar-override.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+
+// Importazioni dei tipi
 import {
   CalendarEvent,
   Message,
-  ModalDates,
-  EventWorkload,
-  EventDetails
+  ModalDates
 } from '@shared/types/calendar';
+
 import {
   ValidationResponse,
   EventValidationRequest,
@@ -123,6 +124,8 @@ const validateEvent = useCallback(async (
         ...eventData,
         id: excludeEventId
       });
+
+      setValidationResults(validation);
 
       if (!validation.isValid) {
         validation.errors.forEach(error => {
@@ -274,9 +277,7 @@ const validateEvent = useCallback(async (
       const eventData = {
         ...formData,
         cliente_id: Number(formData.cliente_id),
-        collezione_id: Number(formData.collezione_id),
-        data_inizio: formData.data_inizio,
-        data_fine: formData.data_fine
+        collezione_id: Number(formData.collezione_id)
       };
 
       if (selectedEvent) {
