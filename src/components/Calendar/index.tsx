@@ -20,13 +20,17 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import {
   CalendarEvent,
-  EventValidation,
-  ValidationResult as SharedValidationResult,
   Message,
   ModalDates,
   EventWorkload,
   EventDetails
 } from '@shared/types/calendar';
+import {
+  ValidationResponse,
+  EventValidationRequest,
+  CustomEvent,
+  EventFormData
+} from '../../../electron/types';
 
 const localizer = momentLocalizer(moment);
 
@@ -67,25 +71,6 @@ interface DragAndDropCalendarProps {
   timeslots: number;
 }
 
-interface EventFormData {
-  cliente_id: string;
-  collezione_id: string;
-  data_inizio: string;
-  data_fine: string;
-  [key: string]: any;
-}
-
-interface CustomEvent extends Omit<EventDetails, 'cliente_id' | 'collezione_id'> {
-  cliente_id: string;
-  collezione_id: string;
-}
-
-interface ValidationResults extends SharedValidationResult {
-  errors: string[];
-  checks: string[];
-  warnings: string[]; // Assicurati che warnings sia sempre un array di stringhe
-}
-
 const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
 
 const CalendarComponent: React.FC = () => {
@@ -96,7 +81,7 @@ const CalendarComponent: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalInitialDates, setModalInitialDates] = useState<ModalDates | null>(null);
-  const [validationResults, setValidationResults] = useState<ValidationResults | null>(null);
+  const [validationResults, setValidationResults] = useState<ValidationResponse | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [selectedCollezioni, setSelectedCollezioni] = useState<string[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
@@ -108,12 +93,12 @@ const CalendarComponent: React.FC = () => {
 
   const calendarEvents = useMemo(() => {
     return eventi.map(evento => ({
-      id: Number(evento.id),
+      id: evento.id!,
       title: `${evento.cliente_nome} - ${evento.collezione_nome}`,
       start: new Date(evento.data_inizio),
       end: new Date(evento.data_fine),
-      cliente_id: Number(evento.cliente_id),
-      collezione_id: Number(evento.collezione_id),
+      cliente_id: evento.cliente_id,
+      collezione_id: evento.collezione_id,
       cliente_nome: evento.cliente_nome,
       collezione_nome: evento.collezione_nome,
       note: evento.note,
@@ -131,17 +116,19 @@ const CalendarComponent: React.FC = () => {
   }, [calendarEvents, selectedCollezioni]);
 
   const validateEvent = useCallback(async (
-    eventData: Partial<CalendarEvent>,
-    excludeEventId: number | null = null
+    eventData: EventValidationRequest,
+    excludeEventId?: number
   ): Promise<boolean> => {
     try {
-      const validation: ValidationResults = await window.electronAPI.database.operation(
-        'validateEventConstraints',
-        { eventData, excludeEventId } as EventValidation
-      );
+      const validation = await window.electronAPI.eventi.validate({
+        ...eventData,
+        id: excludeEventId
+      });
 
       if (!validation.isValid) {
-        showMessage(validation.error || 'Errore di validazione', 'error');
+        validation.errors.forEach(error => {
+          showMessage(error, 'error');
+        });
         return false;
       }
 
@@ -161,18 +148,22 @@ const CalendarComponent: React.FC = () => {
 
   const moveEvent = useCallback(async ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
     try {
-      const eventData = {
-        ...event,
-        start: new Date(start), // Converti start in Date
-        end: new Date(end), // Converti end in Date
-        cliente_id: event.cliente_id,
-        collezione_id: event.collezione_id,
+      const eventData: EventValidationRequest = {
+        cliente_id: event.cliente_id.toString(),
+        collezione_id: event.collezione_id.toString(),
+        data_inizio: format(start, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        data_fine: format(end, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        note: event.note
       };
 
       const isValid = await validateEvent(eventData, event.id);
       if (!isValid) return;
 
-      await updateEvento(event.id, eventData);
+      await updateEvento(event.id, {
+        ...eventData,
+        cliente_id: Number(eventData.cliente_id),
+        collezione_id: Number(eventData.collezione_id)
+      });
       showMessage('Evento spostato con successo', 'success');
     } catch (error) {
       showMessage('Errore nello spostamento dell\'evento', 'error');
@@ -182,18 +173,22 @@ const CalendarComponent: React.FC = () => {
 
   const resizeEvent = useCallback(async ({ event, start, end }: EventInteractionArgs<CalendarEvent>) => {
     try {
-      const eventData = {
-        ...event,
-        start: new Date(start), // Converti start in Date
-        end: new Date(end), // Converti end in Date
-        cliente_id: event.cliente_id,
-        collezione_id: event.collezione_id,
+      const eventData: EventValidationRequest = {
+        cliente_id: event.cliente_id.toString(),
+        collezione_id: event.collezione_id.toString(),
+        data_inizio: format(start, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        data_fine: format(end, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        note: event.note
       };
 
       const isValid = await validateEvent(eventData, event.id);
       if (!isValid) return;
 
-      await updateEvento(event.id, eventData);
+      await updateEvento(event.id, {
+        ...eventData,
+        cliente_id: Number(eventData.cliente_id),
+        collezione_id: Number(eventData.collezione_id)
+      });
       showMessage('Evento ridimensionato con successo', 'success');
     } catch (error) {
       showMessage('Errore nel ridimensionamento dell\'evento', 'error');
@@ -202,8 +197,6 @@ const CalendarComponent: React.FC = () => {
   }, [updateEvento, validateEvent, showMessage]);
 
   const handleSelectSlot = useCallback(async (slotInfo: SlotInfo) => {
-    setValidationResults(null);
-    
     const startHour = getHours(slotInfo.start);
     const endHour = getHours(slotInfo.end);
     const startDay = getDay(slotInfo.start);
@@ -238,22 +231,48 @@ const CalendarComponent: React.FC = () => {
     }
   }, [showMessage]);
 
-  const handleSaveEvent = useCallback(async (formData: EventFormData) => {
+  const handleSelectEvent = useCallback(async (event: CalendarEvent) => {
     try {
-      const eventData: Partial<CalendarEvent> = {
-        ...formData,
-        cliente_id: Number(formData.cliente_id), // Converti cliente_id da string a number
-        collezione_id: Number(formData.collezione_id), // Converti collezione_id da string a number
-        start: new Date(formData.data_inizio), // Converti data_inizio da string a Date
-        end: new Date(formData.data_fine), // Converti data_fine da string a Date
-      };
-
-      const isValid = await validateEvent(
-        eventData,
-        selectedEvent?.id || null
+      const eventDetails = await window.electronAPI.database.operation(
+        'getEventoById',
+        { id: event.id }
       );
 
+      const workload = await window.electronAPI.database.operation(
+        'getClienteWorkload',
+        { 
+          cliente_id: event.cliente_id,
+          start_date: format(event.start, 'yyyy-MM-dd'),
+          end_date: format(event.end, 'yyyy-MM-dd'),
+        }
+      );
+
+      setSelectedEvent({ 
+        ...eventDetails, 
+        cliente_id: eventDetails.cliente_id.toString(),
+        collezione_id: eventDetails.collezione_id.toString(),
+        start: new Date(eventDetails.data_inizio),
+        end: new Date(eventDetails.data_fine)
+      });
+      setShowModal(true);
+    } catch (error) {
+      showMessage('Errore nel caricamento dei dettagli evento', 'error');
+      console.error('Select event error:', error);
+    }
+  }, [showMessage]);
+
+  const handleSaveEvent = useCallback(async (formData: EventFormData) => {
+    try {
+      const isValid = await validateEvent(formData);
       if (!isValid) return;
+
+      const eventData = {
+        ...formData,
+        cliente_id: Number(formData.cliente_id),
+        collezione_id: Number(formData.collezione_id),
+        data_inizio: formData.data_inizio,
+        data_fine: formData.data_fine
+      };
 
       if (selectedEvent) {
         await updateEvento(selectedEvent.id, eventData);
@@ -272,35 +291,6 @@ const CalendarComponent: React.FC = () => {
       console.error('Save event error:', error);
     }
   }, [createEvento, updateEvento, selectedEvent, showMessage, validateEvent]);
-
-  const handleSelectEvent = useCallback(async (event: CalendarEvent) => {
-    try {
-      const eventDetails = await window.electronAPI.database.operation(
-        'getEventoById',
-        { id: event.id }
-      );
-
-      const workload = await window.electronAPI.database.operation(
-        'getClienteWorkload',
-        { 
-          cliente_id: event.cliente_id,
-          start_date: format(event.start, 'yyyy-MM-dd'),
-          end_date: format(event.start, 'yyyy-MM-dd'),
-        }
-      );
-
-      setSelectedEvent({ 
-        ...eventDetails, 
-        cliente_id: eventDetails.cliente_id.toString(), // Converti cliente_id da number a string
-        collezione_id: eventDetails.collezione_id.toString(), // Converti collezione_id da number a string
-        workload 
-      });
-      setShowModal(true);
-    } catch (error) {
-      showMessage('Errore nel caricamento dei dettagli evento', 'error');
-      console.error('Select event error:', error);
-    }
-  }, [showMessage]);
 
   const handleDeleteEvent = useCallback(async (eventId: number) => {
     if (!window.confirm('Sei sicuro di voler eliminare questo evento?')) {
@@ -366,11 +356,11 @@ const CalendarComponent: React.FC = () => {
               {...props}
               view={view}
               date={date}
-              onViewChange={(newView: View) => setView(newView)}
+              onViewChange={setView}
               onNavigate={setDate}
               onFilterChange={setSelectedCollezioni}
               selectedCollezioni={selectedCollezioni}
-              views={['month', 'week', 'day', 'work_week']} // Passa un array di View
+              views={['month', 'week', 'day', 'work_week']}
             />
           ),
           event: (props) => (
@@ -394,7 +384,7 @@ const CalendarComponent: React.FC = () => {
         min={new Date(new Date().setHours(8, 0, 0, 0))}
         max={new Date(new Date().setHours(19, 0, 0, 0))}
         defaultView="week"
-        views={['month', 'week', 'day', 'work_week']} // Passa un array di View
+        views={['month', 'week', 'day', 'work_week']}
         step={30}
         timeslots={2}
       />
