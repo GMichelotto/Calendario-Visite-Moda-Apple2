@@ -1,4 +1,3 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   Calendar as BigCalendar, 
   momentLocalizer, 
@@ -21,7 +20,7 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import {
   CalendarEvent,
   EventValidation,
-  ValidationResult,
+  ValidationResult as SharedValidationResult,
   Message,
   ModalDates,
   EventWorkload,
@@ -80,7 +79,7 @@ interface CustomEvent extends Omit<EventDetails, 'cliente_id' | 'collezione_id'>
   collezione_id: string;
 }
 
-interface ValidationResults extends ValidationResult {
+interface ValidationResults extends SharedValidationResult {
   errors: string[];
   checks: string[];
 }
