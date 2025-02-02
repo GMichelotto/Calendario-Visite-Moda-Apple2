@@ -83,6 +83,7 @@ interface CustomEvent extends Omit<EventDetails, 'cliente_id' | 'collezione_id'>
 interface ValidationResults extends SharedValidationResult {
   errors: string[];
   checks: string[];
+  warnings: string[]; // Assicurati che warnings sia sempre un array di stringhe
 }
 
 const DnDCalendar = withDragAndDrop(BigCalendar) as React.ComponentType<DragAndDropCalendarProps>;
