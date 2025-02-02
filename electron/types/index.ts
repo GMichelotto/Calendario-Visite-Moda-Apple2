@@ -1,3 +1,9 @@
+import { ValidationResponse } from '../../shared/types';
+
+// Re-export dei tipi condivisi
+export { ValidationResponse };
+
+// Interfacce base
 export interface Cliente {
   id?: number;
   ragione_sociale: string;
@@ -12,7 +18,6 @@ export interface Cliente {
   sito_web?: string;
   note?: string;
   collezioni?: string[];
-  // Campi aggiuntivi dal vecchio file
   appointments_count?: number;
   total_duration?: number;
 }
@@ -38,6 +43,7 @@ export interface Evento {
   collezione_colore?: string;
 }
 
+// Interfacce di risposta e richiesta
 export interface APIResponse<T> {
   success: boolean;
   data?: T;
@@ -51,30 +57,16 @@ export interface ImportResult {
   errors?: string[];
 }
 
-export interface ValidationResponse {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];  // Aggiunto dal vecchio file
-  duration?: number;   // Aggiunto dal vecchio file
-  checks?: {          // Aggiunto dal vecchio file
-    timeConstraints: boolean;
-    overlap: boolean;
-    clientAvailability: boolean;
-    collectionPeriod: boolean;
-    duration: boolean;
-  };
-}
-
 export interface EventValidationRequest {
-  cliente_id: string;  // Cambiato da number a string come nel vecchio file
-  collezione_id: string;  // Cambiato da number a string come nel vecchio file
+  cliente_id: string;
+  collezione_id: string;
   data_inizio: string;
   data_fine: string;
   note?: string;
   id?: number;
 }
 
-export interface CollezioneResponse {  // Aggiunto dal vecchio file
+export interface CollezioneResponse {
   id: number;
   nome: string;
   colore: string;
@@ -82,7 +74,7 @@ export interface CollezioneResponse {  // Aggiunto dal vecchio file
   data_fine: string;
 }
 
-export interface CustomEvent {  // Aggiunto dal vecchio file
+export interface CustomEvent {
   id: number;
   cliente_id: string;
   collezione_id: string;
@@ -91,7 +83,7 @@ export interface CustomEvent {  // Aggiunto dal vecchio file
   note?: string;
 }
 
-export interface EventFormData {  // Aggiunto dal vecchio file
+export interface EventFormData {
   cliente_id: string;
   collezione_id: string;
   data_inizio: string;
@@ -99,6 +91,7 @@ export interface EventFormData {  // Aggiunto dal vecchio file
   note: string;
 }
 
+// Interfacce di utilità
 export interface SlotAvailability {
   start: Date;
   end: Date;
@@ -124,6 +117,7 @@ export interface DashboardStats {
   slotDisponibili: number;
 }
 
+// Interfacce delle operazioni
 export interface DatabaseOperations {
   operation: (operation: string, ...args: any[]) => Promise<any>;
   initialize: () => Promise<void>;
@@ -173,6 +167,7 @@ export interface EventiOperations {
   importFromCalendar: (content: string) => Promise<APIResponse<ImportResult>>;
 }
 
+// Interfaccia principale dell'API Electron
 export interface ElectronAPI {
   database: DatabaseOperations;
   clienti: ClientiOperations;
@@ -180,8 +175,7 @@ export interface ElectronAPI {
   eventi: EventiOperations;
 }
 
-export {};
-
+// Estensione del tipo Window
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
