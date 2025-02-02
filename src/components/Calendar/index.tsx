@@ -20,8 +20,7 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import {
   CalendarEvent,
   EventValidation,
-  ValidationResult,
-  ValidationResults, // Importa ValidationResults
+  ValidationResult, // Usa ValidationResult
   Message,
   ModalDates,
   EventWorkload,
@@ -90,7 +89,7 @@ const CalendarComponent: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalInitialDates, setModalInitialDates] = useState<ModalDates | null>(null);
-  const [validationResults, setValidationResults] = useState<ValidationResults | null>(null);
+  const [validationResults, setValidationResults] = useState<ValidationResult | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [selectedCollezioni, setSelectedCollezioni] = useState<string[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
@@ -129,7 +128,7 @@ const CalendarComponent: React.FC = () => {
     excludeEventId: number | null = null
   ): Promise<boolean> => {
     try {
-      const validation: ValidationResults = await window.electronAPI.database.operation(
+      const validation: ValidationResult = await window.electronAPI.database.operation(
         'validateEventConstraints',
         { eventData, excludeEventId } as EventValidation
       );
