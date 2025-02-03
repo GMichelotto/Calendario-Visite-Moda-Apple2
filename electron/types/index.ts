@@ -1,7 +1,6 @@
-import { ValidationResponse } from '@shared/types';
+import type { ValidationResponse } from '@shared/types';
 
-// Re-export dei tipi condivisi
-export { ValidationResponse };
+export type { ValidationResponse };
 
 // Interfacce base
 export interface Cliente {
