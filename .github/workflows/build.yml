@@ -23,39 +23,6 @@ jobs:
       run: npm install
       shell: bash
       
-    - name: Install TypeScript globally
-      run: npm install -g typescript
-      
-    - name: Create TypeScript config
-      run: |
-        echo '{
-          "compilerOptions": {
-            "target": "ES2020",
-            "module": "commonjs",
-            "sourceMap": true,
-            "outDir": "../build/electron",
-            "rootDir": "./",
-            "strict": true,
-            "moduleResolution": "node",
-            "esModuleInterop": true,
-            "skipLibCheck": true,
-            "forceConsistentCasingInFileNames": true,
-            "types": ["node"],
-            "typeRoots": ["../node_modules/@types"],
-            "baseUrl": "../",
-            "paths": {
-              "@shared/*": ["shared/*"],
-              "@electron/*": ["electron/*"]
-            }
-          },
-          "include": [
-            "./**/*",
-            "../shared/**/*"
-          ],
-          "exclude": ["node_modules"]
-        }' > electron/tsconfig.json
-      shell: bash
-        
     - name: Build TypeScript
       run: npm run build:electron
         
@@ -91,6 +58,7 @@ jobs:
         path: |
           dist/*.dmg
           dist/mac-universal/*.dmg
+          
     - name: Clean up artifacts
       run: |
         rm -rf dist
