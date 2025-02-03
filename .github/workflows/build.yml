@@ -1,4 +1,4 @@
-name: Build Electron App
+name: Build
 
 on:
   push:
@@ -8,90 +8,65 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Clean install dependencies
-      run: |
-        rm -rf node_modules
-        rm -f package-lock.json
-        npm install --no-package-lock
-      shell: bash
-      
-    - name: Install TypeScript globally
-      run: npm install -g typescript
-      
-    - name: Create TypeScript config
-      run: |
-        echo '{
-          "compilerOptions": {
-            "target": "ES2020",
-            "module": "commonjs",
-            "sourceMap": true,
-            "outDir": "../build/electron",
-            "rootDir": "./",
-            "strict": true,
-            "moduleResolution": "node",
-            "esModuleInterop": true,
-            "skipLibCheck": true,
-            "forceConsistentCasingInFileNames": true,
-            "types": ["node"],
-            "typeRoots": ["../node_modules/@types"]
-          },
-          "include": ["./**/*"],
-          "exclude": ["node_modules"]
-        }' > electron/tsconfig.json
-      shell: bash
-        
-    - name: Build TypeScript
-      run: npm run build:electron
-        
-    - name: Build React app
-      run: npm run build
-      env:
-        CI: false
-        
-    - name: Build Electron app
-      run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          npm run electron:build:win
-        else
-          npm run electron:build:mac
-        fi
-      shell: bash
-      env:
-        CI: false
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-    - name: Upload Windows artifacts
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-app
-        path: dist/*.exe
-        
-    - name: Upload macOS artifacts
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos-app
-        path: |
-          dist/*.dmg
-          dist/mac-universal/*.dmg
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+        node-version: [18.x]
 
-    - name: Clean up artifacts
-      run: |
-        rm -rf dist
-        rm -rf build
-      shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create tsconfig for electron
+        run: |
+          echo '{
+            "compilerOptions": {
+              "target": "ES2021",
+              "module": "commonjs",
+              "lib": ["dom", "es2021"],
+              "declaration": true,
+              "declarationMap": true,
+              "sourceMap": true,
+              "outDir": "./dist/electron",
+              "rootDir": "./",
+              "strict": true,
+              "allowJs": true,
+              "esModuleInterop": true,
+              "skipLibCheck": true,
+              "forceConsistentCasingInFileNames": true,
+              "moduleResolution": "node",
+              "resolveJsonModule": true,
+              "baseUrl": "./",
+              "paths": {
+                "@shared/*": ["shared/*"],
+                "@electron/*": ["electron/*"]
+              }
+            },
+            "include": [
+              "electron/**/*",
+              "shared/**/*"
+            ],
+            "exclude": [
+              "node_modules",
+              "dist"
+            ]
+          }' > electron/tsconfig.json
+
+      - name: Build Electron
+        run: npm run build:electron
+
+      - name: Build React
+        run: npm run build
+
+      - name: Build App
+        run: npm run electron:build
