@@ -1,32 +1,6 @@
-// shared/types/index.ts
-export * from './calendar';
+import { CalendarEvent, Message, ModalDates, EventWorkload, EventDetails, Warning, EventValidation, ValidationResult, Collezione } from './calendar';
 
-export interface Cliente {
-  id?: number;
-  ragione_sociale: string;
-  indirizzo?: string;
-  cap?: string;
-  citta?: string;
-  provincia?: string;
-  regione?: string;
-  telefono?: string;
-  cellulare?: string;
-  email?: string;
-  sito_web?: string;
-  note?: string;
-  collezioni?: string[];
-  // Campi aggiuntivi dal vecchio file
-  appointments_count?: number;
-  total_duration?: number;
-}
-
-export interface APIResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-  errors?: string[];
-}
+export { CalendarEvent, Message, ModalDates, EventWorkload, EventDetails, Warning, EventValidation, ValidationResult, Collezione };
 
 export interface ValidationResponse {
   isValid: boolean;
@@ -53,24 +27,30 @@ export interface ValidationResponse {
 }
 
 export interface EventValidationRequest {
-  cliente_id: string;  // Cambiato da number a string come nel vecchio file
-  collezione_id: string;  // Cambiato da number a string come nel vecchio file
+  cliente_id: string;
+  collezione_id: string;
   data_inizio: string;
   data_fine: string;
   note?: string;
   id?: number;
 }
 
-export interface CollezioneResponse {  // Aggiunto dal vecchio file
-  id: number;
-  nome: string;
-  colore: string;
-  data_inizio: string;
-  data_fine: string;
-}
-
-export interface Collezione extends CollezioneResponse {
+export interface Cliente {
+  id?: number;
+  ragione_sociale: string;
+  indirizzo?: string;
+  cap?: string;
+  citta?: string;
+  provincia?: string;
+  regione?: string;
+  telefono?: string;
+  cellulare?: string;
+  email?: string;
+  sito_web?: string;
   note?: string;
+  collezioni?: string[];
+  appointments_count?: number;
+  total_duration?: number;
 }
 
 export interface Evento {
@@ -85,7 +65,15 @@ export interface Evento {
   collezione_colore?: string;
 }
 
-export interface CustomEvent {  // Aggiunto dal vecchio file
+export interface CollezioneResponse {
+  id: number;
+  nome: string;
+  colore: string;
+  data_inizio: string;
+  data_fine: string;
+}
+
+export interface CustomEvent {
   id: number;
   cliente_id: string;
   collezione_id: string;
@@ -94,12 +82,20 @@ export interface CustomEvent {  // Aggiunto dal vecchio file
   note?: string;
 }
 
-export interface EventFormData {  // Aggiunto dal vecchio file
+export interface EventFormData {
   cliente_id: string;
   collezione_id: string;
   data_inizio: string;
   data_fine: string;
   note: string;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+  errors?: string[];
 }
 
 export interface ImportResult {
@@ -186,13 +182,4 @@ export interface ElectronAPI {
   clienti: ClientiOperations;
   collezioni: CollezioniOperations;
   eventi: EventiOperations;
-}
-
-export {};
-
-declare global {
-  interface Window {
-    electronAPI: ElectronAPI;
-    isDev: boolean;
-  }
 }
