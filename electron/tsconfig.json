@@ -1,32 +1,22 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2021",
-    "module": "commonjs",
-    "lib": ["dom", "es2021"],
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "outDir": "../build/electron",
-    "rootDir": "..",
-    "strict": true,
-    "allowJs": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "baseUrl": "..",
+    "rootDir": "../",
+    "baseUrl": "../",
+    "noEmit": false,
     "paths": {
       "@shared/*": ["shared/*"],
       "@electron/*": ["electron/*"]
     }
   },
   "include": [
-    "**/*",
+    "./**/*",
     "../shared/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "dist"
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**"
   ]
 }
