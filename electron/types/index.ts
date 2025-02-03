@@ -1,4 +1,4 @@
-import { ValidationResponse } from '../../shared/types';
+import { ValidationResponse } from '@shared/types';
 
 // Re-export dei tipi condivisi
 export { ValidationResponse };
