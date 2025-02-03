@@ -15,19 +15,15 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "outDir": "build/electron",
+    "outDir": "./build",
     "paths": {
-      "*": ["node_modules/*"],
       "@shared/*": ["shared/*"],
-      "@electron-types/*": ["electron/types/*"],
-      "@src-types/*": ["src/services/types/*"]
+      "@electron/*": ["electron/*"],
+      "@src/*": ["src/*"]
     },
     "types": ["node", "electron"],
     "typeRoots": [
-      "./node_modules/@types",
-      "./electron/types",
-      "./shared/types",
-      "./src/services/types"
+      "./node_modules/@types"
     ],
     "rootDir": "."
   },
@@ -39,7 +35,6 @@
   "exclude": [
     "node_modules",
     "build",
-    "dist",
-    "electron/node_modules"
+    "dist"
   ]
 }
