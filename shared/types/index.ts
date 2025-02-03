@@ -1,6 +1,26 @@
-import { CalendarEvent, Message, ModalDates, EventWorkload, EventDetails, Warning, EventValidation, ValidationResult, Collezione } from './calendar';
+import type { 
+  CalendarEvent, 
+  Message, 
+  ModalDates, 
+  EventWorkload, 
+  EventDetails, 
+  Warning, 
+  EventValidation, 
+  ValidationResult, 
+  Collezione 
+} from './calendar';
 
-export { CalendarEvent, Message, ModalDates, EventWorkload, EventDetails, Warning, EventValidation, ValidationResult, Collezione };
+export type {
+  CalendarEvent,
+  Message,
+  ModalDates,
+  EventWorkload,
+  EventDetails,
+  Warning,
+  EventValidation,
+  ValidationResult,
+  Collezione
+};
 
 export interface ValidationResponse {
   isValid: boolean;
