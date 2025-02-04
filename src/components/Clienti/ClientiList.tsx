@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useClienti } from '../../hooks/useDatabase';
-import { Cliente } from '../../types/database';
+import type { Cliente } from '@shared/types';
 import './ClientiList.css';
 
 interface ClientiListProps {
