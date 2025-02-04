@@ -13,6 +13,11 @@ interface SortConfig {
   direction: 'asc' | 'desc';
 }
 
+// Estensione dell'interfaccia Cliente per includere collezioni_nomi
+interface ClienteWithNomi extends Cliente {
+  collezioni_nomi?: string;
+}
+
 const ClientiList: React.FC<ClientiListProps> = ({ onEdit, onDelete }) => {
   const { clienti, isLoading, error } = useClienti();
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -106,7 +111,7 @@ const ClientiList: React.FC<ClientiListProps> = ({ onEdit, onDelete }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedClienti.map(cliente => (
+            {filteredAndSortedClienti.map((cliente: ClienteWithNomi) => (
               <tr key={cliente.id}>
                 <td>{cliente.ragione_sociale}</td>
                 <td>{cliente.citta}</td>
@@ -114,7 +119,7 @@ const ClientiList: React.FC<ClientiListProps> = ({ onEdit, onDelete }) => {
                 <td>
                   {cliente.collezioni_nomi ? (
                     <div className="collezioni-chips">
-                      {cliente.collezioni_nomi.split(',').map((collezione, index) => (
+                      {cliente.collezioni_nomi.split(',').map((collezione: string, index: number) => (
                         <span key={index} className="collezione-chip">
                           {collezione.trim()}
                         </span>
