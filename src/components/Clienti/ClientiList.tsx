@@ -144,26 +144,27 @@ const ClientiList: React.FC<ClientiListProps> = ({ onEdit, onDelete }) => {
                   </div>
                 </td>
                 <td>
-                  <div className="action-buttons">
-                    <button
-                      onClick={() => onEdit(cliente)}
-                      className="edit-button"
-                      title="Modifica cliente"
-                    >
-                      ✏️
-                  <button
-                    onClick={() => {
-                      if (cliente.id !== undefined && window.confirm('Sei sicuro di voler eliminare questo cliente?')) {
-                          onDelete(cliente.id);
-    }
-  }}
-                  className="delete-button"
-                  title="Elimina cliente"
+  <div className="action-buttons">
+    <button
+      onClick={() => onEdit(cliente)}
+      className="edit-button"
+      title="Modifica cliente"
     >
-  🗑️
-</button>
-                  </div>
-                </td>
+      ✏️
+    </button>
+    <button
+      onClick={() => {
+        if (cliente.id !== undefined && window.confirm('Sei sicuro di voler eliminare questo cliente?')) {
+          onDelete(cliente.id);
+        }
+      }}
+      className="delete-button"
+      title="Elimina cliente"
+    >
+      🗑️
+    </button>
+  </div>
+</td>
               </tr>
             ))}
           </tbody>
