@@ -22,7 +22,7 @@ interface FormData {
   cellulare: string;
   email: string;
   sito_web: string;
-  collezioni_ids: number[];
+  collezioni: string[];
 }
 
 interface FormErrors {
@@ -46,7 +46,7 @@ const initialFormData: FormData = {
   cellulare: '',
   email: '',
   sito_web: '',
-  collezioni_ids: []
+  collezioni: []
 };
 
 const ClienteForm: React.FC<ClienteFormProps> = ({ 
@@ -72,9 +72,7 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
         cellulare: cliente.cellulare || '',
         email: cliente.email || '',
         sito_web: cliente.sito_web || '',
-        collezioni_ids: cliente.collezioni_ids 
-          ? cliente.collezioni_ids.split(',').map(Number).filter(id => !isNaN(id))
-          : []
+        collezioni: cliente.collezioni || []
       });
     }
   }, [cliente]);
@@ -122,8 +120,7 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
         provincia: formData.provincia.toUpperCase(),
         cap: formData.cap.trim(),
         telefono: formData.telefono.trim(),
-        cellulare: formData.cellulare.trim(),
-        collezioni_ids: formData.collezioni_ids.join(',')
+        cellulare: formData.cellulare.trim()
       };
       onSubmit(submitData);
     }
@@ -140,9 +137,9 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
   const handleCollezioniChange = (collezioneId: number) => {
     setFormData(prev => ({
       ...prev,
-      collezioni_ids: prev.collezioni_ids.includes(collezioneId)
-        ? prev.collezioni_ids.filter(id => id !== collezioneId)
-        : [...prev.collezioni_ids, collezioneId]
+      collezioni: prev.collezioni.includes(collezioneId.toString())
+        ? prev.collezioni.filter(id => id !== collezioneId.toString())
+        : [...prev.collezioni, collezioneId.toString()]
     }));
   };
 
@@ -337,7 +334,7 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
                 <label key={collezione.id} className="collezione-checkbox">
                   <input
                     type="checkbox"
-                    checked={formData.collezioni_ids.includes(collezione.id)}
+                    checked={formData.collezioni.includes(collezione.id.toString())}
                     onChange={() => handleCollezioniChange(collezione.id)}
                     disabled={isLoading}
                   />
