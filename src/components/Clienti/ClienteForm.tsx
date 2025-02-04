@@ -1,7 +1,7 @@
 // src/components/Clienti/ClienteForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useCollezioni } from '../../hooks/useDatabase';
-import { Cliente, Collezione } from '../../types/database';
+import type { Cliente, Collezione } from '@shared/types';
 import './ClienteForm.css';
 
 interface ClienteFormProps {
