@@ -3,7 +3,7 @@ import {
   Search, Plus, Filter, Download, Upload,
   ChevronDown
 } from 'lucide-react';
-import type { Cliente } from '../../types/database';
+import type { Cliente } from '@shared/types';
 
 const ClientiPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState<boolean>(false);
