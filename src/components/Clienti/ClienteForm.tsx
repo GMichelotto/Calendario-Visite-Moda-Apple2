@@ -22,7 +22,7 @@ interface FormData {
   cellulare: string;
   email: string;
   sito_web: string;
-  collezioni: string[];
+  collezioni: string[];  // Array di stringhe per gli ID delle collezioni
 }
 
 interface FormErrors {
@@ -134,12 +134,12 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
     }));
   };
 
-  const handleCollezioniChange = (collezioneId: number) => {
+  const handleCollezioniChange = (collezioneId: string) => {
     setFormData(prev => ({
       ...prev,
-      collezioni: prev.collezioni.includes(collezioneId.toString())
-        ? prev.collezioni.filter(id => id !== collezioneId.toString())
-        : [...prev.collezioni, collezioneId.toString()]
+      collezioni: prev.collezioni.includes(collezioneId)
+        ? prev.collezioni.filter(id => id !== collezioneId)
+        : [...prev.collezioni, collezioneId]
     }));
   };
 
@@ -334,7 +334,7 @@ const ClienteForm: React.FC<ClienteFormProps> = ({
                 <label key={collezione.id} className="collezione-checkbox">
                   <input
                     type="checkbox"
-                    checked={formData.collezioni.includes(collezione.id.toString())}
+                    checked={formData.collezioni.includes(collezione.id)}
                     onChange={() => handleCollezioniChange(collezione.id)}
                     disabled={isLoading}
                   />
