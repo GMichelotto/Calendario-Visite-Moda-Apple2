@@ -1,38 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Cliente, Collezione, Evento, APIResponse, ValidationResponse } from '../types/database';
+import { Cliente, Collezione, Evento, APIResponse } from '../types/database';
 
-// Definizione dei tipi di ritorno per gli hooks
-interface UseClientiReturn {
+interface UseDatabaseReturn {
   clienti: Cliente[];
+  collezioni: Collezione[];
+  eventi: Evento[];
   isLoading: boolean;
   error: string | null;
   createCliente: (clienteData: Omit<Cliente, 'id'>) => Promise<Cliente | null>;
   updateCliente: (id: number, clienteData: Partial<Cliente>) => Promise<Cliente | null>;
   deleteCliente: (id: number) => Promise<void | null>;
-  refreshClienti: () => Promise<void>;
-}
-
-interface UseCollezioniReturn {
-  collezioni: Collezione[];
-  isLoading: boolean;
-  error: string | null;
   createCollezione: (collezioneData: Omit<Collezione, 'id'>) => Promise<Collezione | null>;
   updateCollezione: (id: number, collezioneData: Partial<Collezione>) => Promise<Collezione | null>;
   deleteCollezione: (id: number) => Promise<void | null>;
-  refreshCollezioni: () => Promise<void>;
-}
-
-interface UseEventiReturn {
-  eventi: Evento[];
-  isLoading: boolean;
-  error: string | null;
   createEvento: (eventoData: Omit<Evento, 'id'>) => Promise<Evento | null>;
   updateEvento: (id: number, eventoData: Partial<Evento>) => Promise<Evento | null>;
   deleteEvento: (id: number) => Promise<void | null>;
-  refreshEventi: () => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
-// Hook generico per gestire loading e errori
 const useAsyncOperation = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,132 +40,121 @@ const useAsyncOperation = () => {
   return { isLoading, error, execute };
 };
 
-// Hook per gestire i clienti
-export const useClienti = (): UseClientiReturn => {
+export const useDatabase = (): UseDatabaseReturn => {
   const [clienti, setClienti] = useState<Cliente[]>([]);
+  const [collezioni, setCollezioni] = useState<Collezione[]>([]);
+  const [eventi, setEventi] = useState<Evento[]>([]);
   const { isLoading, error, execute } = useAsyncOperation();
 
-  const fetchClienti = useCallback(async () => {
-    const result = await execute<APIResponse<Cliente[]>>(async () => {
-      const response = await window.electronAPI.clienti.getAll();
-      if (!response.success) throw new Error(response.error);
-      return response;
-    });
-    if (result?.data) setClienti(result.data);
+  const fetchData = useCallback(async () => {
+    const [clientiResult, collezioniResult, eventiResult] = await Promise.all([
+      execute<APIResponse<Cliente[]>>(window.electronAPI.clienti.getAll),
+      execute<APIResponse<Collezione[]>>(window.electronAPI.collezioni.getAll),
+      execute<APIResponse<Evento[]>>(window.electronAPI.eventi.getAll),
+    ]);
+
+    if (clientiResult?.data) setClienti(clientiResult.data);
+    if (collezioniResult?.data) setCollezioni(collezioniResult.data);
+    if (eventiResult?.data) setEventi(eventiResult.data);
   }, [execute]);
 
   const createCliente = useCallback(async (clienteData: Omit<Cliente, 'id'>) => {
     return await execute(async () => {
       const response = await window.electronAPI.clienti.create(clienteData);
       if (!response.success) throw new Error(response.error);
-      await fetchClienti();
+      await fetchData();
       return response.data;
     });
-  }, [execute, fetchClienti]);
+  }, [execute, fetchData]);
 
   const updateCliente = useCallback(async (id: number, clienteData: Partial<Cliente>) => {
     return await execute(async () => {
       const response = await window.electronAPI.clienti.update(id, clienteData);
       if (!response.success) throw new Error(response.error);
-      await fetchClienti();
+      await fetchData();
       return response.data;
     });
-  }, [execute, fetchClienti]);
+  }, [execute, fetchData]);
 
   const deleteCliente = useCallback(async (id: number) => {
     return await execute(async () => {
       const response = await window.electronAPI.clienti.delete(id);
       if (!response.success) throw new Error(response.error);
-      await fetchClienti();
-      return response.data;
+      await fetchData();
     });
-  }, [execute, fetchClienti]);
-
-  useEffect(() => {
-    fetchClienti();
-  }, [fetchClienti]);
-
-  return {
-    clienti,
-    isLoading,
-    error,
-    createCliente,
-    updateCliente,
-    deleteCliente,
-    refreshClienti: fetchClienti
-  };
-};
-
-// Hook per gestire le collezioni
-export const useCollezioni = (): UseCollezioniReturn => {
-  const [collezioni, setCollezioni] = useState<Collezione[]>([]);
-  const { isLoading, error, execute } = useAsyncOperation();
-
-  const fetchCollezioni = useCallback(async () => {
-    const result = await execute<APIResponse<Collezione[]>>(async () => {
-      const response = await window.electronAPI.collezioni.getAll();
-      if (!response.success) throw new Error(response.error);
-      return response;
-    });
-    if (result?.data) setCollezioni(result.data);
-  }, [execute]);
+  }, [execute, fetchData]);
 
   const createCollezione = useCallback(async (collezioneData: Omit<Collezione, 'id'>) => {
     return await execute(async () => {
       const response = await window.electronAPI.collezioni.create(collezioneData);
       if (!response.success) throw new Error(response.error);
-      await fetchCollezioni();
+      await fetchData();
       return response.data;
     });
-  }, [execute, fetchCollezioni]);
+  }, [execute, fetchData]);
 
   const updateCollezione = useCallback(async (id: number, collezioneData: Partial<Collezione>) => {
     return await execute(async () => {
       const response = await window.electronAPI.collezioni.update(id, collezioneData);
       if (!response.success) throw new Error(response.error);
-      await fetchCollezioni();
+      await fetchData();
       return response.data;
     });
-  }, [execute, fetchCollezioni]);
+  }, [execute, fetchData]);
 
   const deleteCollezione = useCallback(async (id: number) => {
     return await execute(async () => {
       const response = await window.electronAPI.collezioni.delete(id);
       if (!response.success) throw new Error(response.error);
-      await fetchCollezioni();
+      await fetchData();
+    });
+  }, [execute, fetchData]);
+
+  const createEvento = useCallback(async (eventoData: Omit<Evento, 'id'>) => {
+    return await execute(async () => {
+      const response = await window.electronAPI.eventi.create(eventoData);
+      if (!response.success) throw new Error(response.error);
+      await fetchData();
       return response.data;
     });
-  }, [execute, fetchCollezioni]);
+  }, [execute, fetchData]);
+
+  const updateEvento = useCallback(async (id: number, eventoData: Partial<Evento>) => {
+    return await execute(async () => {
+      const response = await window.electronAPI.eventi.update(id, eventoData);
+      if (!response.success) throw new Error(response.error);
+      await fetchData();
+      return response.data;
+    });
+  }, [execute, fetchData]);
+
+  const deleteEvento = useCallback(async (id: number) => {
+    return await execute(async () => {
+      const response = await window.electronAPI.eventi.delete(id);
+      if (!response.success) throw new Error(response.error);
+      await fetchData();
+    });
+  }, [execute, fetchData]);
 
   useEffect(() => {
-    fetchCollezioni();
-  }, [fetchCollezioni]);
+    fetchData();
+  }, [fetchData]);
 
   return {
+    clienti,
     collezioni,
-    isLoading,
-    error,
-    createCollezione,
-    updateCollezione,
-    deleteCollezione,
-    refreshCollezioni: fetchCollezioni
-  };
-};
-
-// Hook per gestire gli eventi
-export const useEventi = (): UseEventiReturn => {
-  const [eventi, setEventi] = useState<Evento[]>([]);
-  const { isLoading, error, execute } = useAsyncOperation();
-
-  // ... implementazione uguale agli altri hook ...
-
-  return {
     eventi,
     isLoading,
     error,
+    createCliente,
+    updateCliente,
+    deleteCliente,
+    createCollezione,
+    updateCollezione,
+    deleteCollezione,
     createEvento,
     updateEvento,
     deleteEvento,
-    refreshEventi: fetchEventi
+    refreshData: fetchData,
   };
 };
