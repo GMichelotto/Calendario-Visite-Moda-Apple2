@@ -4,10 +4,10 @@ import {
   ChevronDown
 } from 'lucide-react';
 import type { Cliente } from '@shared/types';
-import { useClienti } from '../../hooks/useDatabase';
+import { useDatabase } from '../../hooks/useDatabase';
 
 const ClientiPage: React.FC = () => {
-  const { clienti, isLoading, error } = useClienti();
+  const { clienti, isLoading, error } = useDatabase();
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -17,11 +17,11 @@ const ClientiPage: React.FC = () => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
     
-    const filtered = clienti.filter(cliente => 
-      cliente.ragione_sociale.toLowerCase().includes(term) ||
-      (cliente.citta?.toLowerCase() || '').includes(term) ||
-      (cliente.provincia?.toLowerCase() || '').includes(term)
-    );
+    const filtered = clienti?.filter(cliente => 
+  cliente.ragione_sociale.toLowerCase().includes(term) ||
+  (cliente.citta?.toLowerCase() || '').includes(term) ||
+  (cliente.provincia?.toLowerCase() || '').includes(term)
+) || [];
     setFilteredClienti(filtered);
   };
 
@@ -107,14 +107,45 @@ const ClientiPage: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredClienti.map((cliente) => (
-                <tr key={cliente.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {cliente.ragione_sociale}
-                    </div>
-                  </td>
+           <tbody className="bg-white divide-y divide-gray-200">
+  {filteredClienti?.map((cliente) => (
+    <tr key={cliente.id} className="hover:bg-gray-50">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm font-medium text-gray-900">
+          {cliente.ragione_sociale}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">
+          {cliente.citta} ({cliente.provincia})
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex flex-wrap gap-2">
+          {cliente.collezioni?.map((collezione, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
+              {collezione}
+            </span>
+          ))}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <button className="text-blue-600 hover:text-blue-900">
+          Modifica
+        </button>
+      </td>
+    </tr>
+  )) ?? (
+    <tr>
+      <td colSpan={4} className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+        Nessun cliente trovato
+      </td>
+    </tr>
+  )}
+</tbody>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       {cliente.citta} ({cliente.provincia})
