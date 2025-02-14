@@ -1,32 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Search, Plus, Filter, Download, Upload,
   ChevronDown
 } from 'lucide-react';
 import type { Cliente } from '@shared/types';
+import { useClienti } from '../../hooks/useDatabase';
 
 const ClientiPage: React.FC = () => {
+  const { clienti, isLoading, error } = useClienti();
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [clienti, setClienti] = useState<Cliente[]>([]);
   const [filteredClienti, setFilteredClienti] = useState<Cliente[]>([]);
 
-  useEffect(() => {
-    const loadClienti = async () => {
-      try {
-        const result = await window.electronAPI.database.operation('getClienti');
-        setClienti(result);
-        setFilteredClienti(result);
-      } catch (error) {
-        console.error('Errore nel caricamento clienti:', error);
-      }
-    };
-
-    loadClienti();
-  }, []);
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
     
@@ -37,6 +24,7 @@ const ClientiPage: React.FC = () => {
     );
     setFilteredClienti(filtered);
   };
+
 
   return (
     <div className="min-h-screen bg-gray-100">
