@@ -1,6 +1,6 @@
 import { BaseService } from './BaseServices';
 import { AppError, ErrorCode } from '../../types/errors';
-import { Cliente, Collezione, Evento, ClienteCollezione } from '../../types/database';
+import type { Cliente, Collezione, Evento, ClienteCollezione } from '@shared/types';
 import Logger from '../../utils/logger';
 
 interface DatabaseOperationResult<T> {
